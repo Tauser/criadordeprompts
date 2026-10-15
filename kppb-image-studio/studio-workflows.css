@@ -1,0 +1,22 @@
+.engine-main { margin-top: 12px; }
+.engine-advanced { margin: 14px 0; border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+.engine-advanced > summary, .engine-text-settings > summary { cursor: pointer; color: var(--ink); font-weight: 600; }
+.engine-advanced[open] > summary, .engine-text-settings[open] > summary { margin-bottom: 14px; }
+.engine-toggle { display: flex; gap: 9px; align-items: center; margin: 12px 0; font-size: 13px; color: var(--ink); }
+.engine-toggle input { width: 16px; height: 16px; margin: 0; flex: 0 0 16px; }
+.engine-text-settings { margin: 12px 0; }
+.engine-unavailable { opacity: .6; }
+#refinedPreview { margin-top: 14px; }
+#refinedPromptPreview { min-height: 160px; font-size: 12px; }
+.image-comparison { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+.image-comparison summary { cursor: pointer; color: var(--cyan); }
+.comparison-frame { position: relative; aspect-ratio: 1; background: var(--bg); overflow: hidden; margin: 12px 0; border-radius: 10px; }
+.comparison-frame img { position: absolute; width: 100%; height: 100%; inset: 0; object-fit: contain; margin: 0; border: 0; border-radius: 0; }
+.comparison-before { z-index: 1; }
+.image-comparison input[type="range"] { width: 100%; accent-color: var(--cyan); padding: 0; margin: 10px 0; }
+.generation-progress { margin: 12px 0 18px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; }
+.progress-heading { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+.progress-heading strong { color: var(--cyan); }
+.generation-progress progress { display: block; width: 100%; height: 12px; margin: 12px 0 8px; accent-color: var(--cyan); }
+.generation-progress .hint { margin: 0; }
+@media (max-width: 540px) { .engine-main, .engine-advanced .grid { grid-template-columns: 1fr; } }

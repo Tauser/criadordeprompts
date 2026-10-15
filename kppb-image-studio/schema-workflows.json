@@ -1,0 +1,701 @@
+{
+  "KSampler": {
+    "input": {
+      "required": {
+        "model": [
+          "MODEL",
+          {
+            "tooltip": "The model used for denoising the input latent."
+          }
+        ],
+        "seed": [
+          "INT",
+          {
+            "default": 0,
+            "min": 0,
+            "max": 18446744073709551615,
+            "control_after_generate": true,
+            "tooltip": "The random seed used for creating the noise."
+          }
+        ],
+        "steps": [
+          "INT",
+          {
+            "default": 20,
+            "min": 1,
+            "max": 10000,
+            "tooltip": "The number of steps used in the denoising process."
+          }
+        ],
+        "cfg": [
+          "FLOAT",
+          {
+            "default": 8.0,
+            "min": 0.0,
+            "max": 100.0,
+            "step": 0.1,
+            "round": 0.01,
+            "tooltip": "The Classifier-Free Guidance scale balances creativity and adherence to the prompt. Higher values result in images more closely matching the prompt however too high values will negatively impact quality."
+          }
+        ],
+        "sampler_name": [
+          [
+            "euler",
+            "euler_cfg_pp",
+            "euler_ancestral",
+            "euler_ancestral_cfg_pp",
+            "heun",
+            "heunpp2",
+            "exp_heun_2_x0",
+            "exp_heun_2_x0_sde",
+            "dpm_2",
+            "dpm_2_ancestral",
+            "lms",
+            "dpm_fast",
+            "dpm_adaptive",
+            "dpmpp_2s_ancestral",
+            "dpmpp_2s_ancestral_cfg_pp",
+            "dpmpp_sde",
+            "dpmpp_sde_gpu",
+            "dpmpp_2m",
+            "dpmpp_2m_cfg_pp",
+            "dpmpp_2m_sde",
+            "dpmpp_2m_sde_gpu",
+            "dpmpp_2m_sde_heun",
+            "dpmpp_2m_sde_heun_gpu",
+            "dpmpp_3m_sde",
+            "dpmpp_3m_sde_gpu",
+            "ddpm",
+            "lcm",
+            "ipndm",
+            "ipndm_v",
+            "deis",
+            "cfgpp_ud10_ab",
+            "res_multistep",
+            "res_multistep_cfg_pp",
+            "res_multistep_ancestral",
+            "res_multistep_ancestral_cfg_pp",
+            "gradient_estimation",
+            "gradient_estimation_cfg_pp",
+            "er_sde",
+            "seeds_2",
+            "seeds_3",
+            "sa_solver",
+            "sa_solver_pece",
+            "ddim",
+            "uni_pc",
+            "uni_pc_bh2"
+          ],
+          {
+            "tooltip": "The algorithm used when sampling, this can affect the quality, speed, and style of the generated output."
+          }
+        ],
+        "scheduler": [
+          [
+            "simple",
+            "sgm_uniform",
+            "karras",
+            "exponential",
+            "ddim_uniform",
+            "beta",
+            "normal",
+            "linear_quadratic",
+            "kl_optimal"
+          ],
+          {
+            "tooltip": "The scheduler controls how noise is gradually removed to form the image."
+          }
+        ],
+        "positive": [
+          "CONDITIONING",
+          {
+            "tooltip": "The conditioning describing the attributes you want to include in the image."
+          }
+        ],
+        "negative": [
+          "CONDITIONING",
+          {
+            "tooltip": "The conditioning describing the attributes you want to exclude from the image."
+          }
+        ],
+        "latent_image": [
+          "LATENT",
+          {
+            "tooltip": "The latent image to denoise."
+          }
+        ],
+        "denoise": [
+          "FLOAT",
+          {
+            "default": 1.0,
+            "min": 0.0,
+            "max": 1.0,
+            "step": 0.01,
+            "tooltip": "The amount of denoising applied, lower values will maintain the structure of the initial image allowing for image to image sampling."
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "model",
+        "seed",
+        "steps",
+        "cfg",
+        "sampler_name",
+        "scheduler",
+        "positive",
+        "negative",
+        "latent_image",
+        "denoise"
+      ]
+    },
+    "is_input_list": false,
+    "output": [
+      "LATENT"
+    ],
+    "output_is_list": [
+      false
+    ],
+    "output_name": [
+      "LATENT"
+    ],
+    "name": "KSampler",
+    "display_name": "KSampler",
+    "description": "Uses the provided model, positive and negative conditioning to denoise the latent image.",
+    "python_module": "nodes",
+    "category": "model/sampling",
+    "output_node": false,
+    "has_intermediate_output": false,
+    "output_tooltips": [
+      "The denoised latent."
+    ],
+    "search_aliases": [
+      "sampler",
+      "sample",
+      "generate",
+      "denoise",
+      "diffuse",
+      "txt2img",
+      "img2img"
+    ]
+  },
+  "QwenImage21Cache": {
+    "input": {
+      "required": {
+        "model": [
+          "MODEL",
+          {}
+        ],
+        "device": [
+          "COMBO",
+          {
+            "tooltip": "auto uses spare VRAM, then RAM. cpu (RAM) is prefetched behind compute and costs little speed. off recomputes the prefix every step, which is slower but is the one way to rule the cache out.",
+            "default": "auto",
+            "multiselect": false,
+            "options": [
+              "auto",
+              "gpu",
+              "cpu",
+              "off"
+            ]
+          }
+        ],
+        "dtype": [
+          "COMBO",
+          {
+            "tooltip": "Storage precision. default is lossless. int8 halves the cache at about bf16 accuracy, int4 quarters it but roughly doubles the per-step error.",
+            "default": "default",
+            "multiselect": false,
+            "options": [
+              "default",
+              "int8",
+              "int4"
+            ]
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "model",
+        "device",
+        "dtype"
+      ]
+    },
+    "is_input_list": false,
+    "output": [
+      "MODEL"
+    ],
+    "output_is_list": [
+      false
+    ],
+    "output_name": [
+      "MODEL"
+    ],
+    "output_tooltips": [
+      null
+    ],
+    "output_matchtypes": null,
+    "name": "QwenImage21Cache",
+    "display_name": "Qwen Image 2.1 Cache",
+    "description": "Allows setting the KV cache device and quantization, by default the model uses the auto -option. Quantization potentially speeds up edit workflows when memory starved ",
+    "python_module": "comfy_extras.nodes_qwen",
+    "category": "model/conditioning/qwen image",
+    "output_node": false,
+    "deprecated": false,
+    "experimental": true,
+    "dev_only": false,
+    "api_node": false,
+    "price_badge": null,
+    "search_aliases": null,
+    "essentials_category": null,
+    "has_intermediate_output": false
+  },
+  "SaveImageAdvanced": {
+    "input": {
+      "required": {
+        "images": [
+          "IMAGE",
+          {
+            "tooltip": "The images to save."
+          }
+        ],
+        "filename_prefix": [
+          "STRING",
+          {
+            "tooltip": "The prefix for the file to save. May include formatting tokens such as %date:yyyy-MM-dd% or %Empty Latent Image.width%.",
+            "default": "ComfyUI",
+            "multiline": false
+          }
+        ],
+        "format": [
+          "COMFY_DYNAMICCOMBO_V3",
+          {
+            "tooltip": "The file format in which to save the image.",
+            "options": [
+              {
+                "key": "png",
+                "inputs": {
+                  "required": {
+                    "bit_depth": [
+                      "COMBO",
+                      {
+                        "advanced": true,
+                        "default": "8-bit",
+                        "multiselect": false,
+                        "options": [
+                          "8-bit",
+                          "16-bit"
+                        ]
+                      }
+                    ],
+                    "input_color_space": [
+                      "COMBO",
+                      {
+                        "advanced": true,
+                        "default": "sRGB",
+                        "multiselect": false,
+                        "options": [
+                          "sRGB"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "key": "exr",
+                "inputs": {
+                  "required": {
+                    "bit_depth": [
+                      "COMBO",
+                      {
+                        "advanced": true,
+                        "default": "16-bit float",
+                        "multiselect": false,
+                        "options": [
+                          "32-bit float",
+                          "16-bit float"
+                        ]
+                      }
+                    ],
+                    "input_color_space": [
+                      "COMBO",
+                      {
+                        "tooltip": "Colorspace of the input tensor. The EXR is always written as scene-linear in the matching gamut.\nsRGB — input is sRGB-encoded Rec.709; the inverse sRGB EOTF is applied.\nHDR — input is HLG-encoded Rec.2020 (BT.2100); the inverse HLG OETF is applied to get scene-linear light.\nlinear — input is already scene-linear (Rec.709 primaries); written through unchanged. Use this for renderer/compositor output.",
+                        "advanced": true,
+                        "default": "sRGB",
+                        "multiselect": false,
+                        "options": [
+                          "sRGB",
+                          "HDR",
+                          "linear"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "key": "avif",
+                "inputs": {
+                  "required": {
+                    "bit_depth": [
+                      "COMBO",
+                      {
+                        "tooltip": "Auto uses 8-bit YUV420 for sRGB and 10-bit YUV420 for HDR.",
+                        "advanced": true,
+                        "default": "auto",
+                        "multiselect": false,
+                        "options": [
+                          "auto",
+                          "8-bit YUV420",
+                          "10-bit YUV420"
+                        ]
+                      }
+                    ],
+                    "input_color_space": [
+                      "COMBO",
+                      {
+                        "tooltip": "Colorspace of the input images. HDR selects BT.2020/HLG and HDR PQ selects BT.2020/PQ.",
+                        "advanced": true,
+                        "default": "sRGB",
+                        "multiselect": false,
+                        "options": [
+                          "sRGB",
+                          "HDR",
+                          "HDR PQ"
+                        ]
+                      }
+                    ],
+                    "crf": [
+                      "INT",
+                      {
+                        "tooltip": "Lower values produce higher quality and larger files.",
+                        "advanced": true,
+                        "default": 18,
+                        "min": 1,
+                        "max": 63
+                      }
+                    ],
+                    "save_mode": [
+                      "COMFY_DYNAMICCOMBO_V3",
+                      {
+                        "display_name": "save mode",
+                        "options": [
+                          {
+                            "key": "still images",
+                            "inputs": {
+                              "required": {}
+                            }
+                          },
+                          {
+                            "key": "animated",
+                            "inputs": {
+                              "required": {
+                                "fps": [
+                                  "FLOAT",
+                                  {
+                                    "default": 6.0,
+                                    "min": 0.01,
+                                    "max": 1000.0,
+                                    "step": 0.01
+                                  }
+                                ],
+                                "loop_count": [
+                                  "INT",
+                                  {
+                                    "tooltip": "Number of times to loop the animation. 0 loops forever.",
+                                    "advanced": true,
+                                    "default": 0,
+                                    "min": 0,
+                                    "max": 1000
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "hidden": {
+        "prompt": [
+          "PROMPT"
+        ],
+        "extra_pnginfo": [
+          "EXTRA_PNGINFO"
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "images",
+        "filename_prefix",
+        "format"
+      ],
+      "hidden": [
+        "prompt",
+        "extra_pnginfo"
+      ]
+    },
+    "is_input_list": false,
+    "output": [
+      "IMAGE"
+    ],
+    "output_is_list": [
+      false
+    ],
+    "output_name": [
+      "images"
+    ],
+    "output_tooltips": [
+      null
+    ],
+    "output_matchtypes": null,
+    "name": "SaveImageAdvanced",
+    "display_name": "Save Image (Advanced)",
+    "description": "Saves the input images to your ComfyUI output directory.",
+    "python_module": "comfy_extras.nodes_images",
+    "category": "image",
+    "output_node": true,
+    "deprecated": false,
+    "experimental": false,
+    "dev_only": false,
+    "api_node": false,
+    "price_badge": null,
+    "search_aliases": [
+      "save",
+      "save image",
+      "export image",
+      "output image",
+      "write image"
+    ],
+    "essentials_category": "Basics",
+    "has_intermediate_output": false
+  },
+  "TextGenerate": {
+    "input": {
+      "required": {
+        "clip": [
+          "CLIP",
+          {}
+        ],
+        "prompt": [
+          "STRING",
+          {
+            "default": "",
+            "multiline": true,
+            "dynamicPrompts": true
+          }
+        ],
+        "max_length": [
+          "INT",
+          {
+            "default": 512,
+            "min": 1,
+            "max": 32768
+          }
+        ],
+        "sampling_mode": [
+          "COMFY_DYNAMICCOMBO_V3",
+          {
+            "display_name": "Sampling Mode",
+            "options": [
+              {
+                "key": "on",
+                "inputs": {
+                  "required": {
+                    "temperature": [
+                      "FLOAT",
+                      {
+                        "default": 0.7,
+                        "min": 0.01,
+                        "max": 2.0,
+                        "step": 1e-06
+                      }
+                    ],
+                    "top_k": [
+                      "INT",
+                      {
+                        "default": 64,
+                        "min": 0,
+                        "max": 1000
+                      }
+                    ],
+                    "top_p": [
+                      "FLOAT",
+                      {
+                        "default": 0.95,
+                        "min": 0.0,
+                        "max": 1.0,
+                        "step": 0.01
+                      }
+                    ],
+                    "min_p": [
+                      "FLOAT",
+                      {
+                        "default": 0.05,
+                        "min": 0.0,
+                        "max": 1.0,
+                        "step": 0.01
+                      }
+                    ],
+                    "repetition_penalty": [
+                      "FLOAT",
+                      {
+                        "default": 1.05,
+                        "min": 0.0,
+                        "max": 5.0,
+                        "step": 0.01
+                      }
+                    ],
+                    "seed": [
+                      "INT",
+                      {
+                        "default": 0,
+                        "min": 0,
+                        "max": 18446744073709551615
+                      }
+                    ]
+                  },
+                  "optional": {
+                    "presence_penalty": [
+                      "FLOAT",
+                      {
+                        "default": 0.0,
+                        "min": 0.0,
+                        "max": 5.0,
+                        "step": 0.01
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "key": "off",
+                "inputs": {
+                  "required": {}
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "optional": {
+        "image": [
+          "IMAGE",
+          {}
+        ],
+        "video": [
+          "IMAGE",
+          {
+            "tooltip": "Video frames as image batch. Assumed to be 24 FPS; subsampled to 1 FPS internally."
+          }
+        ],
+        "audio": [
+          "AUDIO",
+          {}
+        ],
+        "thinking": [
+          "BOOLEAN",
+          {
+            "tooltip": "Operate in thinking mode if the model supports it.",
+            "default": false
+          }
+        ],
+        "use_default_template": [
+          "BOOLEAN",
+          {
+            "tooltip": "Use the built in system prompt/template if the model has one.",
+            "advanced": true,
+            "default": true
+          }
+        ],
+        "mtp": [
+          "COMBO",
+          {
+            "tooltip": "Speculative decoding with the checkpoint's multi-token-prediction head. No effect without MTP weights. auto adapts the draft depth; 2-5 pins it. Sampled output stays correctly distributed but differs from non-MTP output for the same seed.",
+            "default": "auto",
+            "multiselect": false,
+            "options": [
+              "auto",
+              "off",
+              "2",
+              "3",
+              "4",
+              "5"
+            ]
+          }
+        ],
+        "system_prompt": [
+          "STRING",
+          {
+            "tooltip": "Replaces the system prompt in the model's chat template. Ignored when the default template is not used.",
+            "forceInput": true,
+            "multiline": false
+          }
+        ]
+      }
+    },
+    "input_order": {
+      "required": [
+        "clip",
+        "prompt",
+        "max_length",
+        "sampling_mode"
+      ],
+      "optional": [
+        "image",
+        "video",
+        "audio",
+        "thinking",
+        "use_default_template",
+        "mtp",
+        "system_prompt"
+      ]
+    },
+    "is_input_list": false,
+    "output": [
+      "STRING",
+      "STRING"
+    ],
+    "output_is_list": [
+      false,
+      false
+    ],
+    "output_name": [
+      "generated_text",
+      "thinking"
+    ],
+    "output_tooltips": [
+      null,
+      null
+    ],
+    "output_matchtypes": null,
+    "name": "TextGenerate",
+    "display_name": "Generate Text",
+    "description": "",
+    "python_module": "comfy_extras.nodes_textgen",
+    "category": "text",
+    "output_node": false,
+    "deprecated": false,
+    "experimental": false,
+    "dev_only": false,
+    "api_node": false,
+    "price_badge": null,
+    "search_aliases": [
+      "LLM",
+      "gemma"
+    ],
+    "essentials_category": null,
+    "has_intermediate_output": false
+  }
+}

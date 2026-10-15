@@ -1,0 +1,22 @@
+# Somente código e configuração da aplicação.
+*
+!.gitignore
+!.gitattributes
+!requirements.txt
+!instalar.ps1
+!kppb-image-studio/
+!kppb-image-studio/*.html
+!kppb-image-studio/*.js
+!kppb-image-studio/*.css
+!kppb-image-studio/*.py
+!kppb-image-studio/*.cjs
+!kppb-image-studio/*.ps1
+!kppb-image-studio/schema-workflows.json
+!gerador-prompts/
+!gerador-prompts/index.html
+!workflows/
+!workflows/presets-api/
+!workflows/presets-api/editor-qwen21-completo-studio.json
+!workflows/presets-api/editor-qwen21-turbo-oficial.json
+!scripts/
+!scripts/reforcar_aprimorador_studio.py

@@ -1,0 +1,3082 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0b1019" />
+    <title>KPPB Image Studio 5.3.2 • Qwen Image 2.1</title>
+    <link rel="stylesheet" href="studio-workflows.css" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #090d14;
+        --paper: #111822;
+        --surface: #151e2c;
+        --raised: #1a2636;
+        --line: #293647;
+        --ink: #edf3fc;
+        --muted: #9dadc1;
+        --dim: #697c92;
+        --violet: #a49cff;
+        --cyan: #75ded3;
+        --amber: #f0ca86;
+        --red: #ef9b9b;
+        --radius: 16px;
+        font-family:
+          Inter, ui-sans-serif, "Segoe UI", system-ui, Arial, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          radial-gradient(850px 450px at 2% -180px, #6254b433, transparent),
+          radial-gradient(650px 390px at 105% 130px, #257a8030, transparent),
+          var(--bg);
+        min-height: 100vh;
+        font-size: 13px;
+      }
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+      button {
+        cursor: pointer;
+        transition:
+          background 0.13s ease,
+          border-color 0.13s ease,
+          transform 0.13s ease;
+      }
+      button:active {
+        transform: scale(0.985);
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible,
+      textarea:focus-visible {
+        outline: 2px solid var(--violet);
+        outline-offset: 2px;
+      }
+      button:not(:disabled):hover {
+        filter: brightness(1.12);
+      }
+      .hidden {
+        display: none !important;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .small {
+        font-size: 11px;
+      }
+      .tiny {
+        font-size: 10px;
+      }
+      .brandbar {
+        min-height: 78px;
+        border-bottom: 1px solid #273342;
+        padding: 15px max(22px, calc((100vw - 1590px) / 2));
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        flex-wrap: wrap;
+        background: #0e1420a6;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .monogram {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        background: linear-gradient(140deg, #b0a0ff, #596fcb);
+        box-shadow: 0 12px 30px #6769d939;
+        display: grid;
+        place-items: center;
+        font-weight: 950;
+        font-size: 23px;
+        letter-spacing: -2px;
+      }
+      .brand h1 {
+        font-size: 17px;
+        margin: 0;
+        letter-spacing: -0.7px;
+      }
+      .brand small {
+        display: block;
+        font-size: 10px;
+        color: var(--muted);
+        margin-top: 4px;
+        letter-spacing: 0.7px;
+      }
+      .brandbar-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .status-pill {
+        font-size: 11px;
+        border: 1px solid #345c61;
+        color: #9dede4;
+        background: #142b30;
+        padding: 7px 11px;
+        border-radius: 50px;
+        white-space: nowrap;
+      }
+      .btn {
+        background: #1b2636;
+        border: 1px solid #35445a;
+        border-radius: 10px;
+        color: var(--ink);
+        font-weight: 700;
+        font-size: 12px;
+        padding: 10px 13px;
+      }
+      .btn.primary {
+        background: linear-gradient(125deg, #837ce8, #6966d1);
+        border-color: #9290ec;
+        color: white;
+      }
+      .btn.ghost {
+        background: transparent;
+      }
+      .btn.tinybtn {
+        font-size: 11px;
+        padding: 7px 10px;
+      }
+      .btn.alert {
+        color: #ffd3d3;
+        border-color: #65424f;
+        background: #30232b;
+      }
+      .hero {
+        max-width: 1590px;
+        margin: auto;
+        padding: 27px 22px 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .eyebrow {
+        color: var(--cyan);
+        letter-spacing: 2.1px;
+        font-size: 10px;
+        text-transform: uppercase;
+        font-weight: 800;
+      }
+      .hero h2 {
+        font-size: clamp(24px, 3.3vw, 35px);
+        letter-spacing: -1.3px;
+        margin: 8px 0;
+      }
+      .hero p {
+        font-size: 12px;
+        line-height: 1.6;
+        max-width: 760px;
+        color: var(--muted);
+        margin: 0;
+      }
+      .model-chip {
+        padding: 10px 13px;
+        background: #171f2c;
+        border: 1px solid #384657;
+        border-radius: 10px;
+        font-size: 11px;
+        color: #c3cfe4;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(350px, 545px) minmax(450px, 1fr);
+        gap: 19px;
+        align-items: start;
+        max-width: 1590px;
+        padding: 7px 22px 50px;
+        margin: auto;
+      }
+      .panel {
+        background: linear-gradient(145deg, #151d29, #111822);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        box-shadow: 0 15px 55px #0003;
+        overflow: hidden;
+      }
+      .panelhead {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        border-bottom: 1px solid #293545;
+        padding: 17px 19px;
+      }
+      .panelhead b {
+        font-size: 13px;
+      }
+      .panelbody {
+        padding: 19px;
+      }
+      .modes {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .mode {
+        padding: 14px 11px;
+        background: #182130;
+        border: 1px solid #344153;
+        border-radius: 12px;
+        text-align: left;
+        color: var(--muted);
+        font-weight: 800;
+      }
+      .mode span {
+        display: block;
+        margin-top: 4px;
+        font-size: 10px;
+        font-weight: 450;
+        line-height: 1.4;
+      }
+      .mode.active {
+        border-color: #857fe2;
+        background: #242b4f;
+        color: #f8f8ff;
+        box-shadow: inset 0 0 0 1px #827ad23d;
+      }
+      .section {
+        border-top: 1px solid #293445;
+        margin-top: 20px;
+        padding-top: 20px;
+      }
+      .secthead {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 13px;
+      }
+      .secthead h3 {
+        margin: 0;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1.05px;
+        color: #dae5f8;
+      }
+      .hint {
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 1.6;
+      }
+      .grid {
+        display: grid;
+        gap: 12px;
+      }
+      .grid.two {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      }
+      .grid.three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .field {
+        min-width: 0;
+        display: grid;
+        gap: 6px;
+      }
+      .field label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #c1cee2;
+      }
+      .field input,
+      .field select,
+      .field textarea {
+        width: 100%;
+        border: 1px solid #344259;
+        background: #0d1520;
+        color: var(--ink);
+        padding: 11px 11px;
+        border-radius: 9px;
+        font-size: 12px;
+        outline: none;
+        line-height: 1.45;
+      }
+      .field input:focus,
+      .field select:focus,
+      .field textarea:focus {
+        border-color: #878be9;
+      }
+      .field textarea {
+        min-height: 71px;
+        resize: vertical;
+      }
+      .field select optgroup {
+        font-weight: 800;
+        color: #d6d0ff;
+        background: #172335;
+      }
+      .field select option {
+        font-weight: 450;
+        color: #edf3fc;
+        background: #101925;
+      }
+      .field input::placeholder,
+      .field textarea::placeholder {
+        color: #66788e;
+      }
+      .tagline {
+        font-size: 10px;
+        color: var(--dim);
+        line-height: 1.5;
+      }
+      .checkline {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11px;
+        color: #c6d0e3;
+        line-height: 1.5;
+      }
+      .checkline input {
+        accent-color: #8583df;
+      }
+      .style-options {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 7px;
+      }
+      .style {
+        background: #141f2d;
+        border: 1px solid #324156;
+        border-radius: 11px;
+        padding: 13px 5px;
+        color: #b5c4d8;
+        font-weight: 700;
+        font-size: 12px;
+      }
+      .style.active {
+        background: #29324d;
+        border-color: #8985e7;
+        color: white;
+      }
+      .style .symbol {
+        display: block;
+        font-size: 20px;
+        margin-bottom: 5px;
+      }
+      .choices {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+      .choice {
+        border: 1px solid #36475a;
+        border-radius: 9px;
+        background: #172231;
+        padding: 9px 10px;
+        color: #b4c2d6;
+        font-size: 11px;
+        font-weight: 650;
+      }
+      .choice.active {
+        background: #223d45;
+        color: #adfff0;
+        border-color: #4c938c;
+      }
+      .chip {
+        font-size: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border: 1px solid #445a67;
+        border-radius: 99px;
+        padding: 4px 9px;
+        color: #9eeadf;
+        background: #173137;
+      }
+      .tip {
+        background: #162536;
+        border: 1px solid #34506b;
+        border-radius: 10px;
+        color: #b8d0e8;
+        padding: 11px 13px;
+        font-size: 11px;
+        line-height: 1.6;
+      }
+      .warning {
+        border-color: #655033 !important;
+        background: #2e281d !important;
+        color: #f5dcb1 !important;
+      }
+      .wrapbox {
+        background: #101925;
+        border: 1px dashed #486078;
+        border-radius: 13px;
+        padding: 14px;
+        text-align: center;
+      }
+      .filebtn {
+        display: block;
+        width: 100%;
+        background: #1b2b3b;
+        border: 1px dashed #536c88;
+        border-radius: 10px;
+        padding: 18px 10px;
+        color: #d4e5fa;
+        font-size: 12px;
+        font-weight: 750;
+        cursor: pointer;
+      }
+      .filebtn:hover {
+        background: #233850;
+      }
+      .refgrid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 9px;
+        margin-top: 12px;
+      }
+      .refcard {
+        background: #0f1723;
+        border: 1px solid #334153;
+        border-radius: 11px;
+        overflow: hidden;
+        min-width: 0;
+      }
+      .refimage {
+        height: 106px;
+        position: relative;
+        background: #1d2a39;
+      }
+      .refimage img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      .refimage .n {
+        position: absolute;
+        left: 7px;
+        top: 7px;
+        background: #111827d9;
+        border: 1px solid #5b7289;
+        border-radius: 7px;
+        padding: 4px 7px;
+        font-size: 10px;
+      }
+      .refmeta {
+        padding: 9px;
+        display: grid;
+        gap: 7px;
+      }
+      .filename {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 10px;
+        color: #c5d3e9;
+      }
+      .refmeta select {
+        width: 100%;
+        background: #131f2d;
+        color: #e3eaf7;
+        border: 1px solid #405269;
+        border-radius: 6px;
+        padding: 7px;
+        font-size: 10px;
+      }
+      .ref-actions {
+        display: flex;
+        gap: 5px;
+      }
+      .ref-actions button {
+        flex: 1;
+        color: #bcd0e6;
+        background: #203042;
+        border: 1px solid #34475c;
+        border-radius: 6px;
+        font-size: 10px;
+        padding: 6px;
+      }
+      .toggles {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 9px;
+      }
+      .toggle {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        background: #182435;
+        border: 1px solid #35445a;
+        border-radius: 9px;
+        padding: 11px 9px;
+        font-size: 11px;
+        color: #bcc9dd;
+        cursor: pointer;
+      }
+      .toggle input {
+        accent-color: #8f8df2;
+      }
+      .toggle:has(input:checked) {
+        background: #222e49;
+        border-color: #6974ba;
+        color: #fff;
+      }
+      .keyval {
+        font-size: 10px;
+        color: var(--muted);
+      }
+      .outputside {
+        position: sticky;
+        top: 12px;
+      }
+      .languagebar {
+        display: flex;
+        gap: 7px;
+      }
+      .lang {
+        border: 1px solid transparent;
+        border-bottom: 2px solid transparent;
+        color: #99abc0;
+        padding: 10px 11px;
+        background: transparent;
+        font-weight: 800;
+        font-size: 12px;
+      }
+      .lang.active {
+        color: white;
+        border-bottom-color: #9790fd;
+      }
+      .outputs {
+        min-height: 340px;
+      }
+      .out {
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: 12px;
+        line-height: 1.72;
+        white-space: pre-wrap;
+        width: 100%;
+        min-height: 360px;
+        background: #09121d;
+        border: 1px solid #35445b;
+        color: #cce4fa;
+        border-radius: 12px;
+        padding: 16px;
+        resize: vertical;
+        outline: none;
+      }
+      .toolrow {
+        display: flex;
+        gap: 7px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-top: 12px;
+      }
+      .label-right {
+        margin-left: auto;
+        font-size: 10px;
+        color: var(--muted);
+      }
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 16px;
+      }
+      .sum {
+        background: #172231;
+        border: 1px solid #304056;
+        border-radius: 10px;
+        padding: 12px 10px;
+      }
+      .sum strong {
+        display: block;
+        font-size: 13px;
+      }
+      .sum span {
+        display: block;
+        font-size: 10px;
+        margin-top: 5px;
+        color: var(--muted);
+      }
+      .notes {
+        display: grid;
+        gap: 8px;
+        margin-top: 15px;
+      }
+      .note {
+        background: #2e281d;
+        border: 1px solid #5c4b34;
+        border-radius: 8px;
+        color: #eacfa2;
+        padding: 10px 12px;
+        font-size: 11px;
+        line-height: 1.6;
+      }
+      .note.ok {
+        background: #15272b;
+        border-color: #345e60;
+        color: #a3ebe6;
+      }
+      .tips {
+        margin-top: 18px;
+        padding: 17px;
+        background: #111b29;
+        border: 1px solid #2d3c51;
+        border-radius: 14px;
+        color: #acbbd1;
+        font-size: 11px;
+        line-height: 1.65;
+      }
+      .tips b {
+        color: #e1eafa;
+      }
+      .tips a {
+        color: #b9b3ff;
+      }
+      .toast {
+        position: fixed;
+        bottom: 19px;
+        right: 19px;
+        background: #274139;
+        border: 1px solid #588d7c;
+        box-shadow: 0 10px 40px #0007;
+        color: #eafff4;
+        border-radius: 10px;
+        padding: 12px 16px;
+        z-index: 20;
+        font-size: 12px;
+      }
+      .footer {
+        font-size: 10px;
+        line-height: 1.7;
+        color: #8192a9;
+        max-width: 1590px;
+        margin: 0 auto;
+        padding: 0 22px 25px;
+      }
+      .mini-toggle {
+        display: inline-flex;
+        gap: 7px;
+        align-items: center;
+        color: #aebbd0;
+        font-size: 10px;
+      }
+      .mini-toggle input {
+        accent-color: #8986f8;
+      }
+      .noedit {
+        font-size: 11px;
+        color: var(--muted);
+      }
+      @media (max-width: 1080px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .outputside {
+          position: static;
+        }
+        .outputs {
+          min-height: 0;
+        }
+      }
+      @media (max-width: 610px) {
+        .brandbar {
+          padding: 14px;
+        }
+        .brandbar-right {
+          width: 100%;
+        }
+        .hero {
+          padding: 20px 14px 12px;
+        }
+        .layout {
+          padding: 6px 10px 26px;
+          gap: 11px;
+        }
+        .panelbody {
+          padding: 14px;
+        }
+        .grid.two,
+        .grid.three {
+          grid-template-columns: 1fr;
+        }
+        .style-options {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .summary {
+          gap: 5px;
+        }
+        .sum {
+          padding: 9px 6px;
+        }
+        .modes {
+          gap: 6px;
+        }
+        .refgrid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .out {
+          min-height: 290px;
+        }
+        .toggles {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      .outputs label {
+        display: block;
+        margin-bottom: 5px;
+      }
+      #generationResults img {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-height: 620px;
+        object-fit: contain;
+        background: #09121d;
+        border: 1px solid #344259;
+        border-radius: 12px;
+      }
+      #generationResults a {
+        color: var(--cyan);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="brandbar">
+      <div class="brand">
+        <div class="monogram">K</div>
+        <div>
+          <h1>
+            KPPB
+            <span style="color: #bcb8fa; font-weight: 500">Image Studio</span>
+            <span style="font-size: 10px; color: #b4bfd1">v5.3.2</span>
+          </h1>
+          <small>QWEN-IMAGE 2.1 · PROMPT EM INGLÊS</small>
+        </div>
+      </div>
+      <div class="brandbar-right">
+        <span class="status-pill">● Local / offline</span
+        ><button class="btn tinybtn" id="importTop">↥ Importar KPPB</button
+        ><button class="btn tinybtn" id="exportPack">↧ Exportar pack</button>
+      </div>
+    </header>
+    <div class="hero">
+      <div>
+        <div class="eyebrow">Geração · Edição · Referências</div>
+        <h2>Configure a cena. Preserve o personagem.</h2>
+        <p>
+          Geração e edição com
+          <b>lingerie, poses sensuais, figurino e estudo artístico de figura</b>
+          para personagens fictícios adultos. Agora com
+          <b>lógica reforçada para troca de pose</b>, adaptação ao cenário e
+          prompts em <b>inglês</b> para ComfyUI.
+        </p>
+      </div>
+      <div class="model-chip">
+        <span id="heroWorkflow">Qwen Image 2.1 completo · 40 passos · CFG 1</span>
+      </div>
+    </div>
+    <main class="layout">
+      <section class="panel">
+        <div class="panelhead">
+          <b>01 / Configurar a imagem</b
+          ><span class="chip" id="packBadge">Presets básicos</span>
+        </div>
+        <div class="panelbody">
+          <div class="modes">
+            <button class="mode active" data-mode="generate">
+              ✦ Gerar imagem<span
+                >Imagem nova a partir de um prompt</span
+              ></button
+            ><button class="mode" data-mode="edit">
+              ▧ Editar imagem<span>Uma foto alvo + referências opcionais</span>
+            </button>
+          </div>
+          <div class="section">
+            <div class="secthead">
+              <h3>Estilo visual</h3>
+              <span class="hint">Escolha o acabamento</span>
+            </div>
+            <div class="style-options">
+              <button class="style active" data-style="real">
+                <span class="symbol">◉</span>Realista
+              </button>
+              <button class="style" data-style="anime">
+                <span class="symbol">✿</span>Anime
+              </button>
+              <button class="style" data-style="cinematic">
+                <span class="symbol">▣</span>Cinema
+              </button>
+              <button class="style" data-style="illustration">
+                <span class="symbol">✎</span>Ilustração
+              </button>
+            </div>
+            <div class="grid three" style="margin-top: 13px">
+              <div class="field">
+                <label for="aspect">Formato</label
+                ><select id="aspect">
+                  <option value="3:4">Retrato 3:4</option>
+                  <option value="2:3">Retrato 2:3</option>
+                  <option value="1:1">Quadrado 1:1</option>
+                  <option value="16:9">Paisagem 16:9</option>
+                  <option value="9:16">Vertical 9:16</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="resolution">Base de resolução</label
+                ><select id="resolution">
+                  <option value="0">Original (edição)</option>
+                  <option value="1024">1024 (rápido)</option>
+                  <option value="1536">1536 (equilibrado)</option>
+                  <option value="2048">2048 (alta)</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="shot">Enquadramento</label
+                ><select id="shot">
+                  <option value="auto">Automático</option>
+                  <option value="portrait">Rosto / retrato</option>
+                  <option value="half">Meio-corpo</option>
+                  <option value="full">Corpo inteiro</option>
+                  <option value="wide">Plano aberto</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="section" id="generativeScene">
+            <div class="secthead">
+              <h3>Personagens e cenário</h3>
+              <span class="hint">Somente adultos fictícios</span>
+            </div>
+            <div class="grid two">
+              <div class="field">
+                <label for="subject">Personagem</label
+                ><select id="subject">
+                  <option value="woman">Uma mulher adulta</option>
+                  <option value="man">Um homem adulto</option>
+                  <option value="two">Dois adultos</option>
+                  <option value="custom">Descrição personalizada</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="age">Faixa etária adulta</label
+                ><select id="age">
+                  <option value="adult">Adultos (25+)</option>
+                  <option value="mature">Maduros (40+)</option>
+                  <option value="senior">Mais velhos (60+)</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid two" style="margin-top: 12px">
+              <div class="field">
+                <label for="environment">Ambiente</label
+                ><select id="environment">
+                  <option value="loft">Apartamento contemporâneo</option>
+                  <option value="studio">Estúdio fotográfico</option>
+                  <option value="bedroom">Quarto elegante</option>
+                  <option value="street">Rua urbana</option>
+                  <option value="nature">Jardim natural</option>
+                  <option value="neutral">Fundo neutro</option>
+                  <option value="custom">Usar descrição personalizada</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="wardrobe">Vestuário</label
+                ><select id="wardrobe">
+                  <option value="elegant">Elegante contemporâneo</option>
+                  <option value="casual">Casual</option>
+                  <option value="formal">Social formal</option>
+                  <option value="sports">Esportivo</option>
+                  <option value="evening">Roupa de festa</option>
+                  <option value="swimwear">Moda praia adulta</option>
+                  <optgroup label="Lingerie e figurinos">
+                    <option value="lingerie_lace">Lingerie de renda</option>
+                    <option value="lingerie_satin">Conjunto de cetim</option>
+                    <option value="lingerie_bodysuit">
+                      Body / lingerie inteira
+                    </option>
+                    <option value="lingerie_silk">Camisola de seda</option>
+                    <option value="lingerie_minimal">
+                      Lingerie minimalista
+                    </option>
+                    <option value="robe">Robe de seda</option>
+                  </optgroup>
+                  <optgroup label="Estudo artístico (fictício)">
+                    <option value="figure_study">
+                      Sem roupas · nu artístico
+                    </option>
+                  </optgroup>
+                  <option value="custom">Personalizado</option>
+                </select>
+              </div>
+            </div>
+            <div class="field" style="margin-top: 12px">
+              <label for="pose">Pose / posição</label
+              ><select id="pose"></select
+              ><span class="tagline"
+                >Inclui poses tradicionais e poses sensuais não explícitas. O
+                KPPB importado também aparece nesta lista.</span
+              >
+            </div>
+            <div class="field" style="margin-top: 12px">
+              <label for="action">Ação / expressão</label
+              ><select id="action"></select
+              ><span class="tagline"
+                >Escolha uma ação independente da pose; o prompt explicita
+                câmera, postura e interação.</span
+              >
+            </div>
+            <label class="checkline" style="margin-top: 12px"
+              ><input type="checkbox" id="fictionalGenerate" /> Confirmo
+              personagem adulto inteiramente fictício para a opção de figura sem
+              roupas.</label
+            >
+            <div class="grid two" style="margin-top: 12px">
+              <div class="field">
+                <label for="camera">Câmera</label
+                ><select id="camera">
+                  <option value="auto">Automática</option>
+                  <option value="front">Frontal</option>
+                  <option value="threequarter">Três quartos</option>
+                  <option value="side">Perfil lateral</option>
+                  <option value="low">Ângulo baixo</option>
+                  <option value="high">Ângulo alto</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="light">Iluminação</label
+                ><select id="light">
+                  <option value="soft">Suave e natural</option>
+                  <option value="studio">Estúdio profissional</option>
+                  <option value="golden">Luz dourada</option>
+                  <option value="moody">Cinematográfica dramática</option>
+                  <option value="night">Noite urbana</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="section hidden" id="editPanel">
+            <div class="secthead">
+              <h3>Fotografia e referências</h3>
+              <span class="hint">Até 10 imagens</span>
+            </div>
+            <div class="tip" style="margin-bottom: 12px">
+              <b>&lt;image1&gt;</b> é a imagem que será editada. As demais podem
+              servir de referência para o protagonista, segundo personagem,
+              rosto, corpo, roupa, pose ou ambiente. Escolha a função no cartão
+              de cada referência; a posição da foto não define seu personagem.
+              A referência do segundo personagem só é usada quando a ação ou
+              pose ativa pede mais de uma pessoa.
+              Editar o texto manualmente mantém a mesma seleção e numeração das referências.
+              Corpo do protagonista tem prioridade para a aparência corporal
+              visível, sem copiar a pose. A reprodução exata não é garantida.
+              As prévias ficam na memória do navegador. Ao enviar uma edição, as
+              referências são copiadas para o ComfyUI local.
+            </div>
+            <label class="filebtn" for="fileInput"
+              >＋ Adicionar foto(s) para referência
+              <span
+                style="
+                  font-weight: 400;
+                  color: #93a6c0;
+                  display: block;
+                  margin-top: 4px;
+                "
+                >PNG / JPG / WEBP · primeira foto = alvo da edição</span
+              ></label
+            >
+            <div class="refgrid" id="refGrid"></div>
+            <div class="tip" style="margin-top: 12px">
+              <b>Mesmo personagem entre imagens</b>
+              <p class="hint">Fixe uma foto original nítida, de preferência com o corpo inteiro visível. Ela permanece como referência ao usar um resultado como nova foto alvo. Pose, roupa e cenário podem mudar.</p>
+              <button class="btn ghost" id="pinCharacter" type="button" disabled>Fixar foto alvo como personagem</button>
+              <button class="btn ghost" id="clearCharacter" type="button" disabled>Desfixar personagem</button>
+              <p class="hint" id="characterStatus" role="status">Nenhum personagem fixado. A referência fica nesta sessão do navegador.</p>
+              <img id="characterPreview" alt="Referência fixa do personagem" hidden style="max-width: 100px; max-height: 140px; border-radius: 8px" />
+            </div>
+            <div class="section">
+              <div class="secthead">
+                <h3>O que modificar?</h3>
+                <span class="hint">Pode combinar alterações</span>
+              </div>
+              <div class="toggles" id="editOps">
+                <label class="toggle"
+                  ><input type="checkbox" value="wardrobe" /> Trocar
+                  vestuário</label
+                >
+                <label class="toggle"
+                  ><input type="checkbox" value="outer" /> Remover peça
+                  externa</label
+                >
+                <label class="toggle"
+                  ><input type="checkbox" value="removeall" /> Retirar toda a
+                  roupa · estudo artístico</label
+                >
+                <label class="toggle"
+                  ><input type="checkbox" value="environment" /> Trocar
+                  ambiente</label
+                >
+                <label class="toggle"
+                  ><input type="checkbox" value="pose" /> Alterar pose</label
+                >
+                <label class="toggle"><input type="checkbox" value="action" /> Alterar ação</label>
+                <label class="toggle"
+                  ><input type="checkbox" value="expression" /> Expressão /
+                  olhar</label
+                >
+                <label class="toggle"
+                  ><input type="checkbox" value="lighting" /> Alterar
+                  iluminação</label
+                >
+                <label class="toggle"
+                  ><input type="checkbox" value="hair" /> Alterar cabelo</label
+                >
+                <label class="toggle"
+                  ><input type="checkbox" value="cleanup" /> Melhorar
+                  qualidade</label
+                >
+              </div>
+              <div class="grid two" style="margin-top: 13px">
+                <div class="field">
+                  <label for="editWardrobe">Roupa desejada</label
+                  ><select id="editWardrobe">
+                    <option value="elegant">Elegante contemporâneo</option>
+                    <option value="casual">Casual</option>
+                    <option value="formal">Social formal</option>
+                    <option value="sports">Esportivo</option>
+                    <option value="evening">Roupa de festa</option>
+                    <option value="swimwear">Moda praia adulta</option>
+                    <optgroup label="Lingerie e figurinos">
+                      <option value="lingerie_lace">Lingerie de renda</option>
+                      <option value="lingerie_satin">Conjunto de cetim</option>
+                      <option value="lingerie_bodysuit">
+                        Body / lingerie inteira
+                      </option>
+                      <option value="lingerie_silk">Camisola de seda</option>
+                      <option value="lingerie_minimal">
+                        Lingerie minimalista
+                      </option>
+                      <option value="robe">Robe de seda</option>
+                    </optgroup>
+                    <optgroup label="Estudo artístico (fictício)">
+                      <option value="figure_study">
+                        Sem roupas · nu artístico
+                      </option>
+                    </optgroup>
+                    <option value="custom">Descrever livremente abaixo</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="editLocation">Novo ambiente</label
+                  ><select id="editLocation">
+                    <option value="loft">Apartamento contemporâneo</option>
+                    <option value="studio">Estúdio fotográfico</option>
+                    <option value="bedroom">Quarto elegante</option>
+                    <option value="street">Rua urbana</option>
+                    <option value="nature">Jardim natural</option>
+                    <option value="neutral">Fundo neutro</option>
+                    <option value="custom">Descrição livre</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="tip" style="margin-top: 12px">
+                Escolher roupa, ambiente, pose, ação ou expressão ativa
+                automaticamente a alteração correspondente. Para manter um
+                elemento, desmarque a operação depois de configurar.
+              </div>
+              <p class="hint" id="controlLinksStatus" role="status"></p>
+              <div class="grid two" style="margin-top: 12px">
+                <div class="field">
+                  <label for="wardrobeColor">Cor das peças</label
+                  ><select id="wardrobeColor">
+                    <option value="auto">Cores do figurino escolhido</option>
+                    <option value="black">Preto</option>
+                    <option value="white">Branco</option>
+                    <option value="red">Vermelho</option>
+                    <option value="blue">Azul</option>
+                    <option value="burgundy">Vinho</option>
+                    <option value="beige">Bege</option>
+                    <option value="green">Verde</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="wardrobeMaterial">Material das peças</label
+                  ><select id="wardrobeMaterial">
+                    <option value="auto">Material do figurino escolhido</option>
+                    <option value="cotton">Algodão</option>
+                    <option value="linen">Linho</option>
+                    <option value="silk">Seda</option>
+                    <option value="satin">Cetim</option>
+                    <option value="denim">Jeans</option>
+                    <option value="leather">Couro</option>
+                    <option value="knit">Tricô</option>
+                  </select>
+                </div>
+              </div>
+              <div
+                class="grid hidden"
+                id="customWardrobe"
+                style="margin-top: 12px"
+              >
+                
+                <div class="field">
+                  <label for="wardrobeEn">Roupa personalizada · inglês</label
+                  ><input
+                    id="wardrobeEn"
+                    placeholder="E.g. blue linen shirt and white trousers"
+                  />
+                </div>
+              </div>
+              <div class="field" style="margin-top: 12px">
+                <label for="editPose">Nova pose</label
+                ><select id="editPose"></select
+                ><span class="tagline"
+                  >Inclui posições sensuais adultas. O rosto e as proporções
+                  continuam priorizados.</span
+                >
+              </div>
+
+              <div class="tip" id="poseContext" style="margin-top: 12px">
+                <b>Postura e apoios no cenário</b>
+                <p class="hint">
+                  Informe o que existe na imagem. Este HTML não faz análise
+                  visual automática. Apoios também se aplicam à troca de ambiente
+                  e às ações corporais. Enquadramento e filtro de compatibilidade
+                  só se aplicam ao escolher uma nova pose.
+                </p>
+                <div class="grid two">
+                  <div class="field">
+                    <label for="sourceCrop"
+                      >Enquadramento da foto original</label
+                    ><select id="sourceCrop">
+                      <option value="unknown">Não informado</option>
+                      <option value="portrait">Rosto / ombros</option>
+                      <option value="half">Meio-corpo</option>
+                      <option value="full">Corpo inteiro</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="poseFraming">Ao mudar a pose</label
+                    ><select id="poseFraming">
+                      <option value="reframe">
+                        Permitir reenquadramento necessário
+                      </option>
+                      <option value="preserve">
+                        Manter enquadramento original
+                      </option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="poseSupport">Apoios necessários</label
+                    ><select id="poseSupport">
+                      <option value="preserve">
+                        Usar apenas os apoios existentes
+                      </option>
+                      <option value="add">
+                        Permitir adicionar apoio necessário
+                      </option>
+                    </select>
+                  </div>
+                </div>
+                <label class="checkline" style="margin-top: 12px"
+                  ><input id="supportsKnown" type="checkbox" /> Filtrar pelos
+                  apoios que informei abaixo</label
+                >
+                <div
+                  class="choices"
+                  id="sourceSupports"
+                  style="margin-top: 9px"
+                >
+                  <label class="checkline"
+                    ><input type="checkbox" value="floor" /> Chão</label
+                  >
+                  <label class="checkline"
+                    ><input type="checkbox" value="chair" /> Cadeira</label
+                  >
+                  <label class="checkline"
+                    ><input type="checkbox" value="sofa" /> Sofá</label
+                  >
+                  <label class="checkline"
+                    ><input type="checkbox" value="bed" /> Cama</label
+                  >
+                  <label class="checkline"
+                    ><input type="checkbox" value="bench" /> Banco</label
+                  >
+                  <label class="checkline"
+                    ><input type="checkbox" value="wall" /> Parede</label
+                  >
+                </div>
+                <p id="poseCompatibility" class="hint" role="status"></p>
+              </div>
+              <div class="field" style="margin-top: 12px">
+                <label for="editExpression">Nova expressão</label
+                ><select id="editExpression">
+                  <option value="smile">Sorriso natural</option>
+                  <option value="neutral">Expressão neutra</option>
+                  <option value="confident">Confiante</option>
+                  <option value="serene">Serena</option>
+                  <option value="looking">Olhar para a câmera</option>
+                </select>
+              </div>
+              <div class="field" style="margin-top: 12px">
+                <label for="editAction">Ação na edição</label>
+                <select id="editAction"><option value="none">Manter ação original</option></select>
+                <span class="tagline">Opcional: use Manter ação original para não alterar. Ações básicas e gestos não explícitos; mãos e objetos precisam caber no enquadramento.</span>
+              </div>
+              <div class="field" style="margin-top: 12px">
+                <label for="editLight">Nova iluminação</label>
+                <select id="editLight"></select>
+              </div>
+              <label
+                class="checkline"
+                style="margin-top: 13px; align-items: flex-start"
+                ><input
+                  type="checkbox"
+                  id="fictionalConfirm"
+                  style="margin-top: 3px"
+                /><span
+                  >Confirmo que as referências utilizadas para estudo artístico
+                  sem roupas mostram
+                  <b>somente personagens fictícios adultos</b> (arte
+                  digital/CGI); não fotografias de pessoas reais.</span
+                ></label
+              >
+              <div class="tip warning" style="margin-top: 10px">
+                A opção “retirar toda a roupa” é apenas para figuras fictícias
+                adultas em contexto artístico; ela não deve ser usada para
+                despir digitalmente pessoas reais. A geração é executada pelo
+                ComfyUI local.
+              </div>
+            </div>
+            <div class="section">
+              <div class="secthead">
+                <h3>Preservar da imagem original</h3>
+                <span class="hint">Proteções sem conflito</span>
+              </div>
+              <div class="toggles" id="preserves">
+                <label class="toggle"
+                  ><input type="checkbox" value="face" checked /> Rosto /
+                  identidade</label
+                >
+                <label class="toggle"
+                  ><input type="checkbox" value="body" checked /> Formato do
+                  corpo</label
+                >
+                <label class="toggle"
+                  ><input type="checkbox" value="skin" checked /> Tom e textura
+                  da pele</label
+                >
+                <label class="toggle"
+                  ><input type="checkbox" value="hair" checked /> Cabelo
+                  original</label
+                >
+                <label class="toggle"
+                  ><input type="checkbox" value="pose" checked /> Pose
+                  original</label
+                >
+                <label class="toggle"
+                  ><input type="checkbox" value="clothes" /> Roupa
+                  original</label
+                >
+                <label class="toggle"
+                  ><input type="checkbox" value="environment" /> Ambiente
+                  original</label
+                >
+                <label class="toggle"
+                  ><input type="checkbox" value="lighting" /> Luz
+                  original</label
+                >
+              </div>
+              <div class="field" style="margin-top: 14px">
+                <label for="fidelity"
+                  >Prioridade de identidade
+                  <span id="fidelityBadge" style="color: #9ee7de"
+                    >Alta</span
+                  ></label
+                ><input
+                  id="fidelity"
+                  type="range"
+                  min="1"
+                  max="3"
+                  value="3"
+                  style="accent-color: #9693ff"
+                /><span class="tagline"
+                  >Preferência textual, não controle matemático do modelo.
+                  Alterações radicais de pose ainda podem modificar
+                  traços.</span
+                >
+              </div>
+              <div class="field" style="margin-top: 12px">
+                <label for="editStrategy">Estratégia do prompt</label
+                ><select id="editStrategy">
+                  <option value="auto" selected>Auto · compacto</option>
+                  <option value="short">Curto · somente o essencial</option>
+                  <option value="balanced">
+                    Médio · contexto e preservação
+                  </option>
+                  <option value="detailed">
+                    Detalhado · preservação completa
+                  </option></select
+                ><span class="tagline"
+                  >Auto usa o modo curto em todas as edições. Médio e Detalhado
+                  acrescentam instruções de preservação.</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="section">
+            <div class="secthead">
+              <h3>Detalhes personalizados</h3>
+              <span class="hint">Descrições livres em inglês</span>
+            </div>
+            <div class="grid">
+              
+              <div class="field">
+                <label for="customEn">Instrução livre · inglês</label
+                ><textarea
+                  id="customEn"
+                  placeholder="E.g. long brown hair, blue dress, green eyes..."
+                ></textarea>
+              </div>
+            </div>
+            <div class="hint" style="margin-top: 9px">
+              O prompt final é somente em inglês. Preencha as descrições livres em inglês.
+              Os textos dos presets ficam em <code>textos-prompts.js</code>.
+            </div>
+          </div>
+          <div class="section">
+            <div class="secthead">
+              <h3>Biblioteca KPPB</h3>
+              <span class="hint" id="packCount">0 itens importados</span>
+            </div>
+            <div class="grid two">
+              <button class="btn" id="importPack">
+                ＋ Importar dicionário .py / .json</button
+              ><button class="btn ghost" id="clearPack">
+                Limpar importados
+              </button>
+            </div>
+            <p class="hint">
+              Importação de <code>POSE_EXPANSIONS</code>,
+              <code>ACTION_EXPANSIONS</code>,
+              <code>GROUP_ACTION_EXPANSIONS</code> e variantes
+              <code>NSFW_*</code>. Arquivos Python são lidos como texto — nunca
+              executados. Python importa o inglês original; arquivos JSON podem
+              fornecer pares <code>{"en":"...","pt":"..."}</code>.
+            </p>
+          </div>
+        </div>
+      </section>
+      <div class="outputside">
+        <section class="panel">
+          <div class="panelhead">
+            <b>02 / Prompt final</b
+            ><span class="chip" id="liveStatus">● Atualização automática</span>
+          </div>
+          <div class="panelbody">
+            <div class="tip" style="margin-bottom:14px">
+              <b>Envio direto, sem tradução</b>
+              <p class="hint">O único campo de prompt é em inglês. O texto visível chega ao Qwen exatamente como foi escrito. As descrições livres também devem ser preenchidas em inglês.</p>
+              <div class="toolrow">
+                <button class="btn ghost hidden" id="restoreManualPrompts" type="button">Recuperar edição manual</button>
+                <button class="btn ghost" id="regeneratePrompts" type="button">Regerar pelos controles</button>
+              </div>
+            </div>
+            <div class="outputs">
+              <label class="hint" id="outputEnLabel" for="outputEn">Prompt final · inglês</label>
+              <textarea spellcheck="false" class="out" id="outputEn" aria-label="Prompt em inglês"></textarea>
+            </div>
+            <div class="toolrow">
+              <button class="btn primary" id="copyEn">⧉ Copiar prompt</button>
+              <button class="btn" id="downloadTxt">↓ TXT</button>
+              <button class="btn" id="downloadJson">↓ Projeto JSON</button>
+              <span class="label-right" id="counter">0 caracteres</span>
+            </div>
+            <div class="summary">
+              <div class="sum">
+                <strong id="sumMode">Geração</strong><span>Operação</span>
+              </div>
+              <div class="sum">
+                <strong id="sumStyle">Realista</strong><span>Visual</span>
+              </div>
+              <div class="sum">
+                <strong id="sumRefs">0 / 10</strong><span>Referências</span>
+              </div>
+            </div>
+            <p id="promptSyncStatus" class="hint" role="status"></p>
+            <p id="inputValidationStatus" class="hint" role="status"></p>
+            <div id="notices" class="notes"></div>
+
+            <div class="section" id="comfyPanel">
+              <div class="secthead">
+                <h3>03 / Executar no ComfyUI</h3>
+                <span class="chip" id="engineBadge">Qwen 2.1 completo · 40 passos</span>
+              </div>
+              <div class="field">
+                <label for="workflowProfile">Workflow</label>
+                <select id="workflowProfile">
+                  <option value="qwen21">Qwen35_image21_i2i — modelo completo</option>
+                  <option value="turbo">Qwen Image 2.1 Turbo — rápido</option>
+                </select>
+              </div>
+              <p class="hint" id="workflowHint"></p>
+              <div class="grid three engine-main">
+                <div class="field"><label for="engineSteps">Passos</label><input id="engineSteps" type="number" min="1" max="100" value="40" /></div>
+                <div class="field"><label for="engineCfg">CFG</label><input id="engineCfg" type="number" min="1" max="20" step="0.1" value="1" /></div>
+                <div class="field"><label for="engineBitDepth">PNG</label><select id="engineBitDepth"><option value="16-bit">16 bits</option><option value="8-bit">8 bits</option></select></div>
+              </div>
+              <details class="engine-advanced">
+                <summary>Parâmetros avançados da imagem</summary>
+                <div class="grid two">
+                  <div class="field"><label for="engineSampler">Sampler</label><select id="engineSampler"><option value="euler">euler</option></select></div>
+                  <div class="field"><label for="engineScheduler">Scheduler</label><select id="engineScheduler"><option value="simple">simple</option></select></div>
+                  <div class="field"><label for="engineCacheDevice">Cache</label><select id="engineCacheDevice"><option value="cpu">CPU / RAM</option><option value="auto">Automático</option><option value="gpu">GPU / VRAM</option><option value="off">Desligado</option></select></div>
+                  <div class="field"><label for="engineCacheDtype">Precisão do cache</label><select id="engineCacheDtype"><option value="default">Padrão</option><option value="int8">INT8</option><option value="int4">INT4</option></select></div>
+                  <div class="field"><label for="engineDecode">Decodificação VAE</label><select id="engineDecode"><option value="normal">Normal</option><option value="tiled">Em blocos — menor uso de memória</option></select></div>
+                  <div class="field"><label for="engineDenoise">Denoise</label><input id="engineDenoise" type="number" min="0.01" max="1" step="0.01" value="1" /></div>
+                </div>
+                <p class="hint">A referência entra como condicionamento; denoise não é uma porcentagem de preservação da foto. O Turbo mantém seus passos e sigmas próprios.</p>
+                <label class="engine-toggle"><input id="engineCustomSize" type="checkbox" /> Usar largura e altura personalizadas</label>
+                <div class="grid two">
+                  <div class="field"><label for="engineWidth">Largura</label><input id="engineWidth" type="number" min="256" max="2048" step="32" value="1024" /></div>
+                  <div class="field"><label for="engineHeight">Altura</label><input id="engineHeight" type="number" min="256" max="2048" step="32" value="1024" /></div>
+                </div>
+                <p class="hint" id="customSizeHint">Sem tamanho personalizado, a edição segue a primeira referência. Mudar a tela pode deslocar elementos; não é expansão por máscara.</p>
+                <div class="field"><label for="engineNegative">Prompt negativo (inglês)</label><textarea id="engineNegative" rows="3" placeholder="Disponível quando CFG é maior que 1"></textarea></div>
+                <p class="hint" id="negativeHint">Com CFG 1, o prompt negativo não influencia o resultado.</p>
+              </details>
+              <details class="engine-advanced" id="refinerPanel">
+                <summary>Aprimorador de prompt Qwen 3.5</summary>
+                <label class="engine-toggle"><input id="engineRefine" type="checkbox" /> Aprimorar automaticamente antes de gerar</label>
+                <p class="hint">Desligado: envia seu texto literalmente. Ligado: reescreve usando o pedido e as referências. O texto efetivo fica registrado.</p>
+                <div class="grid two">
+                  <label class="engine-toggle"><input id="engineThinking" type="checkbox" checked /> Thinking</label>
+                  <div class="field"><label for="engineMaxLength">Limite de tokens</label><input id="engineMaxLength" type="number" min="128" max="24000" step="1" value="4132" /></div>
+                </div>
+                <details class="engine-text-settings"><summary>Parâmetros avançados de texto</summary>
+                  <div class="grid three">
+                    <div class="field"><label for="engineSampling">Amostragem</label><select id="engineSampling"><option value="on">Ligada</option><option value="off">Desligada</option></select></div>
+                    <div class="field"><label for="engineTemperature">Temperatura</label><input id="engineTemperature" type="number" min="0.01" max="2" step="0.01" value="1" /></div>
+                    <div class="field"><label for="engineTopK">Top K</label><input id="engineTopK" type="number" min="0" max="1000" value="20" /></div>
+                    <div class="field"><label for="engineTopP">Top P</label><input id="engineTopP" type="number" min="0" max="1" step="0.01" value="0.95" /></div>
+                    <div class="field"><label for="engineMinP">Min P</label><input id="engineMinP" type="number" min="0" max="1" step="0.01" value="0" /></div>
+                    <div class="field"><label for="engineRepetition">Repetition penalty</label><input id="engineRepetition" type="number" min="0.01" max="5" step="0.01" value="1" /></div>
+                    <div class="field"><label for="enginePresence">Presence penalty</label><input id="enginePresence" type="number" min="0" max="5" step="0.01" value="0" /></div>
+                    <div class="field"><label for="engineMtp">MTP</label><select id="engineMtp"><option value="auto">Automático</option><option value="off">Desligado</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div>
+                  </div>
+                </details>
+                <button class="btn ghost" id="previewRefine" type="button" disabled>Prévia do aprimoramento — sem gerar imagem</button>
+                <div id="refinedPreview" class="hidden">
+                  <div class="field"><label for="refinedPromptPreview">Texto produzido pelo aprimorador</label><textarea id="refinedPromptPreview" class="out" rows="7" readonly></textarea></div>
+                  <button class="btn ghost" id="useRefinedPrompt" type="button">Usar este texto no prompt</button>
+                  <p class="hint">Ao usar este texto, o aprimoramento automático é desligado para evitar uma segunda reescrita.</p>
+                </div>
+              </details>
+              <div class="grid two">
+                
+                <div class="field">
+                  <label for="generationSeed">Seed</label
+                  ><input
+                    id="generationSeed"
+                    type="number"
+                    min="0"
+                    max="9007199254740991"
+                    step="1"
+                    placeholder="Aleatória"
+                  />
+                </div>
+              </div>
+              <p class="hint">
+                Usa o modo Geração/Edição selecionado à esquerda. Em edição, a
+                primeira referência é a foto alvo. Geração usa formato e
+                resolução; edição segue a foto alvo, salvo tamanho personalizado. Resoluções
+                maiores e várias referências exigem mais memória e tempo.
+              </p>
+              <div class="toolrow">
+                <button class="btn primary" id="sendToComfy" disabled>
+                  ▶ Enviar e gerar imagem</button
+                ><button class="btn ghost" id="stopGeneration" type="button" disabled>
+                  ■ Parar geração
+                </button><button class="btn ghost" id="resumeGeneration">
+                  Retomar acompanhamento
+                </button>
+              </div>
+              <div class="field" style="margin-top: 12px">
+                <label for="studioJobs">Gerações recentes do Studio</label
+                ><select id="studioJobs">
+                  <option value="">Selecione uma geração para retomar</option>
+                </select>
+              </div>
+              <details id="submittedRequest" class="tip hidden" style="margin-top:12px">
+                <summary>Ver pedido efetivamente enviado</summary>
+                <pre id="submittedRequestText" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre>
+              </details>
+              <p class="hint" id="generationStatus" role="status">
+                Verificando o ComfyUI local…
+              </p>
+              <div id="generationProgress" class="generation-progress hidden">
+                <div class="progress-heading"><span id="generationProgressLabel"></span><strong id="generationProgressPercent"></strong></div>
+                <progress id="generationProgressBar" max="100" aria-label="Progresso dos passos de geração"></progress>
+                <p id="generationProgressHint" class="hint"></p>
+              </div>
+              <div id="generationResults" class="grid" aria-live="polite"></div>
+            </div>
+            <div class="tips">
+              <b>Uso no ComfyUI</b>
+              <div style="margin-top: 7px">
+                O prompt em inglês é enviado diretamente ao Qwen,
+                sem tradução. Para edição, conecte a imagem alvo em
+                <code>image_1</code> e as referências seguintes em ordem; o
+                prompt usa <code>&lt;image1&gt;</code>,
+                <code>&lt;image2&gt;</code> etc.
+              </div>
+              <div style="margin-top: 7px">
+                No <b>Turbo</b>, use o workflow/sigma schedule próprio da
+                variante de 8 passos, com CFG 1; nesse modo,
+                <i>negative prompt</i> separado não tem efeito. Se o refinador
+                modificar demais o pedido, teste com
+                <code>refine_prompt = off</code>.
+              </div>
+              <div style="margin-top: 9px">
+                <a
+                  href="https://docs.comfy.org/tutorials/image/qwen/qwen-image-2-1"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  >Documentação do Qwen no ComfyUI ↗</a
+                >
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+    <footer class="footer">
+      KPPB Image Studio v5.3.2 — editor de prompts com geração e edição pelo
+      ComfyUI local. Usa somente imagens escolhidas por você; envia fotos
+      somente ao ComfyUI local quando você inicia uma edição. Destinado a
+      personagens adultos fictícios. Opções de nudez artística não explícita não
+      se destinam à alteração de fotos de pessoas reais. A fidelidade do rosto e
+      do corpo depende do checkpoint, da qualidade das referências e do workflow
+      — nenhum prompt consegue garanti-la.
+    </footer>
+    <input
+      id="fileInput"
+      class="hidden"
+      type="file"
+      multiple
+      accept="image/png,image/jpeg,image/webp"
+    />
+    <input
+      id="packInput"
+      class="hidden"
+      type="file"
+      multiple
+      accept=".py,.json,.txt,application/json,text/plain"
+    />
+    <input
+      id="projectInput"
+      class="hidden"
+      type="file"
+      accept=".json,application/json"
+    />
+    <div id="toast" class="toast hidden" role="status"></div>
+    <script src="textos-prompts.js"></script>
+    <script>
+      "use strict";
+      
+      const $ = (id) => document.getElementById(id);
+      const cssEsc = (s) =>
+        String(s).replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[c],
+        );
+      let app = {
+        mode: "generate",
+        style: "real",
+          packs: { poses: {}, actions: {}, group: {} },
+        refs: [],
+        characterReference: null,
+        importCount: 0,
+      };
+      const val = (id) => $(id).value;
+      const picked = (group) =>
+        Array.from(document.querySelectorAll(`#${group} input:checked`)).map(
+          (x) => x.value,
+        );
+      function trans(obj, key, l) {
+        return (obj[key] || obj[Object.keys(obj)[0]])[l === "en" ? 0 : 1];
+      }
+      function toast(text) {
+        const box = $("toast");
+        box.textContent = text;
+        box.classList.remove("hidden");
+        clearTimeout(toast.timer);
+        toast.timer = setTimeout(() => box.classList.add("hidden"), 3200);
+      }
+      function option(label, key) {
+        return `<option value="${cssEsc(key)}">${cssEsc(label)}</option>`;
+      }
+      
+      
+      
+      
+      function fillPresets() {
+        for (const id of ["pose", "editPose", "action"]) {
+          const s = $(id),
+            previous = s.value,
+            isPose = id !== "action";
+          s.replaceChildren();
+          const common = document.createElement("optgroup");
+          common.label = isPose ? "Poses básicas" : "Ações básicas";
+          for (const [key, label] of Object.entries(
+            isPose ? builtinPoseNames : builtinActionNames,
+          ))
+            common.insertAdjacentHTML("beforeend", option(label, key));
+          s.append(common);
+          const extra = document.createElement("optgroup");
+          extra.label = isPose
+            ? "Poses sensuais / artísticas (25+)"
+            : "Gestos sensuais / editoriais (25+)";
+          for (const [key, label] of Object.entries(
+            isPose ? sensualPoseNames : sensualActionNames,
+          ))
+            extra.insertAdjacentHTML(
+              "beforeend",
+              option(label, "sensual:" + key),
+            );
+          s.append(extra);
+          const k = isPose ? "poses" : "actions";
+          let imported = Object.keys(app.packs[k]);
+          if (!isPose)
+            imported = [...imported, ...Object.keys(app.packs.group)];
+          if (imported.length) {
+            const group = document.createElement("optgroup");
+            group.label = "KPPB importado";
+            for (const item of imported) {
+              const o = document.createElement("option");
+              o.value = "import:" + item;
+              o.textContent = item;
+              group.append(o);
+            }
+            s.append(group);
+          }
+          if (
+            previous &&
+            Array.from(s.options).some((o) => o.value === previous)
+          )
+            s.value = previous;
+        }
+        const n = Object.values(app.packs).reduce(
+          (v, p) => v + Object.keys(p).length,
+          0,
+        );
+        $("packBadge").textContent = n
+          ? `${n} expansões KPPB + presets`
+          : "Presets + poses sensuais";
+        $("packCount").textContent = `${n} itens importados`;
+      }
+      function importedPhrase(v, l) {
+        if (v && typeof v === "object") {
+          if (v[l]) return v[l];
+          return l === "pt"
+            ? `[Expansão KPPB em inglês: ${v.en || v.description || ""}]`
+            : v.en || v.description || "";
+        }
+        return l === "en" ? v : `[Expansão KPPB em inglês: ${v}]`;
+      }
+      function getPose(key, l) {
+        if (!key) return "";
+        if (key.startsWith("sensual:"))
+          return trans(dict.sensualPoses, key.slice(8), l);
+        if (key.startsWith("import:")) {
+          let name = key.slice(7),
+            v = app.packs.poses[name] ?? "";
+          return importedPhrase(v, l);
+        }
+        return trans(dict.poses, key, l);
+      }
+      function getAction(key, l) {
+        if (!key) return "";
+        if (key.startsWith("sensual:"))
+          return trans(dict.sensualActions, key.slice(8), l);
+        if (key.startsWith("import:")) {
+          let name = key.slice(7),
+            v = app.packs.actions[name] ?? app.packs.group[name] ?? "";
+          return importedPhrase(v, l);
+        }
+        return trans(dict.actions, key, l);
+      }
+      function pushIf(list, text) {
+        if (text && String(text).trim()) list.push(String(text).trim());
+      }
+      function bLine(en, pt, lang) {
+        return lang === "en" ? en : pt;
+      }
+
+      const poseRules = {
+        neutral: { full: true, support: ["floor"] },
+        seated: { full: true, support: ["chair", "sofa", "bed", "bench"] },
+        kneeling: { full: true, support: ["floor", "bed"] },
+        walking: { full: true, support: ["floor"] },
+        recline: { full: true, support: ["sofa"] },
+        handsknees: { full: true, support: ["floor", "bed"] },
+        side: { full: true, support: ["floor", "bed", "sofa"] },
+        arched_allfours: { full: true, support: ["floor", "bed"] },
+        face_down_hips: { full: true, support: ["floor", "bed"] },
+        standing_arched: { full: true, support: ["floor"] },
+        bent_over: { full: true, support: ["floor"] },
+        bent_lookback: { full: true, support: ["floor"] },
+        hands_knees: { full: true, support: ["floor", "bed"] },
+        kneel_apart: { full: true, support: ["floor", "bed"] },
+        kneel_look_up: { full: true, support: ["floor", "bed"] },
+        kneel_backarch: { full: true, support: ["floor", "bed"] },
+        kneel_hands_thighs: { full: true, support: ["floor", "bed"] },
+        sit_legs_apart: {
+          full: true,
+          support: ["chair", "sofa", "bed", "bench"],
+        },
+        recline_legs_apart: { full: true, support: ["floor", "sofa", "bed"] },
+        lay_back_legs_up: { full: true, support: ["floor", "bed", "sofa"] },
+        lay_back_knees_bent: { full: true, support: ["floor", "bed", "sofa"] },
+        side_leg_raised: { full: true, support: ["floor", "bed", "sofa"] },
+        elbows_knees: { full: true, support: ["floor", "bed"] },
+        leg_on_wall: { full: true, support: ["wall"] },
+        straddling: { full: true, support: ["bench"] },
+        squat_apart: { full: true, support: ["floor"] },
+        stretch_bed: { full: true, support: ["bed"] },
+        legs_completely_open: {
+          full: true,
+          support: ["chair", "sofa", "bed", "bench"],
+        },
+      };
+      function poseRule(key) {
+        return (
+          poseRules[key.replace(/^sensual:/, "")] || {
+            full: false,
+            support: [],
+          }
+        );
+      }
+      function poseProblems(key) {
+        if (!key) return [];
+        const rule = poseRule(key),
+          issues = [];
+        if (
+          rule.full &&
+          val("poseFraming") === "preserve" &&
+          ["portrait", "half"].includes(val("sourceCrop"))
+        )
+          issues.push("exige corpo inteiro");
+        if (
+          val("poseSupport") === "preserve" &&
+          $("supportsKnown").checked &&
+          rule.support.length &&
+          !rule.support.some((x) => picked("sourceSupports").includes(x))
+        )
+          issues.push("apoio necessário ausente");
+        return issues;
+      }
+      function syncPoseOptions() {
+        const active = picked("editOps").includes("pose");
+        const action = typeof selectedEditAction === "function" ? selectedEditAction() : null;
+        const supportsActive = active || picked("editOps").includes("environment") || (action && !action.expression);
+        $("poseContext").classList.toggle("hidden", !supportsActive);
+        const s = $("editPose");
+        if (!s.querySelector('option[value=""]')) {
+          const p = document.createElement("option");
+          p.value = "";
+          p.textContent = "Selecione uma pose compatível";
+          s.prepend(p);
+        }
+        let blocked = 0;
+        for (const o of s.options) {
+          if (!o.value) continue;
+          if (!o.dataset.baseLabel) o.dataset.baseLabel = o.textContent;
+          const problems = active ? poseProblems(o.value) : [];
+          o.disabled = !!problems.length;
+          o.textContent =
+            o.dataset.baseLabel +
+            (problems.length ? " — " + problems.join(", ") : "");
+          if (o.disabled) blocked++;
+        }
+        $("poseCompatibility").textContent = active
+          ? `${blocked} pose(s) indisponível(is) para o contexto informado. Poses importadas e personalizadas precisam de conferência manual.`
+          : "";
+      }
+      function activeOperations() {
+        return picked("editOps").filter(
+          (x) =>
+            (x !== "action" || (val("editAction") && val("editAction") !== "none")) &&
+            (x !== "pose" || (val("editPose") && !poseProblems(val("editPose")).length)),
+        );
+      }
+      
+      
+
+      const operationConflicts = {
+          outer: ["clothes"],
+          wardrobe: ["clothes"],
+          removeall: ["clothes"],
+          pose: ["pose"],
+          action: ["pose"],
+          environment: ["environment", "lighting"],
+          lighting: ["lighting"],
+          hair: ["hair"],
+        };
+      function operationPreserveConflicts(op) {
+        if (op === "action" && typeof selectedEditAction === "function" && selectedEditAction()?.expression)
+          return [];
+        return operationConflicts[op] || [];
+      }
+      function getActualPreserve() {
+        let flags = picked("preserves");
+        let operations = activeOperations();
+        for (const op of operations)
+          flags = flags.filter((f) => !operationPreserveConflicts(op).includes(f));
+        return flags;
+      }
+      function getEditStrategy() {
+        const chosen = val("editStrategy") || "auto";
+        return chosen === "auto" ? "short" : chosen;
+      }
+      function adapt() {
+        const editing = app.mode === "edit";
+        document
+          .querySelectorAll("[data-mode]")
+          .forEach((b) =>
+            b.classList.toggle("active", b.dataset.mode === app.mode),
+          );
+        document
+          .querySelectorAll("[data-style]")
+          .forEach((b) =>
+            b.classList.toggle("active", b.dataset.style === app.style),
+          );
+        $("generativeScene").classList.toggle("hidden", editing);
+        $("editPanel").classList.toggle("hidden", !editing);
+        $("sumMode").textContent = editing ? "Edição" : "Geração";
+        $("sumStyle").textContent = {
+          real: "Realista",
+          anime: "Anime",
+          cinematic: "Cinema",
+          illustration: "Ilustração",
+        }[app.style];
+        $("sumRefs").textContent = promptReferences().length + " / 10";
+        syncReferenceSlots();
+      }
+      
+      function notices() {
+        const messages = [];
+        if (app.mode === "edit" && !app.refs.length)
+          messages.push([
+            "warn",
+            "Adicione ao menos a imagem principal (<image1>) para usar o prompt de edição.",
+          ]);
+        if (
+          app.mode === "edit" &&
+          !picked("editOps").length &&
+          !val("customEn").trim() &&
+          !app.refs.some((ref, i) => i > 0 && ref.role === "body" && ref.file !== app.characterReference?.file)
+        )
+          messages.push([
+            "warn",
+            "Escolha uma alteração ou descreva sua edição nos campos personalizados.",
+          ]);
+        if (
+          app.mode === "edit" &&
+          picked("editOps").includes("hair") &&
+          picked("preserves").includes("hair")
+        )
+          messages.push([
+            "ok",
+            "Preservar cabelo foi automaticamente desconsiderado porque você solicitou alterá-lo.",
+          ]);
+        if (
+          app.mode === "edit" &&
+          activeOperations().includes("pose") &&
+          picked("preserves").includes("pose")
+        )
+          messages.push([
+            "ok",
+            "Preservar pose foi automaticamente desconsiderado porque você solicitou alterá-la.",
+          ]);
+        if (
+          app.mode === "edit" &&
+          picked("editOps").includes("environment") &&
+          picked("preserves").includes("environment")
+        )
+          messages.push([
+            "ok",
+            "Preservar ambiente foi automaticamente desconsiderado porque você solicitou alterá-lo.",
+          ]);
+        if (
+          app.mode === "edit" &&
+          picked("editOps").some((x) =>
+            ["wardrobe", "outer", "removeall"].includes(x),
+          ) &&
+          picked("preserves").includes("clothes")
+        )
+          messages.push([
+            "ok",
+            "Preservar roupa foi automaticamente desconsiderado porque você solicitou alterar o vestuário.",
+          ]);
+        if (
+          app.mode === "edit" &&
+          (picked("editOps").includes("removeall") ||
+            (picked("editOps").includes("wardrobe") &&
+              val("editWardrobe") === "figure_study")) &&
+          !$("fictionalConfirm").checked
+        )
+          messages.push([
+            "warn",
+            "A opção de estudo sem roupas está desabilitada no prompt até confirmar que a origem é um personagem adulto inteiramente fictício, não a foto de uma pessoa real.",
+          ]);
+        if (
+          app.mode === "generate" &&
+          val("wardrobe") === "figure_study" &&
+          !$("fictionalGenerate").checked
+        )
+          messages.push([
+            "warn",
+            "Confirme que o personagem é um adulto fictício para ativar o estudo artístico sem roupas.",
+          ]);
+        if (
+          app.mode === "edit" &&
+          picked("editOps").filter((x) =>
+            ["wardrobe", "outer", "removeall"].includes(x),
+          ).length > 1
+        )
+          messages.push([
+            "warn",
+            "Escolha só uma operação de vestuário por vez.",
+          ]);
+        if (
+          app.mode === "edit" &&
+          app.style === "anime" &&
+          picked("preserves").includes("skin")
+        )
+          messages.push([
+            "warn",
+            "Converter uma foto real para anime pode modificar texturas e detalhes. Fidelidade de rosto/corpo não é garantida.",
+          ]);
+        if (app.mode === "edit" && picked("editOps").includes("pose")) {
+          if (!val("editPose"))
+            messages.push([
+              "warn",
+              "A pose anterior ficou incompatível. Selecione outra pose ou permita reenquadramento/novo apoio; a mudança de pose não foi incluída no prompt.",
+            ]);
+          if (
+            val("editPose").startsWith("import:") ||
+            val("editPose") === "custom"
+          )
+            messages.push([
+              "warn",
+              "Pose personalizada/importada: confira manualmente apoio, câmera e enquadramento.",
+            ]);
+          if (
+            poseRule(val("editPose")).support.length &&
+            val("poseSupport") === "preserve" &&
+            !$("supportsKnown").checked
+          )
+            messages.push([
+              "warn",
+              "Apoios não informados: não é possível verificar se a pose cabe no ambiente.",
+            ]);
+          if (
+            poseRule(val("editPose")).full &&
+            ["portrait", "half"].includes(val("sourceCrop")) &&
+            val("poseFraming") === "reframe"
+          )
+            messages.push([
+              "warn",
+              "Esta pose precisa de áreas fora da foto. Prepare uma tela maior/outpainting no workflow ou use uma referência de corpo inteiro; o prompt sozinho não aumenta a tela.",
+            ]);
+        }
+        if (app.mode === "edit" && picked("editOps").includes("environment"))
+          messages.push([
+            "ok",
+            "Troca de ambiente adapta cenário e luz, respeitando a opção de manter ou adicionar os apoios necessários.",
+          ]);
+        if (
+          app.mode === "edit" &&
+          picked("editOps").includes("environment") &&
+          picked("editOps").includes("pose")
+        )
+          messages.push([
+            "warn",
+            "Para testar aderência, experimente primeiro o ambiente e depois a pose em duas edições.",
+          ]);
+        if (
+          app.mode === "edit" &&
+          picked("editOps").includes("wardrobe") &&
+          val("editWardrobe") === "custom"
+        ) {
+          if (!val("wardrobeEn").trim())
+            messages.push([
+              "warn",
+              "Preencha a roupa personalizada em inglês para definir o figurino.",
+            ]);
+        }
+        const poseConflict = poseControlConflict(), poseNotice = poseExpressionNotice();
+        const partnerAction = app.mode === "edit"
+          ? (activeOperations().includes("action") ? val("editAction") : "") : val("action");
+        if (actionNeedsPartner(partnerAction))
+          messages.push(["ok", `Esta ação exige ${actionRequiredParticipants(partnerAction)} participantes. O prompt pede criar somente os que faltarem, aproveitando os presentes e preservando o protagonista.`]);
+        if (poseConflict) messages.push(["warn", poseConflict.message]);
+        else if (poseNotice) messages.push(["ok", poseNotice]);
+        if (!messages.length)
+          messages.push([
+            "ok",
+            "Prompt estruturado. Os controles de preservação são instruções textuais, não uma garantia de correspondência facial.",
+          ]);
+        $("notices").replaceChildren(
+          ...messages.map(([type, m]) => {
+            const el = document.createElement("div");
+            el.className = "note " + (type === "ok" ? "ok" : "");
+            el.textContent = m;
+            return el;
+          }),
+        );
+      }
+      function update() {
+        syncPoseOptions();
+        $("customWardrobe").classList.toggle(
+          "hidden",
+          val("editWardrobe") !== "custom",
+        );
+        for (const id of ["wardrobeColor", "wardrobeMaterial"])
+          $(id).disabled = ["custom", "figure_study"].includes(
+            val("editWardrobe"),
+          );
+        adapt();
+        $("outputEn").value = compose("en");
+        $("counter").textContent = $("outputEn").value.length + " caracteres";
+        $("fidelityBadge").textContent = ["", "Normal", "Alta", "Máxima"][
+          Number(val("fidelity"))
+        ];
+        notices();
+      }
+      
+      function moveRef(i, d) {
+        const j = i + d;
+        if (i === 0 || j < 1 || j >= app.refs.length) return;
+        [app.refs[i], app.refs[j]] = [app.refs[j], app.refs[i]];
+        renderRefs();
+        update();
+      }
+      function promptReferences() {
+        const character = app.characterReference;
+        const useSecond = typeof sceneRequiredParticipants === "function" && sceneRequiredParticipants() > 1;
+        const figureStudy = typeof artisticFigureStudyActive === "function" && artisticFigureStudyActive();
+        const refs = app.refs.filter((ref, i) => i === 0 || (character && ref.file === character.file) ||
+          ((ref.role !== "second_participant" || useSecond) && (ref.role !== "outfit" || !figureStudy))).map(ref => ({...ref}));
+        if (!character || !refs.length) return refs;
+        const existing = refs.findIndex(ref => ref.file === character.file);
+        if (existing >= 0) {
+          refs[existing].characterSource = true;
+          if (existing > 0) refs[existing].role = "character";
+        } else refs.push({...character, role: "character", characterSource: true});
+        return refs;
+      }
+      function syncCharacterReferenceUi() {
+        const character = app.characterReference, editing = app.mode === "edit";
+        $("pinCharacter").disabled = !editing || !app.refs[0]?.file || character?.file === app.refs[0]?.file;
+        $("pinCharacter").textContent = character ? "Trocar personagem pela foto alvo" : "Fixar foto alvo como personagem";
+        $("clearCharacter").disabled = !character;
+        $("characterPreview").hidden = !character;
+        if (character) $("characterPreview").src = character.url;
+        else $("characterPreview").removeAttribute("src");
+        const slot = promptReferences().findIndex(ref => ref.characterSource);
+        $("characterStatus").textContent = character
+          ? `Personagem fixado: ${character.name}. ` + (editing && slot >= 0
+              ? `Referência <image${slot + 1}> em cada edição. Não é substituída por resultados gerados.`
+              : "Selecione Editar imagem e adicione uma foto alvo para usar esta referência.")
+          : "Nenhum personagem fixado. A referência fica nesta sessão do navegador.";
+      }
+      function pinCharacterReference(index = 0) {
+        const source = app.refs[index];
+        if (app.mode !== "edit" || !source?.file) return;
+        if (app.characterReference?.file === source.file) return;
+        if (app.characterReference) URL.revokeObjectURL(app.characterReference.url);
+        app.characterReference = {file: source.file, name: source.name, url: URL.createObjectURL(source.file), role: "character"};
+        syncLinkedControls();
+        renderRefs();
+        update();
+        toast("Referência do personagem fixada. Use a mesma foto original para manter sua aparência.");
+      }
+      function clearCharacterReference() {
+        if (app.characterReference) URL.revokeObjectURL(app.characterReference.url);
+        app.characterReference = null;
+        syncLinkedControls();
+        renderRefs();
+        update();
+      }
+      function syncReferenceSlots() {
+        const refs = promptReferences();
+        $("sumRefs").textContent = refs.length + " / 10";
+        $("refGrid").querySelectorAll(".refcard").forEach((node, i) => {
+          const index = refs.findIndex(ref => ref.file === app.refs[i]?.file);
+          const badge = node.querySelector(".n");
+          badge.textContent = index >= 0 ? `<image${index + 1}>` : "Não usada";
+          badge.title = index >= 0 ? "Posição no envio ao ComfyUI."
+            : "Referência guardada; sua função não se aplica às alterações selecionadas.";
+        });
+        syncCharacterReferenceUi();
+      }
+      function renderRefs() {
+        let root = $("refGrid");
+        root.replaceChildren();
+        app.refs.forEach((r, i) => {
+          r.role = i === 0 ? "target" : r.role;
+          let node = document.createElement("div");
+          node.className = "refcard";
+          node.innerHTML = `<div class="refimage"><img alt="Prévia local da foto de referência"><span class="n">&lt;image${i + 1}&gt;</span></div><div class="refmeta"><span class="filename" title="${cssEsc(r.name)}">${cssEsc(r.name)}</span>${i ? '\x3cselect aria-label="Função da referência"\x3e\x3c/select\x3e' : '<span class="keyval">Imagem alvo da edição</span>'}<div class="ref-actions"><button data-move="up" ${i < 2 ? "disabled" : ""}>↑</button><button data-move="down" ${i === 0 || i === app.refs.length - 1 ? "disabled" : ""}>↓</button><button data-move="delete">Excluir</button></div></div>`;
+          node.querySelector("img").src = r.url;
+          const pin = document.createElement("button");
+          pin.type = "button";
+          pin.textContent = app.characterReference?.file === r.file ? "Personagem fixado"
+            : app.characterReference ? "Trocar personagem por esta foto" : "Fixar personagem";
+          pin.disabled = app.mode !== "edit" || app.characterReference?.file === r.file;
+          pin.addEventListener("click", () => pinCharacterReference(i));
+          node.querySelector(".ref-actions").append(pin);
+          if (i) {
+            const sel = node.querySelector("select");
+            for (const [k, v] of Object.entries(dict.refRoles)) {
+              if (k === "target") continue;
+              const label = {character: "Protagonista", second_participant: "Segundo personagem", body: "Corpo do protagonista"}[k] || v[1];
+              sel.insertAdjacentHTML("beforeend", option(label, k));
+            }
+            const fixedProtagonist = app.characterReference?.file === r.file;
+            sel.value = fixedProtagonist ? "character" : r.role;
+            sel.disabled = fixedProtagonist;
+            sel.title = fixedProtagonist
+              ? "Referência fixa do protagonista. Desfixe o personagem para mudar a função desta foto."
+              : "Escolha o que esta foto representa na edição.";
+            sel.addEventListener("change", () => {
+              r.role = sel.value;
+              update();
+            });
+          }
+          for (const b of node.querySelectorAll("[data-move]"))
+            b.addEventListener("click", () => {
+              if (b.dataset.move === "delete") {
+                URL.revokeObjectURL(r.url);
+                app.refs.splice(i, 1);
+                renderRefs();
+                update();
+              } else moveRef(i, b.dataset.move === "up" ? -1 : 1);
+            });
+          root.append(node);
+        });
+        syncReferenceSlots();
+      }
+      async function addRefs(files) {
+        let allowed = Math.min(10 - app.refs.length, 10 - promptReferences().length);
+        if (!app.refs.length && app.characterReference) allowed--;
+        if (allowed <= 0) {
+          toast("Limite de 10 fotos atingido");
+          return;
+        }
+        const accepted = Array.from(files)
+          .filter((f) => f.type.startsWith("image/"))
+          .slice(0, allowed);
+        for (const f of accepted)
+          app.refs.push({
+            name: f.name,
+            file: f,
+            url: URL.createObjectURL(f),
+            role: app.refs.length === 0 ? "target" : "face",
+          });
+        renderRefs();
+        update();
+        toast(`${accepted.length} fotografia(s) adicionada(s)`);
+      }
+      function literal(v) {
+        if (v.startsWith('"')) {
+          try {
+            return JSON.parse(v);
+          } catch (_) {}
+        }
+        return v
+          .slice(1, -1)
+          .replace(/\\(['"\\])/g, "$1")
+          .replace(/\\n/g, "\n")
+          .replace(/\\t/g, "\t");
+      }
+      function importPython(source) {
+        const alias = {
+          NSFW_POSE_EXPANSIONS: "poses",
+          POSE_EXPANSIONS: "poses",
+          NSFW_ACTION_EXPANSIONS: "actions",
+          ACTION_EXPANSIONS: "actions",
+          NSFW_GROUP_ACTION_EXPANSIONS: "group",
+          GROUP_ACTION_EXPANSIONS: "group",
+        };
+        let count = 0;
+        for (const [origin, to] of Object.entries(alias)) {
+          const start = source.search(
+            new RegExp("\\b" + origin + "\\s*=\\s*\\{"),
+          );
+          if (start < 0) continue;
+          const open = source.indexOf("{", start);
+          let depth = 0,
+            end = -1,
+            quote = "",
+            escape = false;
+          for (let i = open; i < source.length; i++) {
+            const c = source[i];
+            if (quote) {
+              if (escape) escape = false;
+              else if (c === "\\") escape = true;
+              else if (c === quote) quote = "";
+              continue;
+            }
+            if (c === '"' || c === "'") {
+              quote = c;
+              continue;
+            }
+            if (c === "{") depth++;
+            else if (c === "}" && --depth === 0) {
+              end = i;
+              break;
+            }
+          }
+          if (end < 0) continue;
+          const body = source.slice(open + 1, end);
+          const row =
+            /^\s*((?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'))\s*:\s*((?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'))\s*,?\s*$/gm;
+          let match;
+          while ((match = row.exec(body))) {
+            const key = literal(match[1]),
+              val = literal(match[2]);
+            if (key && val) {
+              if (!app.packs[to][key]) count++;
+              app.packs[to][key] = val;
+            }
+          }
+        }
+        return count;
+      }
+      function importJSON(txt) {
+        let data = JSON.parse(txt),
+          count = 0;
+        let map = {
+          poses: "poses",
+          actions: "actions",
+          solo: "actions",
+          group: "group",
+          NSFW_POSE_EXPANSIONS: "poses",
+          POSE_EXPANSIONS: "poses",
+          NSFW_ACTION_EXPANSIONS: "actions",
+          ACTION_EXPANSIONS: "actions",
+          NSFW_GROUP_ACTION_EXPANSIONS: "group",
+          GROUP_ACTION_EXPANSIONS: "group",
+        };
+        for (const [src, dest] of Object.entries(map)) {
+          if (!data[src] || typeof data[src] !== "object") continue;
+          for (const [k, v] of Object.entries(data[src])) {
+            let sentence =
+              typeof v === "string"
+                ? v
+                : v &&
+                    typeof v === "object" &&
+                    typeof v.en === "string" &&
+                    typeof v.pt === "string"
+                  ? { en: v.en, pt: v.pt }
+                  : typeof v?.description === "string"
+                    ? v.description
+                    : "";
+            if (sentence) {
+              if (Number.isInteger(v?.participants) && v.participants >= 1 && v.participants <= 10)
+                sentence = typeof sentence === "string"
+                  ? {en: sentence, pt: sentence, participants: v.participants}
+                  : {...sentence, participants: v.participants};
+              if (!app.packs[dest][k]) count++;
+              app.packs[dest][k] = sentence;
+            }
+          }
+        }
+        return count;
+      }
+      async function importPacks(files) {
+        let count = 0,
+          failed = 0;
+        for (const f of files) {
+          try {
+            let txt = await f.text();
+            const parsed = f.name.endsWith(".json")
+              ? importJSON(txt)
+              : importPython(txt);
+            count += parsed;
+            if (!parsed) failed++;
+          } catch (e) {
+            failed++;
+            console.warn("Import failed", e);
+          }
+        }
+        fillPresets();
+        update();
+        toast(
+          `${count} expansão(ões) importada(s)${failed ? " · " + failed + " arquivo(s) sem correspondência" : ""}`,
+        );
+      }
+      function blobDownload(text, name, type = "text/plain;charset=utf-8") {
+        const blob = new Blob([text], { type }),
+          url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = name;
+        document.body.append(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2500);
+      }
+      async function copyText(text) {
+        try {
+          await navigator.clipboard.writeText(text);
+          toast("Texto copiado");
+        } catch (_) {
+          const t = document.createElement("textarea");
+          t.value = text;
+          document.body.append(t);
+          t.select();
+          const ok = document.execCommand("copy");
+          t.remove();
+          toast(
+            ok
+              ? "Texto copiado"
+              : "Não foi possível copiar; use o campo do prompt",
+          );
+        }
+      }
+      function exportProject() {
+        const references = promptReferences(), characterIndex = references.findIndex(ref => ref.characterSource);
+        return {
+          app: "KPPB Image Studio",
+          version: "5.3.2",
+          model: typeof workflowMetadata !== "undefined" ? (workflowMetadata.profiles[val("workflowProfile")].model || workflowMetadata.profiles[val("workflowProfile")].label) : "Qwen Image 2.1 Turbo",
+          mode: app.mode,
+          style: app.style,
+          settings: {
+            ...Object.fromEntries(
+              [
+                "aspect",
+                "resolution",
+                "generationSeed",
+                "shot",
+                "subject",
+                "age",
+                "environment",
+                "wardrobe",
+                "pose",
+                "action",
+                "camera",
+                "light",
+                "editWardrobe",
+                "editLocation",
+                "editPose",
+                "editExpression",
+                "editAction",
+                "fidelity",
+                "editStrategy",
+                "sourceCrop",
+                "poseFraming",
+                "poseSupport",
+                "wardrobeColor",
+                "wardrobeMaterial",
+                "wardrobeEn",
+                "customEn",
+              ].map((k) => [k, val(k)]),
+            ),
+            operations: picked("editOps"),
+            preserve: picked("preserves"),
+            source_supports: picked("sourceSupports"),
+            supports_known: $("supportsKnown").checked,
+            fictional_confirmed_edit: $("fictionalConfirm").checked,
+            fictional_confirmed_generate: $("fictionalGenerate").checked,
+          },
+          character_reference: app.characterReference ? {name: app.characterReference.name,
+            slot: characterIndex >= 0 ? `image_${characterIndex + 1}` : null,
+            note: "Foto não incluída no JSON; referência fixa nesta sessão."} : null,
+          reference_images: references.map((r, i) => ({
+            slot: `image_${i + 1}`,
+            name: r.name,
+            role: r.role,
+            note: "O arquivo da foto não é incluído no JSON",
+          })),
+          prompts: { en: $("outputEn").value },
+          workflow_settings: typeof readWorkflowConfig === "function" ? readWorkflowConfig() : null,
+          workflow_notes: {
+            turbo: "O perfil Turbo mantém oito passos, CFG 1, Euler e sigmas próprios.",
+            negative_prompt: "Com CFG 1, o negativo separado não influencia o resultado.",
+            custom_size: "Tamanho personalizado altera o latente; não é expansão por máscara.",
+          },
+          kppb_expansions: app.packs,
+        };
+      }
+
+      
+      
+      
+      
+      
+      
+      Object.assign(poseRules, {
+        walllean: { full: true, support: ["wall"] },
+        chairside: { full: true, support: ["chair"] },
+        ankles: { full: true, support: ["chair"] },
+        sofaarm: { full: true, support: ["sofa"] },
+        bededge: { full: true, support: ["bed"] },
+        hiphand: { full: true, support: ["floor"] },
+        armsup: { full: false, support: ["floor"] },
+        seatedcross: { full: true, support: ["chair"] },
+        floorseated: { full: true, support: ["floor"] },
+      });
+      
+      
+      
+      for (const id of ["environment", "editLocation"])
+        for (const [key, label] of Object.entries(newEnvironments))
+          $(id).insertAdjacentHTML("beforeend", option(label, key));
+      for (const id of ["wardrobe", "editWardrobe"])
+        for (const [key, label] of Object.entries(newOutfits))
+          $(id).insertAdjacentHTML("beforeend", option(label, key));
+      for (const [key, label] of Object.entries(newExpressions))
+        $("editExpression").insertAdjacentHTML("beforeend", option(label, key));
+      
+      for (const id of ["wardrobe", "editWardrobe"])
+        for (const o of $(id).options)
+          if (outfitNames[o.value]) o.textContent = outfitNames[o.value];
+      
+      
+      
+      function activateEditOperation(op) {
+        if (app.mode !== "edit") return;
+        if (op === "wardrobe")
+          for (const box of $("editOps").querySelectorAll("input"))
+            if (["outer", "removeall"].includes(box.value)) box.checked = false;
+        const box = $("editOps").querySelector(`input[value="${op}"]`);
+        if (box) box.checked = true;
+      }
+      const linkedControlOps = {
+        editWardrobe: "wardrobe",
+        wardrobeColor: "wardrobe",
+        wardrobeMaterial: "wardrobe",
+        wardrobeEn: "wardrobe",
+        editLocation: "environment",
+        editPose: "pose",
+        editAction: "action",
+        editExpression: "expression",
+        editLight: "lighting",
+      };
+      const preserveBeforeChange = new Map();
+      $("editLight").innerHTML = $("light").innerHTML;
+      $("editLight").value = val("light");
+
+      function syncLinkedControls(target) {
+        if (target?.id === "editLight") $("light").value = target.value;
+        if (target?.id === "light") $("editLight").value = target.value;
+        if (app.mode === "edit" && target) {
+          const op = linkedControlOps[target.id];
+          if (target.id === "editAction" && target.value === "none")
+            $("editOps").querySelector('input[value="action"]').checked = false;
+          else if (op) activateEditOperation(op);
+          if (target.checked && $("editOps").contains(target) &&
+              ["wardrobe", "outer", "removeall"].includes(target.value)) {
+            for (const box of $("editOps").querySelectorAll('input[type="checkbox"]'))
+              if (box !== target && ["wardrobe", "outer", "removeall"].includes(box.value))
+                box.checked = false;
+          }
+        }
+        const editing = app.mode === "edit";
+        if (editing && (!val("editAction") || val("editAction") === "none"))
+          $("editOps").querySelector('input[value="action"]').checked = false;
+        if (typeof syncEditorActionExpression === "function") syncEditorActionExpression(target);
+        const ops = editing ? picked("editOps") : [];
+        const blocked = new Set(ops.flatMap(op => operationPreserveConflicts(op)));
+        const bodyReference = editing && app.refs?.some((ref, i) => i > 0 && ref.role === "body" && ref.file !== app.characterReference?.file);
+        for (const box of $("preserves").querySelectorAll('input[type="checkbox"]')) {
+          const bodyLock = bodyReference && ["body", "skin"].includes(box.value);
+          const characterLock = bodyLock || (editing && app.characterReference &&
+            (["face", "body", "skin"].includes(box.value) || (box.value === "hair" && !ops.includes("hair"))));
+          if (characterLock) {
+            if (!preserveBeforeChange.has(box.value)) preserveBeforeChange.set(box.value, box.checked);
+            box.checked = true;
+            box.disabled = true;
+            box.title = bodyLock
+              ? "A aparência corporal vem da referência Corpo do protagonista; pose e ação podem mudar."
+              : "A aparência vem da referência fixa do personagem; a pose pode mudar.";
+          } else if (blocked.has(box.value)) {
+            if (!preserveBeforeChange.has(box.value)) preserveBeforeChange.set(box.value, box.checked);
+            box.checked = false;
+            box.disabled = true;
+            box.title = "Desativado enquanto este elemento estiver sendo alterado.";
+          } else {
+            if (preserveBeforeChange.has(box.value)) {
+              box.checked = preserveBeforeChange.get(box.value);
+              preserveBeforeChange.delete(box.value);
+            }
+            box.disabled = false;
+            box.title = "";
+          }
+        }
+        const customWardrobe = editing && val("editWardrobe") === "custom";
+        for (const id of ["wardrobeEn"])
+          $(id).disabled = !customWardrobe;
+        const pose = editing && ops.includes("pose");
+        for (const id of ["sourceCrop", "poseFraming"])
+          $(id).disabled = !pose;
+        const action = typeof selectedEditAction === "function" ? selectedEditAction() : null;
+        const supportsActive = editing && (pose || ops.includes("environment") || (action && !action.expression));
+        $("poseSupport").disabled = !supportsActive;
+        const filterSupports = pose && val("poseSupport") === "preserve";
+        $("supportsKnown").disabled = !filterSupports;
+        for (const box of $("sourceSupports").querySelectorAll('input[type="checkbox"]'))
+          box.disabled = !filterSupports || !$("supportsKnown").checked;
+        const lockedFraming = pose &&
+          (val("poseFraming") === "preserve" || poseRule(val("editPose")).full);
+        $("shot").disabled = lockedFraming;
+        $("shot").title = lockedFraming
+          ? (val("poseFraming") === "preserve"
+            ? "A pose usa o enquadramento original, conforme a opção Ao mudar a pose."
+            : "A pose escolhida exige enquadramento completo; este seletor não se aplica.") : "";
+        const notes = [];
+        if (bodyReference) notes.push("Corpo do protagonista define a anatomia visível e a aparência corporal; rosto, pose, ação e roupa seguem suas próprias instruções.");
+        if (editing && ops.includes("action") && !pose)
+          notes.push("A ação preserva a postura sempre que possível e permite apenas os movimentos necessários. Alterar pose continua opcional.");
+        if (blocked.size) notes.push("Preservações incompatíveis ficam desativadas e voltam ao desmarcar a alteração.");
+        if (editing && ops.includes("environment")) notes.push(val("poseSupport") === "add"
+          ? "O novo cenário pode fornecer somente os apoios necessários à postura."
+          : "Os apoios existentes necessários à postura são mantidos na troca de cenário.");
+        if (lockedFraming) notes.push($("shot").title);
+        if (pose && poseProblems(val("editPose")).length)
+          notes.push("Pose incompatível: " + poseProblems(val("editPose")).join(", ") + ". Ajuste o contexto antes de enviar.");
+        $("controlLinksStatus").textContent = notes.join(" ");
+      }
+
+      function validateLinkedInputs() {
+        const editing = app.mode === "edit", ops = picked("editOps");
+        if (editing && ops.includes("wardrobe") && val("editWardrobe") === "custom" && !val("wardrobeEn").trim())
+          return { field: "wardrobeEn", message: "Descreva a roupa personalizada em inglês antes de enviar." };
+        const needsCustom = editing
+          ? (ops.includes("environment") && val("editLocation") === "custom") ||
+            (ops.includes("pose") && val("editPose") === "custom") || ops.includes("hair")
+          : ["subject", "environment", "wardrobe", "pose", "action"].some(id => val(id) === "custom");
+        if (needsCustom && !val("customEn").trim())
+          return { field: "customEn", message: "Uma opção personalizada está ativa. Descreva-a na instrução livre em inglês." };
+        if (editing && typeof promptReferences === "function" && promptReferences().length > 10)
+          return { field: "pinCharacter", message: "A referência fixa do personagem também conta no limite de dez imagens. Remova uma referência antes de enviar." };
+        return typeof poseControlConflict === "function" ? poseControlConflict() : null;
+      }
+
+      const manualPrompts = { en: false };
+      let presetBaseline = null, manualPromptBackup = null;
+      function syncPromptStatus(text) { $("promptSyncStatus").textContent = text; }
+      const updatePresetPrompts = update;
+      function updateCounts() { $("counter").textContent = $("outputEn").value.length + " caracteres"; }
+      function refreshInputValidation() {
+        const missing = manualPrompts.en ? null : validateLinkedInputs();
+        $("inputValidationStatus").textContent = missing ? missing.message : "";
+      }
+      update = function (event) {
+        const saved = $("outputEn").value, manual = manualPrompts.en;
+        syncLinkedControls(event?.target);
+        updatePresetPrompts();
+        for (const id of ["wardrobeColor", "wardrobeMaterial"])
+          $(id).disabled = app.mode !== "edit" || !picked("editOps").includes("wardrobe") ||
+            ["custom", "figure_study"].includes(val("editWardrobe"));
+        const generated = $("outputEn").value;
+        const changed = presetBaseline === null || generated !== presetBaseline;
+        presetBaseline = generated;
+        if (manual && !changed) $("outputEn").value = saved;
+        else {
+          if (manual) {
+            manualPromptBackup = saved;
+            $("restoreManualPrompts").classList.remove("hidden");
+          }
+          manualPrompts.en = false;
+          syncPromptStatus(manual
+            ? "Os controles atualizaram o prompt. Sua edição anterior foi guardada em Recuperar edição manual."
+            : "Prompt sincronizado com os controles atuais.");
+        }
+        $("aspect").disabled = app.mode === "edit";
+        $("aspect").title = app.mode === "edit" ? "Na edição, o Qwen usa a proporção da foto alvo. Formato não altera a tela." : "Formato aplicado à geração da imagem.";
+        if (typeof syncWorkflowControls === "function") syncWorkflowControls(event?.target);
+        updateCounts();
+        $("liveStatus").textContent = manualPrompts.en ? "● Prompt manual" : "● Controles sincronizados";
+        refreshInputValidation();
+        if (typeof syncReferenceSlots === "function") syncReferenceSlots();
+      };
+      $("restoreManualPrompts").addEventListener("click", () => {
+        if (manualPromptBackup === null) return;
+        $("outputEn").value = manualPromptBackup;
+        manualPrompts.en = true;
+        $("liveStatus").textContent = "● Prompt manual recuperado";
+        syncPromptStatus("Edição anterior recuperada. Confira o texto: ela pode descrever os parâmetros anteriores.");
+        updateCounts(); refreshInputValidation();
+        if (typeof syncReferenceSlots === "function") syncReferenceSlots();
+      });
+      $("outputEn").addEventListener("input", () => {
+        manualPrompts.en = true;
+        syncPromptStatus("O texto deste campo em inglês será enviado exatamente como está, sem tradução.");
+        $("liveStatus").textContent = "● Prompt manual";
+        updateCounts(); refreshInputValidation();
+        if (typeof syncReferenceSlots === "function") syncReferenceSlots();
+      });
+      $("regeneratePrompts").addEventListener("click", () => {
+        manualPrompts.en = false;
+        update();
+      });
+
+      function newRequestId() {
+        if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
+        const bytes = crypto.getRandomValues(new Uint8Array(16));
+        bytes[6] = (bytes[6] & 15) | 64;
+        bytes[8] = (bytes[8] & 63) | 128;
+        const hex = Array.from(bytes, (b) =>
+          b.toString(16).padStart(2, "0"),
+        ).join("");
+        return [
+          hex.slice(0, 8),
+          hex.slice(8, 12),
+          hex.slice(12, 16),
+          hex.slice(16, 20),
+          hex.slice(20),
+        ].join("-");
+      }
+      let comfyReady = false,
+        generationBusy = false,
+        generationStopping = false,
+        currentJob = "",
+        generationPollTimer = null;
+      function generationStatus(message) {
+        $("generationStatus").textContent = message;
+      }
+      async function checkComfy() {
+        try {
+          const r = await fetch("/api/comfy", {
+              signal: AbortSignal.timeout(12000),
+            }),
+            data = await r.json();
+          if (!r.ok || !data.available)
+            throw new Error(data.error || "ComfyUI indisponível");
+          comfyReady = true;
+          if (typeof hydrateWorkflowOptions === "function") hydrateWorkflowOptions(data);
+          $("sendToComfy").disabled = generationBusy;
+          if (typeof syncWorkflowBusy === "function") syncWorkflowBusy();
+          generationStatus(
+            "ComfyUI conectado. Pronto para enviar o prompt e receber a imagem.",
+          );
+          refreshStudioJobs();
+        } catch (e) {
+          comfyReady = false;
+          $("sendToComfy").disabled = true;
+          if (typeof syncWorkflowBusy === "function") syncWorkflowBusy();
+          generationStatus(
+            "Execute iniciar.ps1 e abra o ComfyUI local em 127.0.0.1:8188.",
+          );
+        }
+      }
+      async function refreshStudioJobs() {
+        try {
+          const r = await fetch("/api/jobs", {
+              signal: AbortSignal.timeout(12000),
+            }),
+            data = await r.json(),
+            select = $("studioJobs");
+          select.replaceChildren();
+          const empty = document.createElement("option");
+          empty.value = "";
+          empty.textContent = "Selecione uma geração para retomar";
+          select.append(empty);
+          for (const job of data.jobs || []) {
+            const o = document.createElement("option");
+            o.value = job.prompt_id;
+            o.textContent =
+              (job.kind === "refine" ? "Aprimoramento" : job.mode === "edit" ? "Edição" : "Geração") +
+              " · " + (job.workflow || "Turbo") +
+              " · seed " +
+              job.seed +
+              " · " +
+              job.prompt_id.slice(0, 8);
+            select.append(o);
+          }
+          if (currentJob) select.value = currentJob;
+        } catch (_) {}
+      }
+      async function encodedReference(ref) {
+        if (!ref.file)
+          throw new Error("Adicione novamente a referência " + ref.name + ".");
+        if (ref.file.size > 12 * 1024 * 1024)
+          throw new Error("A referência " + ref.name + " ultrapassa 12 MB.");
+        const data = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result).split(",")[1]);
+          reader.onerror = () =>
+            reject(new Error("Não foi possível ler a referência."));
+          reader.readAsDataURL(ref.file);
+        });
+        return { mime: ref.file.type, data, name: ref.name, role: ref.role };
+      }
+      function showGeneratedImages(job, images, hasReference = false) {
+        const root = $("generationResults");
+        root.replaceChildren();
+        images.forEach((image, index) => {
+          const card = document.createElement("div"),
+            url =
+              "/api/image?job=" + encodeURIComponent(job) + "&index=" + index,
+            preview = document.createElement("img"),
+            link = document.createElement("a"),
+            reuse = document.createElement("button");
+          preview.src = url;
+          preview.alt = "Resultado gerado pelo Qwen Image 2.1";
+          link.href = url;
+          link.target = "_blank";
+          link.rel = "noopener";
+          link.textContent = "Abrir imagem em tamanho original";
+          reuse.type = "button";
+          reuse.className = "btn";
+          reuse.textContent = "Usar como foto alvo";
+          reuse.addEventListener("click", () =>
+            useResultAsTarget(url, image.filename),
+          );
+          const actions = document.createElement("div");
+          actions.className = "toolrow";
+          actions.append(link, reuse);
+          card.append(preview, actions);
+          if (hasReference && typeof appendImageComparison === "function") appendImageComparison(card, job, index);
+          root.append(card);
+        });
+      }
+      async function useResultAsTarget(url, name) {
+        try {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error("Resultado indisponível.");
+          const blob = await response.blob(),
+            file = new File([blob], name, { type: blob.type || "image/png" });
+          const bodies = app.refs.filter((ref, i) => i > 0 && ref.role === "body");
+          const extraCharacter = app.characterReference && !bodies.some(ref => ref.file === app.characterReference.file) ? 1 : 0;
+          if (1 + bodies.length + extraCharacter > 10) {
+            generationStatus("Remova uma referência corporal antes de reutilizar o resultado: manter o corpo e o personagem fixos ultrapassaria o limite de dez imagens.");
+            return;
+          }
+          for (const r of app.refs) if (!bodies.includes(r)) URL.revokeObjectURL(r.url);
+          app.refs = [{name: file.name, file, url: URL.createObjectURL(file), role: "target"}, ...bodies];
+          app.mode = "edit";
+          renderRefs();
+          update();
+          toast(
+            "Resultado definido como foto alvo. Edite o prompt antes de enviar a próxima edição.",
+          );
+        } catch (e) {
+          generationStatus(
+            "Não foi possível reutilizar a imagem: " + e.message,
+          );
+        }
+      }
+      function showSubmittedRequest(request) {
+        if (!request) return;
+        $("submittedRequest").classList.remove("hidden");
+        $("submittedRequestText").textContent = JSON.stringify(request, null, 2);
+      }
+      async function pollGeneration() {
+        clearTimeout(generationPollTimer);
+        if (!currentJob || !generationBusy || generationStopping) return;
+        const polledJob = currentJob;
+        try {
+          const r = await fetch("/api/job/" + encodeURIComponent(currentJob), {
+              signal: AbortSignal.timeout(20000),
+            }),
+            data = await r.json();
+          if (polledJob !== currentJob || !generationBusy || generationStopping) return;
+          if (!r.ok)
+            throw new Error(data.error || "Falha ao consultar geração.");
+          if (typeof showGenerationProgress === "function") showGenerationProgress(data);
+          if (data.status === "completed") {
+            if (data.request) showSubmittedRequest(data.request);
+            if (data.kind === "refine") {
+              showRefinedPreview(data.refined_prompt);
+              if (data.intent === "generate") {
+                generationStatus("Prompt aprimorado. Enviando a imagem com o mesmo pedido e referências…");
+                const response = await fetch("/api/continue", {method: "POST", headers: {"Content-Type": "application/json"},
+                  body: JSON.stringify({prompt_id: currentJob}), signal: AbortSignal.timeout(30000)});
+                const next = await response.json();
+                if (polledJob !== currentJob || !generationBusy || generationStopping) return;
+                if (!response.ok) throw new Error(next.error || "Falha ao continuar a geração.");
+                currentJob = next.prompt_id;
+                syncWorkflowBusy();
+                showSubmittedRequest(next.request);
+                try { sessionStorage.setItem("kppb-last-job", currentJob); } catch (_) {}
+                refreshStudioJobs();
+                generationPollTimer = setTimeout(pollGeneration, 300);
+                return;
+              }
+              generationBusy = false;
+              $("sendToComfy").disabled = !comfyReady;
+              syncWorkflowBusy();
+              generationStatus("Prévia pronta. Confira o texto; nenhuma imagem foi gerada.");
+              return;
+            }
+            generationBusy = false;
+            $("sendToComfy").disabled = !comfyReady;
+            syncWorkflowBusy();
+            generationStatus(
+              "Imagem concluída · seed " +
+                data.seed +
+                ". Resultado salvo na pasta output do ComfyUI.",
+            );
+            showGeneratedImages(currentJob, data.images, data.has_reference);
+            return;
+          }
+          if (data.status === "error" || data.status === "cancelled") {
+            generationBusy = false;
+            $("sendToComfy").disabled = !comfyReady;
+            syncWorkflowBusy();
+            generationStatus(data.status === "cancelled" ? "Geração cancelada." : data.error);
+            return;
+          }
+          if (data.status === "cancelling") {
+            generationStatus("Cancelamento pendente. Clique em Parar geração para tentar novamente.");
+            return;
+          }
+          generationStatus(
+            data.status === "running"
+              ? (data.kind === "refine" ? "Aprimorando o prompt no Qwen 3.5… · seed " : "Gerando imagem no ComfyUI… · seed ") + data.seed
+              : "Aguardando na fila do ComfyUI" +
+                  (data.position ? " · posição " + data.position : "") +
+                  "…",
+          );
+          generationPollTimer = setTimeout(pollGeneration, 1800);
+        } catch (e) {
+          if (polledJob !== currentJob || !generationBusy || generationStopping) return;
+          generationStatus(
+            e.message +
+              " Use Retomar acompanhamento; não é necessário reenviar o prompt.",
+          );
+        }
+      }
+      async function sendToComfy(previewOnly = false) {
+        if (generationBusy || !comfyReady) return;
+        if (!manualPrompts.en) {
+          const missing = validateLinkedInputs();
+          if (missing) {
+            generationStatus(missing.message);
+            $(missing.field).focus();
+            return;
+          }
+        }
+        const prompt = val("outputEn").trim();
+        if (!prompt) {
+          generationStatus("O campo de prompt selecionado está vazio.");
+          return;
+        }
+        if (app.mode === "edit" && !app.refs.length) {
+          generationStatus("Adicione primeiro a foto alvo em Editar imagem.");
+          return;
+        }
+        if (
+          app.mode === "edit" &&
+          picked("editOps").includes("pose") &&
+          (!val("editPose") || poseProblems(val("editPose")).length)
+        ) {
+          generationStatus("A pose escolhida não é compatível com o enquadramento ou apoios informados. Ajuste o contexto ou selecione outra pose antes de enviar.");
+          return;
+        }
+        const snapshot = {
+          ...readWorkflowConfig(),
+          mode: app.mode,
+          refs: typeof promptReferences === "function" ? promptReferences() : app.refs.map(ref => ({...ref})),
+          resolution: Number(val("resolution")),
+          aspect: val("aspect"),
+          seed: val("generationSeed"),
+          request_id: newRequestId(),
+        };
+        generationBusy = true;
+        currentJob = "";
+        $("sendToComfy").disabled = true;
+        syncWorkflowBusy();
+        generationStatus("Preparando o prompt e as referências locais…");
+        if (typeof showGenerationProgress === "function") showGenerationProgress({status: "queued"});
+        try {
+          const images = snapshot.mode === "edit"
+            ? await Promise.all(snapshot.refs.map(encodedReference)) : [];
+          const body = {
+            profile: snapshot.profile,
+            settings: snapshot.settings,
+            prompt,
+            mode: snapshot.mode,
+            images,
+            resolution: snapshot.resolution,
+            aspect: snapshot.aspect,
+            seed: snapshot.seed,
+            request_id: snapshot.request_id,
+          };
+          const r = await fetch(previewOnly === true ? "/api/refine" : "/api/generate", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(body),
+              signal: AbortSignal.timeout(120000),
+            }),
+            data = await r.json();
+          if (!r.ok) throw new Error(data.error || "Falha ao enviar o prompt.");
+          currentJob = data.prompt_id;
+          syncWorkflowBusy();
+          if (data.kind === "refine") $("refinedPreview").classList.add("hidden");
+          showSubmittedRequest(data.request || {
+            prompt, mode: snapshot.mode, resolution: snapshot.resolution,
+            aspect: snapshot.mode === "edit" ? "proporção da foto alvo" : snapshot.aspect,
+            seed: data.seed, references: snapshot.refs.map(ref => ref.name),
+          });
+          try {
+            sessionStorage.setItem("kppb-last-job", currentJob);
+          } catch (_) {}
+          generationStatus(
+            "Prompt enviado · seed " + data.seed + ". Acompanhando resultado…",
+          );
+          if (!previewOnly) $("generationResults").replaceChildren();
+          refreshStudioJobs();
+          pollGeneration();
+        } catch (e) {
+          generationBusy = false;
+          $("sendToComfy").disabled = !comfyReady;
+          syncWorkflowBusy();
+          generationStatus(
+            "Envio não confirmado: " +
+              e.message +
+              " Se a conexão caiu, confira a fila no ComfyUI antes de reenviar.",
+          );
+        }
+      }
+      async function stopGeneration() {
+        if (!generationBusy || !currentJob || generationStopping) return;
+        const stoppedJob = currentJob;
+        generationStopping = true;
+        clearTimeout(generationPollTimer);
+        syncWorkflowBusy();
+        generationStatus("Solicitando interrupção ao ComfyUI…");
+        try {
+          const response = await fetch("/api/cancel", {
+            method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({prompt_id: stoppedJob}), signal: AbortSignal.timeout(30000),
+          });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || "Falha ao interromper a geração.");
+          generationBusy = false;
+          $("sendToComfy").disabled = !comfyReady;
+          showGenerationProgress({status: "cancelled"});
+          generationStatus("Cancelamento enviado. O ComfyUI pode levar alguns instantes para parar.");
+        } catch (error) {
+          generationStatus("Não foi possível confirmar a interrupção: " + error.message + " Tente Parar geração novamente.");
+        } finally {
+          generationStopping = false;
+          syncWorkflowBusy();
+        }
+      }
+      $("stopGeneration").addEventListener("click", stopGeneration);
+      $("sendToComfy").addEventListener("click", () => sendToComfy(false));
+      $("resumeGeneration").addEventListener("click", async () => {
+        if (generationBusy) return;
+        const chosen = val("studioJobs");
+        await checkComfy();
+        if (chosen) currentJob = chosen;
+        if (!currentJob)
+          try {
+            currentJob = sessionStorage.getItem("kppb-last-job") || "";
+          } catch (_) {}
+        if (currentJob) {
+          generationBusy = true;
+          $("sendToComfy").disabled = true;
+          syncWorkflowBusy();
+          pollGeneration();
+        } else
+          generationStatus("Nenhuma geração do Studio para retomar nesta aba.");
+      });
+
+      for (const b of document.querySelectorAll("[data-mode]"))
+        b.addEventListener("click", () => {
+          app.mode = b.dataset.mode;
+          update();
+        });
+      for (const b of document.querySelectorAll("[data-style]"))
+        b.addEventListener("click", () => {
+          app.style = b.dataset.style;
+          update();
+        });
+      $("fileInput").addEventListener("change", async (e) => {
+        await addRefs(e.target.files);
+        e.target.value = "";
+      });
+      $("pinCharacter").addEventListener("click", () => pinCharacterReference());
+      $("clearCharacter").addEventListener("click", clearCharacterReference);
+      $("importPack").addEventListener("click", () => $("packInput").click());
+      $("importTop").addEventListener("click", () => $("packInput").click());
+      $("packInput").addEventListener("change", async (e) => {
+        await importPacks(e.target.files);
+        e.target.value = "";
+      });
+      $("clearPack").addEventListener("click", () => {
+        app.packs = { poses: {}, actions: {}, group: {} };
+        fillPresets();
+        update();
+        toast("Pacotes importados limpos");
+      });
+      $("exportPack").addEventListener("click", () =>
+        blobDownload(
+          JSON.stringify(app.packs, null, 2),
+          "kppb_pack.json",
+          "application/json",
+        ),
+      );
+      $("copyEn").addEventListener("click", () =>
+        copyText($("outputEn").value),
+      );
+      $("downloadTxt").addEventListener("click", () =>
+        blobDownload($("outputEn").value, "KPPB_Prompt_EN.txt"),
+      );
+      $("downloadJson").addEventListener("click", () =>
+        blobDownload(
+          JSON.stringify(exportProject(), null, 2),
+          "KPPB_Projeto_Qwen.json",
+          "application/json",
+        ),
+      );
+      for (const el of document.querySelectorAll(
+        'input:not([type="file"]),select,textarea:not(.out)',
+      )) {
+        el.addEventListener("input", update);
+        el.addEventListener("change", update);
+      }
+      fillPresets();
+      $("pose").value = "neutral";
+      $("action").value = "none";
+      $("editPose").value = "neutral";
+      adapt();
+      update();
+      checkComfy();
+    </script>
+    <script src="studio-workflows.js"></script>
+    <script src="acoes-edicao.js"></script>
+  </body>
+</html>
