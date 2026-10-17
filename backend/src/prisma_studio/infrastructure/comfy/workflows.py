@@ -39,7 +39,7 @@ class ImageJob:
     denoise: float | None = None
     mask_grow: int = 16
     mask_feather: int = 24
-    prefix: str = 'kppb/studio'
+    prefix: str = 'prisma/studio'
 
 
 @dataclass(frozen=True)

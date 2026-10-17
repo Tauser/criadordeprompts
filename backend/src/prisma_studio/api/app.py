@@ -89,7 +89,7 @@ def create_app(config: Config | None = None, container: Container | None = None)
         c.executor.stop()
         c.progress.stop()
 
-    app = FastAPI(title='KPPB Studio', version=__version__, lifespan=lifespan)
+    app = FastAPI(title='Prisma Studio', version=__version__, lifespan=lifespan)
     app.state.container = c
 
     @app.middleware('http')
@@ -100,7 +100,7 @@ def create_app(config: Config | None = None, container: Container | None = None)
         except ValueError:
             local = host in ('testclient', 'localhost')
         if not local:
-            token = request.headers.get('x-studio-token') or request.cookies.get('kppb_token')
+            token = request.headers.get('x-studio-token') or request.cookies.get('prisma_token')
             if not config.token or not token or not secrets.compare_digest(token, config.token):
                 return JSONResponse({'error': 'Acesso pela rede exige o token do Studio.'}, status_code=401)
         if request.method in ('POST', 'PUT', 'DELETE'):

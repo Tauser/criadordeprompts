@@ -3,8 +3,8 @@ import json
 
 from PIL import Image
 
-from kppb.infrastructure.comfy.client import ComfyRejected, ComfyUnavailable, JobState
-from kppb.infrastructure.comfy.workflows import IMAGE_OUTPUT_NODE, TEXT_OUTPUT_NODE
+from prisma_studio.infrastructure.comfy.client import ComfyRejected, ComfyUnavailable, JobState
+from prisma_studio.infrastructure.comfy.workflows import IMAGE_OUTPUT_NODE, TEXT_OUTPUT_NODE
 
 
 def png(width=64, height=48, color=(200, 30, 30), mode='RGB'):
@@ -64,7 +64,7 @@ class FakeComfy:
     def outputs(self, prompt_id):
         graph = self.jobs[prompt_id]['graph']
         if IMAGE_OUTPUT_NODE in graph:
-            return {IMAGE_OUTPUT_NODE: {'images': [{'filename': f'{prompt_id}.png', 'subfolder': 'kppb', 'type': 'output'}]}}
+            return {IMAGE_OUTPUT_NODE: {'images': [{'filename': f'{prompt_id}.png', 'subfolder': 'prisma', 'type': 'output'}]}}
         prompt = graph['90']['inputs']['prompt']
         answer = self.text_answer(prompt) if callable(self.text_answer) else self.text_answer
         return {TEXT_OUTPUT_NODE: {'text': [answer]}}

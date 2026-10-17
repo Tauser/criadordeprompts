@@ -1,4 +1,4 @@
-# KPPB Studio — Arquitetura
+# Prisma Studio — Arquitetura
 
 Aplicativo local para criar e editar imagens com o ComfyUI (Qwen Image 2.1). Uma pessoa, uma GPU (RTX 4070, 12 GB), Windows.
 
@@ -13,7 +13,7 @@ Aplicativo local para criar e editar imagens com o ComfyUI (Qwen Image 2.1). Uma
 ## Camadas
 
 ```text
-frontend/ (React + TS + Vite)  ──HTTP/SSE──►  backend/src/kppb/api (FastAPI)
+frontend/ (React + TS + Vite)  ──HTTP/SSE──►  backend/src/prisma_studio/api (FastAPI)
                                                  │
                      application (casos de uso) ─┼─► domain (puro: pedido, regras, compilador, verificação)
                                                  │

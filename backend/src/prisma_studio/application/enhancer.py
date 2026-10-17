@@ -16,7 +16,7 @@ REFUSAL = re.compile(r"^\s*(i'?m sorry|i cannot|i can'?t|sorry|as an ai|i am una
 
 def system_prompt(mode: str) -> str:
     if mode == 'edit':
-        return resources.files('kppb.resources').joinpath('enhancer_edit_official.txt').read_text(encoding='utf-8')
+        return resources.files('prisma_studio.resources').joinpath('enhancer_edit_official.txt').read_text(encoding='utf-8')
     return GENERATE_SYSTEM
 
 

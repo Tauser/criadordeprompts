@@ -1,7 +1,7 @@
 """A small stand-in for ComfyUI, for trying the interface without a GPU.
 
 python scripts/fake_comfy.py [--port 8199] [--seconds 6]
-Then start the Studio with KPPB_COMFY_URL=http://127.0.0.1:8199
+Then start the Studio with PRISMA_COMFY_URL=http://127.0.0.1:8199 (ou scripts\iniciar.ps1 -ComfyUrl http://127.0.0.1:8199)
 """
 from __future__ import annotations
 
@@ -75,7 +75,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send({})
             graph = JOBS[job_id]['graph']
             if '60' in graph:
-                outputs = {'60': {'images': [{'filename': f'{job_id}.png', 'subfolder': 'kppb', 'type': 'output'}]}}
+                outputs = {'60': {'images': [{'filename': f'{job_id}.png', 'subfolder': 'prisma', 'type': 'output'}]}}
             else:
                 prompt = graph['90']['inputs']['prompt']
                 if prompt.startswith('Checklist:'):

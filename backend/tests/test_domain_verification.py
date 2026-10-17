@@ -1,5 +1,5 @@
 from helpers import cat, edit_request, keep, ref, run
-from kppb.domain.verification import checklist, judge_prompt, parse_verdicts, score
+from prisma_studio.domain.verification import checklist, judge_prompt, parse_verdicts, score
 
 
 def test_checklist_and_parsing(library):

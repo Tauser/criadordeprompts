@@ -1,4 +1,4 @@
-# KPPB Studio
+# Prisma Studio
 
 Estúdio local para criar e editar imagens com o ComfyUI e o Qwen Image 2.1. Reconstruído do zero em 17/10/2026, a partir da auditoria do projeto anterior (`criadordeprompts`).
 
@@ -28,7 +28,7 @@ Para experimentar sem GPU: `python scripts\fake_comfy.py` e inicie com `-ComfyUr
 ## Estrutura
 
 ```text
-backend/src/kppb/   domain (pedido, regras, compilador, verificação) · application · infrastructure (comfy, db, storage) · worker · api
+backend/src/prisma_studio/   domain (pedido, regras, compilador, verificação) · application · infrastructure (comfy, db, storage) · worker · api
 frontend/           React + TypeScript + Vite (dist/ já compilado e servido pelo backend)
 catalog/            defaults.json (183 opções importadas) e review-v1.json (correções explícitas da importação)
 docs/               ARCHITECTURE.md e ADRs

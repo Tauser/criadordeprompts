@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from kppb.domain.request import Attribute, Request
+from prisma_studio.domain.request import Attribute, Request
 
 
 @pytest.mark.parametrize('data', [

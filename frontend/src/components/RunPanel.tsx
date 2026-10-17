@@ -72,7 +72,7 @@ export function RunPanel({run, connection, onReuse, notify, onRepeat}: Props) {
             <div className="row">
               <span className="muted small">seed {image.seed}{image.score != null ? ` · ${Math.round(image.score * 100)}%` : ''}</span>
               <span className="spacer" />
-              <a className="button quiet" href={fileUrl(image.files[0])} download={`kppb-${image.seed}.png`}>Baixar</a>
+              <a className="button quiet" href={fileUrl(image.files[0])} download={`prisma-${image.seed}.png`}>Baixar</a>
               <button className="quiet" onClick={() => onReuse(image.files[0])}>Editar este resultado</button>
             </div>
             {image.verdicts && (

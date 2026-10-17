@@ -4,8 +4,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from fakes import FakeComfy, png
-from kppb.api.app import Container, create_app
-from kppb.config import Config
+from prisma_studio.api.app import Container, create_app
+from prisma_studio.config import Config
 
 CATALOG = Path(__file__).resolve().parents[2] / 'catalog' / 'defaults.json'
 
@@ -90,8 +90,8 @@ def test_bad_upload_is_rejected(client):
 
 
 def test_graph_validation_against_object_info_shapes():
-    from kppb.infrastructure.comfy.validation import validate_graph
-    from kppb.infrastructure.comfy.workflows import ImageJob, image_graph
+    from prisma_studio.infrastructure.comfy.validation import validate_graph
+    from prisma_studio.infrastructure.comfy.workflows import ImageJob, image_graph
     graph = image_graph(ImageJob(mode='generate', prompt='x', width=512, height=512))
     info = {cls: {'input': {'required': {}}} for cls in {n['class_type'] for n in graph.values()}}
     info['UNETLoader'] = {'input': {'required': {'unet_name': [['qwen_image_2.1_int8_convrot.safetensors']],

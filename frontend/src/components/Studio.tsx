@@ -13,12 +13,15 @@ import {References} from './References';
 import {RunPanel} from './RunPanel';
 
 type Drafts = Record<'generate' | 'edit', Workspace>;
-const DRAFTS_KEY = 'kppb.drafts.v1', ACTIVE_KEY = 'kppb.active-run', PENDING_KEY = 'kppb.pending-request';
+const DRAFTS_KEY = 'prisma.drafts.v1', ACTIVE_KEY = 'prisma.active-run', PENDING_KEY = 'prisma.pending-request';
+// Drafts saved before the rename are read once from the old keys.
+const LEGACY = {drafts: 'kppb.drafts.v1', active: 'kppb.active-run'};
 
 interface Props {library: LibrarySnapshot; comfyOnline: boolean; notify: (m: string, e?: boolean) => void}
 
 export function Studio({library, comfyOnline, notify}: Props) {
-  const stored = load<{mode: 'generate' | 'edit'; drafts: Drafts} | null>(DRAFTS_KEY, null);
+  const stored = load<{mode: 'generate' | 'edit'; drafts: Drafts} | null>(DRAFTS_KEY, null)
+    ?? load<{mode: 'generate' | 'edit'; drafts: Drafts} | null>(LEGACY.drafts, null);
   const [drafts, setDrafts] = useState<Drafts>(stored?.drafts ?? {generate: initialWorkspace('generate'), edit: initialWorkspace('edit')});
   const [workspace, setWorkspace] = useState<Workspace>(stored ? stored.drafts[stored.mode] : initialWorkspace('generate'));
   const [tab, setTab] = useState<'basic' | 'advanced'>('basic');
@@ -26,7 +29,7 @@ export function Studio({library, comfyOnline, notify}: Props) {
   const [prepareError, setPrepareError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [activeRun, setActiveRun] = useState<string | null>(load<string | null>(ACTIVE_KEY, null));
+  const [activeRun, setActiveRun] = useState<string | null>(load<string | null>(ACTIVE_KEY, null) ?? load<string | null>(LEGACY.active, null));
   const {run, connection} = useRun(activeRun);
   const epoch = useRef(0);
   const request = workspace.request;

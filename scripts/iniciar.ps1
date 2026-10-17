@@ -11,14 +11,14 @@ if (Test-Path $pidFile) {
     $old = Get-Process -Id (Get-Content $pidFile) -ErrorAction SilentlyContinue
     if ($old) { Write-Output "O Studio já está em http://127.0.0.1:$Port/"; if (-not $SemNavegador) { Start-Process "http://127.0.0.1:$Port/" }; exit 0 }
 }
-$env:KPPB_COMFY_URL = $ComfyUrl
-$env:KPPB_DATA_DIR = $data
-$process = Start-Process -FilePath $py -ArgumentList @('-m', 'kppb', '--port', $Port) -WindowStyle Hidden -PassThru `
+$env:PRISMA_COMFY_URL = $ComfyUrl
+$env:PRISMA_DATA_DIR = $data
+$process = Start-Process -FilePath $py -ArgumentList @('-m', 'prisma_studio', '--port', $Port) -WindowStyle Hidden -PassThru `
     -RedirectStandardOutput (Join-Path $data 'logs\studio.log') -RedirectStandardError (Join-Path $data 'logs\studio-erros.log')
 Set-Content -Path $pidFile -Value $process.Id
 for ($i = 0; $i -lt 40; $i++) {
     Start-Sleep -Milliseconds 250
     try { Invoke-RestMethod "http://127.0.0.1:$Port/api/health" -TimeoutSec 2 | Out-Null; break } catch { }
 }
-Write-Output "KPPB Studio: http://127.0.0.1:$Port/"
+Write-Output "Prisma Studio: http://127.0.0.1:$Port/"
 if (-not $SemNavegador) { Start-Process "http://127.0.0.1:$Port/" }

@@ -3,11 +3,11 @@ import random
 import pytest
 
 from helpers import cat, codes, edit_request, generate_request, keep, ref, run, text
-from kppb.domain import ir
-from kppb.domain.compiler import CompileError, compile_request
-from kppb.domain.request import Request
-from kppb.domain.rules import assess
-from kppb.domain.vocabulary import CATEGORIES
+from prisma_studio.domain import ir
+from prisma_studio.domain.compiler import CompileError, compile_request
+from prisma_studio.domain.request import Request
+from prisma_studio.domain.rules import assess
+from prisma_studio.domain.vocabulary import CATEGORIES
 
 IDENTITY = ('face', 'body', 'skin', 'hair')
 DEFAULT_KEEP = {c: keep() for c in ('face', 'body', 'skin', 'hair', 'wardrobe', 'environment', 'lighting', 'style')}

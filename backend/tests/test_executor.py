@@ -3,13 +3,13 @@ import pytest
 
 from fakes import FakeComfy, judge_all, png
 from helpers import cat, keep
-from kppb.application.library import LibraryService
-from kppb.application.runs import RequestRejected, RunService
-from kppb.domain.request import Request
-from kppb.infrastructure.db.database import Database
-from kppb.infrastructure.db.repository import LibraryRepository, RunRepository
-from kppb.infrastructure.storage.files import FileStore
-from kppb.worker.executor import Executor
+from prisma_studio.application.library import LibraryService
+from prisma_studio.application.runs import RequestRejected, RunService
+from prisma_studio.domain.request import Request
+from prisma_studio.infrastructure.db.database import Database
+from prisma_studio.infrastructure.db.repository import LibraryRepository, RunRepository
+from prisma_studio.infrastructure.storage.files import FileStore
+from prisma_studio.worker.executor import Executor
 
 
 @pytest.fixture

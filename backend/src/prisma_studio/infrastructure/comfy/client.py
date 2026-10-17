@@ -32,7 +32,7 @@ class ComfyClient:
     def __init__(self, base_url: str = 'http://127.0.0.1:8188', client_id: str | None = None,
                  http: httpx.Client | None = None, timeout: float = 30):
         self.base_url = base_url.rstrip('/')
-        self.client_id = client_id or 'kppb-studio-' + uuid.uuid4().hex[:8]
+        self.client_id = client_id or 'prisma-studio-' + uuid.uuid4().hex[:8]
         self.http = http or httpx.Client(timeout=timeout, trust_env=False)
 
     def _call(self, method: str, path: str, **kwargs) -> httpx.Response:

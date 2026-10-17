@@ -39,7 +39,7 @@ export function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <button className="brand" onClick={() => go('studio')}>KPPB <span>Studio</span></button>
+        <button className="brand" onClick={() => go('studio')}>Prisma <span>Studio</span></button>
         <nav aria-label="Seções">
           <button className={view === 'studio' ? 'active' : ''} onClick={() => go('studio')}>Estúdio</button>
           <button className={view === 'library' ? 'active' : ''} onClick={() => go('library')}>Biblioteca</button>

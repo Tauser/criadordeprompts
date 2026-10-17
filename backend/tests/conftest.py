@@ -1,6 +1,6 @@
 import pytest
 
-from kppb.domain.catalog import Item, Library, Provides, Requirements
+from prisma_studio.domain.catalog import Item, Library, Provides, Requirements
 
 
 def item(id_, category, prompt, **kw):

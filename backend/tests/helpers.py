@@ -1,6 +1,6 @@
-from kppb.domain.compiler import compile_request
-from kppb.domain.request import Request
-from kppb.domain.rules import assess
+from prisma_studio.domain.compiler import compile_request
+from prisma_studio.domain.request import Request
+from prisma_studio.domain.rules import assess
 
 
 def cat(item_id):

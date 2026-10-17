@@ -14,7 +14,7 @@ from ..infrastructure.comfy.workflows import (MAX_EDIT_PIXELS, ImageJob, TextJob
 from ..infrastructure.db.database import now
 from ..infrastructure.storage.files import fit_multiple_of_32, normalized_png
 
-log = logging.getLogger('kppb.executor')
+log = logging.getLogger('prisma.executor')
 TASK_DONE = {'completed', 'failed', 'cancelled', 'lost'}
 PHASES = {'UNETLoader': 'loading_models', 'CLIPLoader': 'loading_models', 'VAELoader': 'loading_models',
           'QwenImage21Cache': 'loading_models', 'LoadImage': 'loading_images', 'LoadImageMask': 'loading_images',
@@ -37,7 +37,7 @@ class Executor:
     # lifecycle --------------------------------------------------------------
     def start(self) -> None:
         if self._thread is None:
-            self._thread = threading.Thread(target=self._loop, name='kppb-executor', daemon=True)
+            self._thread = threading.Thread(target=self._loop, name='prisma-executor', daemon=True)
             self._thread.start()
 
     def stop(self) -> None:
@@ -110,15 +110,15 @@ class Executor:
                 record = self.repository.file(file_hash)
                 size = fit_multiple_of_32(record['width'], record['height'], MAX_EDIT_PIXELS)
                 data = normalized_png(data, size)
-                names.append(self.comfy.upload(data, f'kppb_{file_hash[:24]}_{size[0]}x{size[1]}.png', 'image/png'))
+                names.append(self.comfy.upload(data, f'prisma_{file_hash[:24]}_{size[0]}x{size[1]}.png', 'image/png'))
             else:
                 mime = self.repository.file(file_hash)['mime']
                 ext = {'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp'}[mime]
-                names.append(self.comfy.upload(data, f'kppb_{file_hash[:24]}.{ext}', mime))
+                names.append(self.comfy.upload(data, f'prisma_{file_hash[:24]}.{ext}', mime))
         mask = None
         if settings['mask']:
             data = normalized_png(self.store.read(settings['mask']), size, mask=True)
-            mask = self.comfy.upload(data, f'kppb_mask_{settings["mask"][:24]}_{size[0]}x{size[1]}.png', 'image/png')
+            mask = self.comfy.upload(data, f'prisma_mask_{settings["mask"][:24]}_{size[0]}x{size[1]}.png', 'image/png')
         return {'images': names, 'mask': mask, 'target_size': size}
 
     def _create_image_tasks(self, run: dict) -> None:
@@ -156,7 +156,7 @@ class Executor:
                     images=tuple(uploaded['images']), mask=uploaded['mask'],
                     negative_prompt=engine.get('negative_prompt', ''), steps=engine.get('steps'),
                     cfg=engine.get('cfg'), sampler=engine.get('sampler'), scheduler=engine.get('scheduler'),
-                    denoise=engine.get('denoise'), prefix=f'kppb/{run["id"][:8]}'))
+                    denoise=engine.get('denoise'), prefix=f'prisma/{run["id"][:8]}'))
             self._drive(task, build)
         tasks = self.repository.tasks(run['id'], 'image')
         if not all(t['status'] in TASK_DONE for t in tasks):
@@ -186,7 +186,7 @@ class Executor:
 
             def build(image_task=image_task):
                 file_hash = image_task['result']['files'][0]
-                name = self.comfy.upload(self.store.read(file_hash), f'kppb_{file_hash[:24]}.png', 'image/png')
+                name = self.comfy.upload(self.store.read(file_hash), f'prisma_{file_hash[:24]}.png', 'image/png')
                 return text_graph(TextJob(prompt=judge_prompt(checks), system_prompt=JUDGE_SYSTEM,
                                           images=(name, *refs), max_length=1024))
             self._drive(judge, build)

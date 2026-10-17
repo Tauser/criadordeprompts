@@ -97,7 +97,7 @@ describe('History', () => {
 describe('Regenerate', () => {
   it('repeats a finished run with a new seed or the same seed', async () => {
     runStatus = 'completed';
-    localStorage.setItem('kppb.active-run', JSON.stringify('run1'));
+    localStorage.setItem('prisma.active-run', JSON.stringify('run1'));
     render(<App />);
     const again = await screen.findByRole('button', {name: '↻ Gerar de novo'});
     await act(async () => {fireEvent.click(again);});

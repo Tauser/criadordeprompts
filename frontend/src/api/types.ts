@@ -1,4 +1,4 @@
-// Mirrors backend/src/kppb/domain/request.py (contract v1). Keep both in sync; /api/contract exposes the schema.
+// Mirrors backend/src/prisma_studio/domain/request.py (contract v1). Keep both in sync; /api/contract exposes the schema.
 export const CATEGORIES = ['subject', 'face', 'body', 'skin', 'hair', 'wardrobe', 'environment', 'pose',
   'expression', 'action', 'lighting', 'style', 'camera', 'framing'] as const;
 export type Category = typeof CATEGORIES[number];

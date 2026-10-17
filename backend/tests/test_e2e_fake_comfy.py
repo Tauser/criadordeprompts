@@ -10,9 +10,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 from fakes import png
-from kppb.api.app import Container, create_app
-from kppb.config import Config
-from kppb.infrastructure.comfy.client import ComfyClient
+from prisma_studio.api.app import Container, create_app
+from prisma_studio.config import Config
+from prisma_studio.infrastructure.comfy.client import ComfyClient
 
 ROOT = Path(__file__).resolve().parents[2]
 

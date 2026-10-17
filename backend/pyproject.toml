@@ -1,5 +1,5 @@
 [project]
-name = "kppb-studio"
+name = "prisma-studio"
 version = "0.1.0"
 description = "Estúdio local de criação e edição de imagens com ComfyUI"
 requires-python = ">=3.10"
@@ -24,7 +24,7 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.setuptools.package-data]
-kppb = ["resources/*.txt"]
+prisma_studio = ["resources/*.txt"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

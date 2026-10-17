@@ -11,7 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'backend' / 'src'))
 
-from kppb.domain.catalog import Item, Library, merge  # noqa: E402
+from prisma_studio.domain.catalog import Item, Library, merge  # noqa: E402
 
 
 def new_id(old: dict) -> str:
