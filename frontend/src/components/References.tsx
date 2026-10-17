@@ -1,6 +1,7 @@
 import {useState} from 'react';
 import {api, fileUrl} from '../api/client';
 import {CATEGORY_LABELS} from '../lib/labels';
+import {sortBy} from '../lib/sort';
 import {ROLES, addReference, applyReference, referenceRoles, removeReference, setTarget, type Workspace} from '../state/workspace';
 import {MaskEditor} from './MaskEditor';
 
@@ -75,7 +76,7 @@ export function References({workspace, slots, disabled, update, notify}: Props) 
                     <select aria-label={`Aplicar ${ref.label} como`} value="" disabled={disabled}
                             onChange={e => e.target.value && act(ws => applyReference(ws, ref.id, e.target.value))}>
                       <option value="">Aplicar como…</option>
-                      {Object.entries(ROLES).map(([key, role]) => <option key={key} value={key}>{role.label}</option>)}
+                      {sortBy(Object.entries(ROLES), ([, role]) => role.label).map(([key, role]) => <option key={key} value={key}>{role.label}</option>)}
                     </select>
                   )}
                   {edit && !isTarget && <button className="quiet" disabled={disabled}

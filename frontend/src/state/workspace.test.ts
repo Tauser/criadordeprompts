@@ -63,3 +63,12 @@ describe('missingMetadata', () => {
     expect(missingMetadata({...base, category: 'lighting', requirements: {}})).toEqual([]);
   });
 });
+
+import {sortBy} from '../lib/sort';
+
+describe('sortBy', () => {
+  it('orders labels alphabetically in Portuguese, ignoring accents and case', () => {
+    expect(sortBy(['Rua urbana', 'ângulo alto', 'Ângulo baixo', 'Estúdio', 'estrada', 'Item 10', 'Item 2'], s => s))
+      .toEqual(['ângulo alto', 'Ângulo baixo', 'estrada', 'Estúdio', 'Item 2', 'Item 10', 'Rua urbana']);
+  });
+});

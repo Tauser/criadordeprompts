@@ -245,8 +245,8 @@ function SceneContext({request, patch}: {request: StudioRequest; patch: Patch}) 
           onChange={e => patch(r => {r.participants.existing = num(e.target.value);})} /></label>}
         {edit && <label>Enquadramento da foto<select value={request.context.original_framing ?? ''}
           onChange={e => patch(r => {r.context.original_framing = (e.target.value || null) as StudioRequest['context']['original_framing'];})}>
-          <option value="">Não informado</option><option value="portrait">Rosto e ombros</option><option value="half">Meio corpo</option>
-          <option value="full">Corpo inteiro</option><option value="wide">Plano aberto</option></select></label>}
+          <option value="">Não informado</option><option value="full">Corpo inteiro</option><option value="half">Meio corpo</option>
+          <option value="wide">Plano aberto</option><option value="portrait">Rosto e ombros</option></select></label>}
       </div>
       {edit && <>
         <label className="check"><input type="checkbox" checked={supports != null} onChange={e => patch(r => {r.context.supports = e.target.checked ? [] : null;})} /> Sei quais apoios existem na foto</label>

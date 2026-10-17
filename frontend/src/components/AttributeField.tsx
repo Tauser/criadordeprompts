@@ -1,5 +1,6 @@
 import type {Attribute, Category, Item, Reference} from '../api/types';
 import {CATEGORY_LABELS} from '../lib/labels';
+import {sortBy} from '../lib/sort';
 
 interface Props {
   category: Category;
@@ -19,7 +20,8 @@ const keyOf = (a: Attribute) => a.intent === 'set' ? (a.value?.kind === 'catalog
 export function AttributeField({category, attribute, items, references, targetId, mode, disabled, issues, onChange}: Props) {
   const key = keyOf(attribute);
   const id = `field-${category}`;
-  const sources = references.filter(r => r.id !== targetId);
+  const sources = sortBy(references.filter(r => r.id !== targetId), r => r.label);
+  const sorted = sortBy(items, i => i.label);
   const known = new Set(['keep', 'free', 'text', ...items.map(i => `catalog:${i.id}`), ...sources.map(r => `ref:${r.id}`)]);
   const select = (value: string) => {
     if (value === 'keep' || value === 'free') onChange({intent: value});
@@ -36,7 +38,7 @@ export function AttributeField({category, attribute, items, references, targetId
         <option value="free">Sem instrução (o modelo decide)</option>
         <option value="text">Descrição personalizada…</option>
         {items.length > 0 && <optgroup label="Biblioteca">
-          {items.map(item => <option key={item.id} value={`catalog:${item.id}`}>{item.label}{item.adult ? ' · +18' : ''}</option>)}
+          {sorted.map(item => <option key={item.id} value={`catalog:${item.id}`}>{item.label}{item.adult ? ' · +18' : ''}</option>)}
         </optgroup>}
         {sources.length > 0 && <optgroup label="Imagem de referência">
           {sources.map(ref => <option key={ref.id} value={`ref:${ref.id}`}>{ref.label}</option>)}

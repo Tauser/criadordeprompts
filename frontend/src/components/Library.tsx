@@ -3,6 +3,9 @@ import {api} from '../api/client';
 import {CATEGORIES, type Category, type Item, type LibrarySnapshot} from '../api/types';
 import {CATEGORY_LABELS, FRAMING_LABELS, GAZE_LABELS, POSTURE_LABELS} from '../lib/labels';
 import {metadataLabel, missingMetadata} from '../lib/metadata';
+import {compareText, sortBy} from '../lib/sort';
+
+const SORTED_CATEGORIES = sortBy(CATEGORIES, c => CATEGORY_LABELS[c]);
 
 interface Props {snapshot: LibrarySnapshot; onSaved: (s: LibrarySnapshot) => void; notify: (m: string, e?: boolean) => void;
   setDirty: (dirty: boolean) => void}
@@ -12,6 +15,11 @@ const GAZES = ['', 'any', 'camera', 'away', 'down', 'up', 'back', 'closed'];
 const FRAMINGS = ['', 'portrait', 'half', 'full', 'wide'];
 const SUPPORTS = ['floor', 'seat', 'bed', 'wall', 'table'] as const;
 const SUPPORT_LABEL: Record<string, string> = {floor: 'chão', seat: 'assento', bed: 'cama', wall: 'parede', table: 'mesa'};
+
+const sortedOptions = (values: string[], labels: Record<string, string>) =>
+  ['', ...sortBy(values.filter(Boolean), v => labels[v] ?? v)];
+const compareCategoryThenLabel = (a: Item, b: Item) =>
+  SORTED_CATEGORIES.indexOf(a.category) - SORTED_CATEGORIES.indexOf(b.category) || compareText(a.label, b.label);
 
 const blank = (category: Category): Item => ({id: `user.${category}.${crypto.randomUUID().slice(0, 8)}`, category,
   label: '', prompt: '', prompt_pt: '', adult: false, enabled: true, requirements: {}, provides: {}});
@@ -29,7 +37,8 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
 
   const items = useMemo(() => snapshot.items.filter(item => (category === 'all' || item.category === category)
     && (!incomplete || missingMetadata(item).length > 0)
-    && (!query || (item.label + ' ' + item.prompt).toLowerCase().includes(query.toLowerCase()))), [snapshot, category, query, incomplete]);
+    && (!query || (item.label + ' ' + item.prompt).toLowerCase().includes(query.toLowerCase())))
+    .sort((a, b) => compareCategoryThenLabel(a, b)), [snapshot, category, query, incomplete]);
   const incompleteCount = useMemo(() => snapshot.items.filter(i => missingMetadata(i).length).length, [snapshot]);
 
   const open = (item: Item | null) => {
@@ -89,7 +98,7 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
         <div className="row">
           <select aria-label="Categoria" value={category} onChange={e => setCategory(e.target.value as Category | 'all')}>
             <option value="all">Todas as categorias</option>
-            {CATEGORIES.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
+            {SORTED_CATEGORIES.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
           </select>
           <input type="search" placeholder="Buscar" value={query} onChange={e => setQuery(e.target.value)} aria-label="Buscar opções" />
           <button className="secondary" onClick={() => open(blank(category === 'all' ? 'environment' : category))}>Nova opção</button>
@@ -118,7 +127,7 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
             <label>Categoria
               <select value={draft.category} disabled={snapshot.origins[draft.id] !== undefined}
                       onChange={e => setDraft({...draft, category: e.target.value as Category})}>
-                {CATEGORIES.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
+                {SORTED_CATEGORIES.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
               </select>
             </label>
             <label>Nome<input value={draft.label} maxLength={80} onChange={e => setDraft({...draft, label: e.target.value})} /></label>
@@ -138,12 +147,12 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
               {draft.category !== 'expression' && <label>Pessoas<input type="number" min={1} max={10} value={draft.requirements.participants ?? ''}
                 onChange={e => req('participants', e.target.value === '' ? '' : Number(e.target.value))} /></label>}
               {['pose', 'action'].includes(draft.category) && <label>Postura<select value={draft.requirements.posture ?? ''}
-                onChange={e => req('posture', e.target.value)}>{POSTURES.map(p => <option key={p} value={p}>{p ? POSTURE_LABELS[p] : 'não informada'}</option>)}</select></label>}
+                onChange={e => req('posture', e.target.value)}>{sortedOptions(POSTURES, POSTURE_LABELS).map(p => <option key={p} value={p}>{p ? POSTURE_LABELS[p] : 'não informada'}</option>)}</select></label>}
               {draft.category !== 'subject' && <label>Olhar<select value={draft.requirements.gaze ?? ''}
-                onChange={e => req('gaze', e.target.value)}>{GAZES.map(p => <option key={p} value={p}>{p ? GAZE_LABELS[p] : 'não informado'}</option>)}</select></label>}
+                onChange={e => req('gaze', e.target.value)}>{sortedOptions(GAZES, GAZE_LABELS).map(p => <option key={p} value={p}>{p ? GAZE_LABELS[p] : 'não informado'}</option>)}</select></label>}
               {['pose', 'action'].includes(draft.category) && <>
                 <label>Enquadramento mínimo<select value={draft.requirements.minimum_framing ?? ''}
-                  onChange={e => req('minimum_framing', e.target.value)}>{FRAMINGS.map(p => <option key={p} value={p}>{p ? FRAMING_LABELS[p] : 'nenhum'}</option>)}</select></label>
+                  onChange={e => req('minimum_framing', e.target.value)}>{sortedOptions(FRAMINGS, FRAMING_LABELS).map(p => <option key={p} value={p}>{p ? FRAMING_LABELS[p] : 'nenhum'}</option>)}</select></label>
                 <label className="check"><input type="checkbox" checked={Array.isArray(draft.requirements.support_any_of) && draft.requirements.support_any_of.length === 0}
                   onChange={e => req('support_any_of', e.target.checked ? [] : '')} /> Nenhum apoio necessário</label>
                 <div className="checks" role="group" aria-label="Apoios aceitos">{SUPPORTS.map(s => (
@@ -170,7 +179,7 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
           {draft.category === 'framing' && (
             <label>Área visível<select value={draft.provides.framing ?? ''}
               onChange={e => setDraft({...draft, provides: {...draft.provides, framing: (e.target.value || null) as Item['provides']['framing']}})}>
-              {FRAMINGS.map(p => <option key={p} value={p}>{p ? FRAMING_LABELS[p] : 'não informada'}</option>)}</select></label>
+              {sortedOptions(FRAMINGS, FRAMING_LABELS).map(p => <option key={p} value={p}>{p ? FRAMING_LABELS[p] : 'não informada'}</option>)}</select></label>
           )}
           <div className="row">
             {snapshot.origins[draft.id] && snapshot.origins[draft.id] !== 'builtin' &&
