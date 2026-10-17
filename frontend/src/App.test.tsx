@@ -44,12 +44,15 @@ beforeEach(() => {
 afterEach(() => {cleanup(); vi.unstubAllGlobals();});
 
 describe('Studio', () => {
-  it('composes from the fields, submits once and follows the run with phases', async () => {
+  it('composes from the picker, submits once and follows the run with phases', async () => {
     render(<App />);
-    const environment = await screen.findByLabelText('Cenário');
-    fireEvent.change(environment, {target: {value: 'catalog:environment.garden'}});
-    fireEvent.click(screen.getByRole('tab', {name: /Prompt/}));
+    fireEvent.click(await screen.findByRole('button', {name: 'Cenário'}));
+    fireEvent.click(await screen.findByRole('button', {name: /Jardim natural/}));
+    fireEvent.click(screen.getByRole('button', {name: 'Concluir'}));
+    expect(await screen.findByText('Jardim natural')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', {name: 'Prompt'}));
     await screen.findByText('Setting: a quiet garden.');
+    fireEvent.click(screen.getByRole('button', {name: 'Fechar painel'}));
     const generate = screen.getByRole('button', {name: 'Gerar imagem'});
     await waitFor(() => expect((generate as HTMLButtonElement).disabled).toBe(false));
     await act(async () => {fireEvent.click(generate);});
@@ -57,38 +60,38 @@ describe('Studio', () => {
     expect(posts).toHaveLength(1);
     expect(posts[0].body.request.attributes.environment).toEqual({intent: 'set', value: {kind: 'catalog', item_id: 'environment.garden'}});
     expect(posts[0].body.request_id).toMatch(/^[0-9a-f-]{36}$/);
-    expect(await screen.findByText('Carregando modelos')).toBeTruthy();
-    const stop = screen.getByRole('button', {name: '■ Parar'});
-    await act(async () => {fireEvent.click(stop);});
+    expect((await screen.findAllByText('Carregando modelos')).length).toBeGreaterThan(0);
+    await act(async () => {fireEvent.click(screen.getByRole('button', {name: 'Parar'}));});
     expect(calls.some(c => c.path === '/api/runs/run1/cancel')).toBe(true);
   });
 
   it('starts edits keeping the photo and blocks generation without a change', async () => {
     render(<App />);
-    await screen.findByLabelText('Cenário');
-    fireEvent.click(screen.getByRole('radio', {name: 'Editar foto'}));
-    expect(((await screen.findByLabelText('Cenário')) as HTMLSelectElement).value).toBe('keep');
+    fireEvent.click(await screen.findByRole('radio', {name: 'Editar foto'}));
+    fireEvent.click(await screen.findByRole('button', {name: 'Cenário'}));
+    expect((await screen.findByRole('button', {name: /Manter da foto/})).getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(screen.getByRole('button', {name: 'Concluir'}));
     fireEvent.click(await screen.findByRole('button', {name: /erro para corrigir/}));
     expect(await screen.findByText('Nenhuma alteração foi pedida para a foto.')).toBeTruthy();
     expect((screen.getByRole('button', {name: 'Gerar edição'}) as HTMLButtonElement).disabled).toBe(true);
   });
 });
 
-describe('History', () => {
-  it('filters, deletes a finished run and keeps files still attached in the editor', async () => {
+describe('Gallery', () => {
+  it('filters, deletes a finished run and keeps files still attached in the composer', async () => {
     runStatus = 'completed';
     vi.stubGlobal('confirm', () => true);
     const fetchMock = vi.fn((path: string, init?: RequestInit) => path === '/api/runs/delete'
       ? (calls.push({path, body: JSON.parse(init!.body as string)}), Promise.resolve(new Response(JSON.stringify({deleted: ['run1'], files_removed: 1}), {status: 200})))
       : respond(path, init));
     vi.stubGlobal('fetch', fetchMock);
-    const {History} = await import('./components/History');
+    const {Gallery} = await import('./components/Gallery');
     const notify = vi.fn();
-    render(<History activeRun="run1" onSelect={() => undefined} keepFiles={['abc']} notify={notify} />);
-    expect(await screen.findByRole('tab', {name: /Concluídos 1/})).toBeTruthy();
-    fireEvent.click(screen.getByRole('tab', {name: /Em andamento/}));
+    render(<Gallery activeRun="run1" liveRun={null} onOpen={() => undefined} keepFiles={['abc']} notify={notify} />);
+    expect(await screen.findByRole('tab', {name: /Criações 1/})).toBeTruthy();
+    fireEvent.click(screen.getByRole('tab', {name: /Falhas/}));
     expect(await screen.findByText('Nenhum pedido neste filtro.')).toBeTruthy();
-    fireEvent.click(screen.getByRole('tab', {name: /Todos/}));
+    fireEvent.click(screen.getByRole('tab', {name: /Tudo/}));
     await act(async () => {fireEvent.click(await screen.findByRole('button', {name: 'Apagar este pedido'}));});
     const request = calls.find(c => c.path === '/api/runs/delete');
     expect(request?.body).toEqual({ids: ['run1'], keep_files: ['abc']});
@@ -97,11 +100,11 @@ describe('History', () => {
 });
 
 describe('Regenerate', () => {
-  it('repeats a finished run with a new seed or the same seed', async () => {
+  it('opens a run from the gallery and repeats it with a new seed or the same seed', async () => {
     runStatus = 'completed';
-    localStorage.setItem('prisma.active-run', JSON.stringify('run1'));
     render(<App />);
-    const again = await screen.findByRole('button', {name: '↻ Gerar de novo'});
+    fireEvent.click(await screen.findByRole('button', {name: /^Criação das/}));
+    const again = await screen.findByRole('button', {name: 'Gerar de novo'});
     await act(async () => {fireEvent.click(again);});
     await act(async () => {fireEvent.click(screen.getByRole('button', {name: 'Repetir com a mesma seed'}));});
     const repeats = calls.filter(c => c.path === '/api/runs/run1/repeat');

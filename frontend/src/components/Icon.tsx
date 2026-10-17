@@ -21,6 +21,19 @@ const PATHS: Record<string, string> = {
   mask: 'M12 3a9 9 0 1 0 0 18V3z',
   plus: 'M12 5v14M5 12h14',
   close: 'M6 6l12 12M18 6L6 18',
+  sun: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  moon: 'M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z',
+  monitor: 'M3 5h18v11H3zM8 20h8M12 16v4',
+  search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4',
+  arrowLeft: 'M15 6l-6 6 6 6',
+  arrowRight: 'M9 6l6 6-6 6',
+  arrowUp: 'M12 19V5M6 11l6-6 6 6',
+  person: 'M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM4 21c1-4 4-6 8-6s7 2 8 6',
+  scene: 'M3 19l6-8 4 5 3-3 5 6zM16 5a2 2 0 1 0 0 4 2 2 0 0 0 0-4z',
+  pose: 'M13 4a2 2 0 1 0 0 .01M10 21l2-7 3 3v4M8 10l4-2 3 3 3 1M12 8l-1 6',
+  select: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 17l2 2 4-4',
+  star: 'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z',
+  wand: 'M5 19L15 9M14 4v2M19 9h2M17.5 5.5L16 7M19 14l-1.5-1.5M9.5 4.5L11 6',
 };
 
 export function Icon({name, size = 16, title}: {name: keyof typeof PATHS | string; size?: number; title?: string}) {

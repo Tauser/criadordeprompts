@@ -93,20 +93,28 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
   const req = (key: string, value: unknown) => setDraft(d => d && {...d, requirements: {...d.requirements, [key]: value === '' ? null : value}});
 
   return (
-    <div className="library">
-      <section className="card">
-        <div className="row">
-          <select aria-label="Categoria" value={category} onChange={e => setCategory(e.target.value as Category | 'all')}>
-            <option value="all">Todas as categorias</option>
-            {SORTED_CATEGORIES.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
-          </select>
-          <input type="search" placeholder="Buscar" value={query} onChange={e => setQuery(e.target.value)} aria-label="Buscar opções" />
-          <button className="secondary" onClick={() => open(blank(category === 'all' ? 'environment' : category))}>Nova opção</button>
+    <div className="library-page">
+      <header className="page-head">
+        <div>
+          <h1>Biblioteca</h1>
+          <p className="muted">As opções que aparecem no compositor. Edite o texto enviado ao modelo ou crie as suas.</p>
         </div>
+        <button className="primary" onClick={() => open(blank(category === 'all' ? 'environment' : category))}>Nova opção</button>
+      </header>
+      <div className="library-toolbar">
+        <label className="search"><span className="sr-only">Buscar</span>
+          <input type="search" placeholder="Buscar por nome ou descrição" value={query} onChange={e => setQuery(e.target.value)} aria-label="Buscar opções" /></label>
+        <select aria-label="Categoria" value={category} onChange={e => setCategory(e.target.value as Category | 'all')}>
+          <option value="all">Todas as categorias</option>
+          {SORTED_CATEGORIES.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
+        </select>
         <label className="check"><input type="checkbox" checked={incomplete} onChange={e => setIncomplete(e.target.checked)} />
           Só metadados incompletos ({incompleteCount})</label>
-        {incomplete && <p className="help">Sem esses dados, as regras não verificam conflitos e o compilador não acrescenta as orientações de postura, olhar e apoio.</p>}
-        <p className="muted small">{items.length} opções</p>
+        <span className="muted small library-count">{items.length} opções</span>
+      </div>
+      {incomplete && <p className="help">Sem esses dados, as regras não verificam conflitos e o compilador não acrescenta as orientações de postura, olhar e apoio.</p>}
+    <div className="library">
+      <section className="card list-card">
         <ul className="item-list">
           {items.map(item => (
             <li key={item.id}>
@@ -121,6 +129,8 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
           ))}
         </ul>
       </section>
+      {!draft && <section className="card editor-empty"><h2>Escolha uma opção</h2>
+        <p className="muted">Selecione um item da lista para ver e editar o texto que vai para o modelo, ou crie uma opção nova.</p></section>}
       {draft && (
         <section className="card editor" aria-label="Editar opção">
           <div className="fields">
@@ -190,6 +200,7 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
           </div>
         </section>
       )}
+    </div>
     </div>
   );
 }

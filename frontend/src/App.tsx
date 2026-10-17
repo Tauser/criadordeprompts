@@ -5,8 +5,13 @@ import {Diagnostics} from './components/Diagnostics';
 import {Library} from './components/Library';
 import {Icon} from './components/Icon';
 import {Studio} from './components/Studio';
+import {load, save} from './lib/storage';
 
 type View = 'studio' | 'library' | 'diagnostics';
+type Theme = 'system' | 'light' | 'dark';
+const THEME_KEY = 'prisma.theme';
+const NEXT_THEME: Record<Theme, Theme> = {system: 'light', light: 'dark', dark: 'system'};
+const THEME_LABEL: Record<Theme, string> = {system: 'Tema do sistema', light: 'Tema claro', dark: 'Tema escuro'};
 
 export function App() {
   const [view, setView] = useState<View>('studio');
@@ -14,6 +19,13 @@ export function App() {
   const [health, setHealth] = useState<Health | null>(null);
   const [message, setMessage] = useState<{text: string; error: boolean} | null>(null);
   const [libraryDirty, setLibraryDirty] = useState(false);
+  const [theme, setTheme] = useState<Theme>(load<Theme>(THEME_KEY, 'system'));
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'system') delete root.dataset.theme; else root.dataset.theme = theme;
+    save(THEME_KEY, theme);
+  }, [theme]);
 
   const notify = useCallback((text: string, error = false) => {
     setMessage({text, error});
@@ -36,25 +48,35 @@ export function App() {
     setView(next);
   };
   const online = !!health?.comfy.available;
+  const nav: [View, string][] = [['studio', 'Criar'], ['library', 'Biblioteca'], ['diagnostics', 'Diagnóstico']];
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <button className="brand" onClick={() => go('studio')}><span className="logo" aria-hidden="true" />Prisma <span>Studio</span></button>
-        <nav aria-label="Seções">
-          <button className={view === 'studio' ? 'active' : ''} onClick={() => go('studio')}><Icon name="image" size={14} /> Estúdio</button>
-          <button className={view === 'library' ? 'active' : ''} onClick={() => go('library')}><Icon name="library" size={14} /> Biblioteca</button>
-          <button className={view === 'diagnostics' ? 'active' : ''} onClick={() => go('diagnostics')}><Icon name="pulse" size={14} /> Diagnóstico</button>
+    <div className={'app view-' + view}>
+      <header className="topbar">
+        <button className="brand" onClick={() => go('studio')} aria-label="Prisma Studio, início">
+          <span className="logo" aria-hidden="true" /><span className="wordmark">Prisma</span>
+        </button>
+        <nav className="topnav" aria-label="Seções">
+          {nav.map(([id, label]) => (
+            <button key={id} aria-current={view === id ? 'page' : undefined} onClick={() => go(id)}>{label}</button>
+          ))}
         </nav>
-        <span className={'status ' + (online ? 'ok' : 'off')} title={health?.comfy_url}>{online ? '● ComfyUI conectado' : '○ ComfyUI offline'}</span>
+        <div className="topbar-end">
+          <button className={'engine-status ' + (online ? 'ok' : 'off')} onClick={() => go('diagnostics')}
+                  title={health?.comfy_url}><span className="dot" />{online ? 'ComfyUI conectado' : 'ComfyUI offline'}</button>
+          <button className="icon-btn" onClick={() => setTheme(NEXT_THEME[theme])} aria-label={THEME_LABEL[theme]} title={THEME_LABEL[theme]}>
+            <Icon name={theme === 'light' ? 'sun' : theme === 'dark' ? 'moon' : 'monitor'} size={17} />
+          </button>
+        </div>
       </header>
       {message && <div className={'toast' + (message.error ? ' error' : '')} role="status">{message.text}
-        <button className="link" onClick={() => setMessage(null)} aria-label="Fechar">×</button></div>}
-      <div className={"app-body" + (view === "studio" ? " full" : "")}>
-        {!library ? <p className="card">Carregando…</p> :
+        <button className="toast-close" onClick={() => setMessage(null)} aria-label="Fechar"><Icon name="close" size={14} /></button></div>}
+      <div className="app-body">
+        {!library ? <p className="loading">Carregando…</p> :
           view === 'studio' ? <Studio library={library} comfyOnline={online} notify={notify} /> :
-          view === 'library' ? <Library snapshot={library} onSaved={setLibrary} notify={notify} setDirty={setLibraryDirty} /> :
-          <Diagnostics health={health} refresh={refreshHealth} />}
+          <div className="page">{view === 'library'
+            ? <Library snapshot={library} onSaved={setLibrary} notify={notify} setDirty={setLibraryDirty} />
+            : <Diagnostics health={health} refresh={refreshHealth} />}</div>}
       </div>
     </div>
   );

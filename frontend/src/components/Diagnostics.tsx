@@ -2,8 +2,10 @@ import type {Health} from '../api/types';
 
 export function Diagnostics({health, refresh}: {health: Health | null; refresh: () => void}) {
   return (
-    <section className="card diagnostics">
-      <h2>Diagnóstico</h2>
+    <section className="diagnostics">
+      <header className="page-head"><div><h1>Diagnóstico</h1><p className="muted">Estado do Studio e da conexão com o ComfyUI.</p></div>
+        <button className="quiet" onClick={refresh}>Atualizar</button></header>
+      <div className="card">
       {!health ? <p className="muted">Carregando…</p> : (
         <dl>
           <dt>Versão do Studio</dt><dd>{health.studio_version}</dd>
@@ -14,7 +16,7 @@ export function Diagnostics({health, refresh}: {health: Health | null; refresh: 
           <dt>Acesso pela rede</dt><dd>{health.lan_token ? 'habilitado com token' : 'somente este computador'}</dd>
         </dl>
       )}
-      <button className="quiet" onClick={refresh}>Atualizar</button>
+      </div>
     </section>
   );
 }
