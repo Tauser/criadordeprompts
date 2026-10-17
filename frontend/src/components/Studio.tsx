@@ -1,16 +1,16 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ApiError, api} from '../api/client';
 import type {Attribute, Category, LibrarySnapshot, Prepared, Run, StudioRequest} from '../api/types';
-import {TERMINAL} from '../lib/labels';
+import {ADVANCED, BASIC, RUN_STATUS, TERMINAL} from '../lib/labels';
 import {load, save} from '../lib/storage';
 import {useRun} from '../lib/useRun';
 import {addReference, enterManual, filesForSubmit, initialWorkspace, leaveManual, removeReference, requestForSubmit,
   setAttribute, setTarget, switchMode, type Workspace} from '../state/workspace';
-import {Composer} from './Composer';
-import {Gallery} from './Gallery';
-import {Picker} from './Picker';
-import {Settings, type SettingsTab} from './Settings';
-import {ReviewDialog, Viewer} from './Viewer';
+import {AttributeField} from './AttributeField';
+import {History} from './History';
+import {PromptPreview} from './PromptPreview';
+import {References} from './References';
+import {RunPanel} from './RunPanel';
 
 type Drafts = Record<'generate' | 'edit', Workspace>;
 const DRAFTS_KEY = 'prisma.drafts.v1', ACTIVE_KEY = 'prisma.active-run', PENDING_KEY = 'prisma.pending-request';
@@ -24,15 +24,12 @@ export function Studio({library, comfyOnline, notify}: Props) {
     ?? load<{mode: 'generate' | 'edit'; drafts: Drafts} | null>(LEGACY.drafts, null);
   const [drafts, setDrafts] = useState<Drafts>(stored?.drafts ?? {generate: initialWorkspace('generate'), edit: initialWorkspace('edit')});
   const [workspace, setWorkspace] = useState<Workspace>(stored ? stored.drafts[stored.mode] : initialWorkspace('generate'));
+  const [tab, setTab] = useState<'basic' | 'advanced'>('basic');
   const [prepared, setPrepared] = useState<Prepared | null>(null);
   const [prepareError, setPrepareError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [activeRun, setActiveRun] = useState<string | null>(load<string | null>(ACTIVE_KEY, null) ?? load<string | null>(LEGACY.active, null));
-  const [picker, setPicker] = useState<Category | null>(null);
-  const [settings, setSettings] = useState<SettingsTab | null>(null);
-  const [viewer, setViewer] = useState(false);
-  const [order, setOrder] = useState<string[]>([]);
   const {run, connection} = useRun(activeRun);
   const epoch = useRef(0);
   const request = workspace.request;
@@ -54,7 +51,8 @@ export function Studio({library, comfyOnline, notify}: Props) {
     const pendingId = load<string | null>(PENDING_KEY, null);
     if (!pendingId) return;
     api.runByRequest(pendingId).then(found => {setActiveRun(found.id); notify('O pedido anterior chegou ao Studio e está sendo acompanhado.');})
-      .catch(error => {if (error instanceof ApiError && error.status === 404) save(PENDING_KEY, null);});
+      .catch(error => {if (error instanceof ApiError && error.status === 404) save(PENDING_KEY, null);})
+      .finally(() => undefined);
   }, [notify]);
 
   useEffect(() => {
@@ -81,41 +79,50 @@ export function Studio({library, comfyOnline, notify}: Props) {
     for (const issue of prepared?.issues ?? []) (map[issue.field] ??= []).push(issue.message);
     return map;
   }, [prepared]);
-  const errorCount = prepared?.issues.filter(i => i.level === 'error').length ?? 0;
-  const busy = !!run && !TERMINAL.has(run.status);
 
+  const busy = !!run && !TERMINAL.has(run.status);
   const changeMode = (mode: 'generate' | 'edit') => {
     if (mode === request.mode) return;
     const result = switchMode(drafts, workspace, mode);
     setDrafts(result.drafts); setWorkspace(result.workspace);
   };
-  const itemsFor = useCallback((category: Category) => library.items.filter(i => i.category === category && i.enabled
-    && (request.content_mode === 'adult' || !i.adult)), [library, request.content_mode]);
-  const setField = (category: Category, attribute: Attribute) => update(ws => setAttribute(ws, category, attribute));
+  const itemsFor = (category: Category) => library.items.filter(i => i.category === category && i.enabled
+    && (request.content_mode === 'adult' || !i.adult));
+  const field = (category: Category) => (
+    <AttributeField key={category} category={category} mode={request.mode} targetId={request.target_id}
+      attribute={request.attributes[category] ?? {intent: 'free'}} items={itemsFor(category)} references={request.references}
+      disabled={request.prompt_mode === 'manual'} issues={issuesByField[`attributes.${category}`] ?? []}
+      onChange={(attribute: Attribute) => update(ws => setAttribute(ws, category, attribute))} />
+  );
 
-  const follow = (created: Run) => {setActiveRun(created.id); save(PENDING_KEY, null);};
-  const failed = (error: unknown) => {
-    if (error instanceof ApiError) {save(PENDING_KEY, null); notify(error.message, true);}
-    else notify('Sem resposta do Studio. Assim que ele responder, o pedido será localizado sem duplicar.', true);
-  };
   const submit = async () => {
-    if (!prepared?.valid) {notify('Corrija os erros antes de gerar.', true); setSettings('prompt'); return;}
+    if (!prepared?.valid) {notify('Corrija os erros antes de gerar.', true); return;}
     const requestId = crypto.randomUUID();
     save(PENDING_KEY, requestId);
     setSubmitting(true);
     try {
-      follow(await api.createRun({request_id: requestId, request: requestForSubmit(workspace),
-        files: filesForSubmit(workspace), mask: request.mask ? workspace.maskHash : null}));
-    } catch (error) {failed(error);} finally {setSubmitting(false);}
+      const created: Run = await api.createRun({request_id: requestId, request: requestForSubmit(workspace),
+        files: filesForSubmit(workspace), mask: request.mask ? workspace.maskHash : null});
+      setActiveRun(created.id);
+      save(PENDING_KEY, null);
+    } catch (error) {
+      if (error instanceof ApiError) {save(PENDING_KEY, null); notify(error.message, true);}
+      else notify('Sem resposta do Studio. Assim que ele responder, o pedido será localizado sem duplicar.', true);
+    } finally {setSubmitting(false);}
   };
   const repeat = async (sameSeed: boolean) => {
     if (!run) return;
     const requestId = crypto.randomUUID();
     save(PENDING_KEY, requestId);
     try {
-      follow(await api.repeat(run.id, requestId, sameSeed));
+      const created = await api.repeat(run.id, requestId, sameSeed);
+      setActiveRun(created.id);
+      save(PENDING_KEY, null);
       notify(sameSeed ? 'Repetindo com a mesma seed.' : 'Gerando de novo com uma nova seed.');
-    } catch (error) {failed(error);}
+    } catch (error) {
+      if (error instanceof ApiError) {save(PENDING_KEY, null); notify(error.message, true);}
+      else notify('Sem resposta do Studio. Assim que ele responder, o pedido será localizado sem duplicar.', true);
+    }
   };
   const stop = async () => {
     if (!activeRun) return;
@@ -130,60 +137,205 @@ export function Studio({library, comfyOnline, notify}: Props) {
     next = setTarget(next, id);
     fetch(`/api/files/${hash}`).then(r => r.blob()).then(blob => createImageBitmap(blob)).then(bitmap =>
       update(ws => ({...ws, files: {...ws.files, [id]: {...ws.files[id], width: bitmap.width, height: bitmap.height}}}))).catch(() => undefined);
-    if (request.mode !== 'edit') setDrafts(d => ({...d, generate: workspace}));
+    if (request.mode !== 'edit') {setDrafts(d => ({...d, generate: workspace})); }
     setWorkspace(next);
-    setViewer(false);
-    notify('Imagem pronta para editar. Escolha o que mudar e clique em Gerar edição.');
+    notify('Resultado definido como foto alvo. Revise os campos antes de gerar.');
   };
-  const focusIssue = (path: string) => {
+  const focusField = (path: string) => {
     const category = path.startsWith('attributes.') ? path.split('.')[1] as Category : null;
-    if (category) {setSettings(null); setPicker(category);}
-    else if (path.startsWith('confirmations') || path.startsWith('participants') || path.startsWith('context') || path === 'details') setSettings('advanced');
+    if (category) setTab(ADVANCED.includes(category) ? 'advanced' : 'basic');
+    window.setTimeout(() => document.getElementById(category ? `field-${category}` : 'confirmations')?.focus(), 50);
   };
   const toggleManual = (enabled: boolean) => {
     if (enabled) update(ws => enterManual(ws, prepared?.prompt ?? ''));
     else if (request.manual_prompt === prepared?.prompt || confirm('Voltar aos campos descarta o texto manual. Continuar?')) update(leaveManual);
   };
-  const openRun = (id: string) => {setActiveRun(id); setViewer(true);};
-  const step = (delta: number) => {
-    const index = activeRun ? order.indexOf(activeRun) : -1;
-    const next = order[index + delta];
-    if (index >= 0 && next) setActiveRun(next);
-  };
 
-  // Ctrl+Enter generates, Esc closes the open layer or stops the run — the usual shortcuts of creative tools.
-  const overlay = picker !== null || settings !== null || viewer;
-  const shortcuts = useRef({submit, stop, busy, valid: !!prepared?.valid, overlay});
-  shortcuts.current = {submit, stop, busy, valid: !!prepared?.valid, overlay};
+  // Ctrl+Enter generates, Esc stops — the usual shortcuts of creative tools.
+  const shortcuts = useRef({submit, stop, busy, valid: !!prepared?.valid});
+  shortcuts.current = {submit, stop, busy, valid: !!prepared?.valid};
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       const s = shortcuts.current;
       if ((event.ctrlKey || event.metaKey) && event.key === 'Enter' && s.valid && !s.busy) {event.preventDefault(); s.submit();}
-      else if (event.key === 'Escape' && !s.overlay && s.busy && !(event.target as HTMLElement)?.closest('.mask-editor')) s.stop();
+      else if (event.key === 'Escape' && s.busy && !(event.target as HTMLElement)?.closest('.mask-editor')) s.stop();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const keepFiles = [...Object.values(workspace.files).map(f => f.hash), ...(workspace.maskHash ? [workspace.maskHash] : [])];
-
   return (
-    <div className="studio">
-      <Gallery activeRun={activeRun} liveRun={run} onOpen={openRun} keepFiles={keepFiles} notify={notify} onOrder={setOrder}
-               onDeleted={ids => {if (activeRun && ids.includes(activeRun)) {setActiveRun(null); setViewer(false);}}} />
-      <Composer workspace={workspace} prepared={prepared} pending={pending} errorCount={errorCount} busy={busy} submitting={submitting}
-        run={run} comfyOnline={comfyOnline} library={library} update={update} patch={patch} notify={notify}
-        onMode={changeMode} onPick={category => setPicker(category)} onField={setField} onSubmit={submit} onStop={stop}
-        onSettings={tab => setSettings(tab)} onOpenRun={() => activeRun && setViewer(true)} />
-      {picker && <Picker category={picker} request={request} itemsFor={itemsFor} issuesByField={issuesByField}
-        onCategory={setPicker} onChange={setField} onClose={() => setPicker(null)} />}
-      {settings && <Settings tab={settings} onTab={setSettings} onClose={() => setSettings(null)} request={request} prepared={prepared}
-        pending={pending} error={prepareError} library={library} patch={patch} update={update}
-        onManual={toggleManual} onFocusIssue={focusIssue} />}
-      {viewer && run && <Viewer run={run} connection={connection} onClose={() => setViewer(false)} onReuse={reuse} onRepeat={repeat}
-        onStop={stop} onStep={step} canStep={{prev: order.indexOf(run.id) > 0, next: order.indexOf(run.id) >= 0 && order.indexOf(run.id) < order.length - 1}}
-        notify={notify} />}
-      {run?.status === 'review' && <ReviewDialog run={run} notify={notify} />}
+    <>
+      <div className="workspace">
+        <div className="column">
+          <div className="segmented mode-switch" role="radiogroup" aria-label="Modo">
+            {(['generate', 'edit'] as const).map(mode => (
+              <button key={mode} role="radio" aria-checked={request.mode === mode} className={request.mode === mode ? 'active' : ''}
+                      onClick={() => changeMode(mode)}>{mode === 'generate' ? 'Criar imagem' : 'Editar foto'}</button>
+            ))}
+          </div>
+          <References workspace={workspace} slots={prepared?.slots ?? {}} disabled={false} update={update} notify={notify} />
+          <section className="card">
+            <div className="segmented tabs" role="tablist">
+              <button role="tab" aria-selected={tab === 'basic'} onClick={() => setTab('basic')}>Básico</button>
+              <button role="tab" aria-selected={tab === 'advanced'} onClick={() => setTab('advanced')}>Avançado</button>
+            </div>
+            {tab === 'basic' ? (
+              <div role="tabpanel">
+                <div className="fields two">{BASIC.map(field)}</div>
+                <label className="block">Detalhes adicionais (inglês)
+                  <textarea rows={3} value={request.details} maxLength={4000} disabled={request.prompt_mode === 'manual'}
+                            placeholder="Ex.: a blue ceramic mug on the table" onChange={e => patch(r => {r.details = e.target.value;})} />
+                </label>
+                <p className="help">Enviados como estão, depois das instruções dos campos. Não alteram as outras instruções.</p>
+                <OutputBasics request={request} patch={patch} />
+              </div>
+            ) : (
+              <div role="tabpanel">
+                <div className="fields two">{ADVANCED.map(field)}</div>
+                <SceneContext request={request} patch={patch} />
+                <Engine request={request} patch={patch} />
+                <Content request={request} patch={patch} library={library} update={update} />
+              </div>
+            )}
+          </section>
+        </div>
+        <div className="column">
+          <PromptPreview request={request} prepared={prepared} pending={pending} error={prepareError}
+            onManual={toggleManual} onManualText={text => patch(r => {r.manual_prompt = text;})} onFocusField={focusField} />
+          <RunPanel run={run} connection={connection} onReuse={reuse} notify={notify} onRepeat={repeat} />
+          <History activeRun={activeRun} onSelect={setActiveRun} notify={notify}
+            keepFiles={[...Object.values(workspace.files).map(f => f.hash), ...(workspace.maskHash ? [workspace.maskHash] : [])]} />
+        </div>
+      </div>
+      <footer className="execution-bar" aria-label="Execução">
+        <div className="execution-info" aria-live="polite">
+          <span className={'dot ' + (run && !TERMINAL.has(run.status) ? 'busy' : run?.status === 'failed' ? 'bad' : 'ok')} />
+          <strong>{run ? RUN_STATUS[run.status] ?? run.status : 'Pronto'}</strong>
+          <span className="muted">{!comfyOnline ? 'ComfyUI offline: o pedido fica na fila do Studio até ele voltar.' :
+            run?.status === 'review' ? 'Revise o texto aprimorado no painel de resultado.' : run?.error ?? ''}</span>
+        </div>
+        {busy && <button className="btn-stop" disabled={run?.cancel_requested} onClick={stop}>
+          {run?.cancel_requested ? 'Parando…' : '■ Parar'}</button>}
+        <button className="btn-generate" disabled={submitting || busy || !prepared?.valid} onClick={submit} title="Gerar (Ctrl+Enter)">
+          <span>{submitting ? 'Enviando…' : request.mode === 'edit' ? 'Gerar edição' : 'Gerar imagem'}</span><kbd aria-hidden="true">Ctrl ↵</kbd></button>
+      </footer>
+    </>
+  );
+}
+
+type Patch = (fn: (r: StudioRequest) => void) => void;
+
+function OutputBasics({request, patch}: {request: StudioRequest; patch: Patch}) {
+  const edit = request.mode === 'edit', custom = request.output.width != null;
+  return (
+    <div className="fields three">
+      <label>Execução<select value={request.output.profile} onChange={e => patch(r => {r.output.profile = e.target.value as 'qwen21' | 'turbo'; if (r.output.profile === 'turbo') r.output.refine = false;})}>
+        <option value="qwen21">Completa (40 passos)</option><option value="turbo">Turbo (8 passos)</option></select></label>
+      <label>Resolução<select value={request.output.resolution} disabled={request.mask}
+        onChange={e => patch(r => {r.output.resolution = Number(e.target.value) as StudioRequest['output']['resolution'];})}>
+        {edit && <option value={0}>Original da foto</option>}
+        <option value={1024}>1024 · rápida</option><option value={1536}>1536</option><option value={2048}>2048 · alta</option></select></label>
+      <label>Formato<select value={request.output.aspect} disabled={edit || custom}
+        onChange={e => patch(r => {r.output.aspect = e.target.value as StudioRequest['output']['aspect'];})}>
+        {['3:4', '2:3', '1:1', '4:3', '3:2', '16:9', '9:16'].map(a => <option key={a} value={a}>{a}</option>)}</select></label>
+      <label>Variações<select value={request.output.variations} onChange={e => patch(r => {r.output.variations = Number(e.target.value);})}>
+        {[1, 2, 3, 4].map(v => <option key={v} value={v}>{v}</option>)}</select></label>
+      <label className="check"><input type="checkbox" checked={request.output.verify}
+        onChange={e => patch(r => {r.output.verify = e.target.checked;})} /> Verificar o resultado automaticamente</label>
+      <label className="check"><input type="checkbox" checked={request.output.refine} disabled={request.output.profile === 'turbo'}
+        onChange={e => patch(r => {r.output.refine = e.target.checked;})} /> Aprimorar o prompt (com revisão)</label>
     </div>
+  );
+}
+
+function SceneContext({request, patch}: {request: StudioRequest; patch: Patch}) {
+  const edit = request.mode === 'edit';
+  const supports = request.context.supports;
+  const num = (v: string) => v === '' ? null : Math.max(0, Math.min(10, Number(v)));
+  return (
+    <fieldset><legend>Cena</legend>
+      <div className="fields three">
+        <label>Pessoas pedidas<input type="number" min={1} max={10} value={request.participants.requested ?? ''}
+          onChange={e => patch(r => {r.participants.requested = num(e.target.value) || null;})} /></label>
+        {edit && <label>Pessoas na foto<input type="number" min={0} max={10} value={request.participants.existing ?? ''}
+          onChange={e => patch(r => {r.participants.existing = num(e.target.value);})} /></label>}
+        {edit && <label>Enquadramento da foto<select value={request.context.original_framing ?? ''}
+          onChange={e => patch(r => {r.context.original_framing = (e.target.value || null) as StudioRequest['context']['original_framing'];})}>
+          <option value="">Não informado</option><option value="full">Corpo inteiro</option><option value="half">Meio corpo</option>
+          <option value="wide">Plano aberto</option><option value="portrait">Rosto e ombros</option></select></label>}
+      </div>
+      {edit && <>
+        <label className="check"><input type="checkbox" checked={supports != null} onChange={e => patch(r => {r.context.supports = e.target.checked ? [] : null;})} /> Sei quais apoios existem na foto</label>
+        {supports != null && <div className="checks">{(['floor', 'seat', 'bed', 'wall', 'table'] as const).map(s => (
+          <label key={s} className="check"><input type="checkbox" checked={supports.includes(s)} onChange={e => patch(r => {
+            const set = new Set(r.context.supports ?? []); if (e.target.checked) set.add(s); else set.delete(s); r.context.supports = [...set];
+          })} /> {({floor: 'chão', seat: 'assento', bed: 'cama', wall: 'parede', table: 'mesa'})[s]}</label>))}</div>}
+        <label className="check"><input type="checkbox" checked={request.context.allow_new_supports}
+          onChange={e => patch(r => {r.context.allow_new_supports = e.target.checked;})} /> Permitir acrescentar apoios necessários</label>
+        <label className="check"><input type="checkbox" checked={request.context.allow_reframing}
+          onChange={e => patch(r => {r.context.allow_reframing = e.target.checked;})} /> Permitir reenquadrar</label>
+      </>}
+    </fieldset>
+  );
+}
+
+function Engine({request, patch}: {request: StudioRequest; patch: Patch}) {
+  const turbo = request.output.profile === 'turbo';
+  const num = (v: string) => v === '' ? null : Number(v);
+  const custom = request.output.width != null;
+  return (
+    <fieldset><legend>Parâmetros</legend>
+      <div className="fields three">
+        <label>Seed<input type="number" min={0} placeholder="Aleatória" value={request.output.seed ?? ''}
+          onChange={e => patch(r => {r.output.seed = num(e.target.value);})} /></label>
+        <label>Passos<input type="number" min={1} max={100} disabled={turbo} placeholder="40" value={request.engine.steps ?? ''}
+          onChange={e => patch(r => {r.engine.steps = num(e.target.value);})} /></label>
+        <label>CFG<input type="number" min={1} max={20} step={0.1} disabled={turbo} placeholder="1" value={request.engine.cfg ?? ''}
+          onChange={e => patch(r => {r.engine.cfg = num(e.target.value);})} /></label>
+      </div>
+      <label className="check"><input type="checkbox" checked={custom} onChange={e => patch(r => {
+        r.output.width = e.target.checked ? 1024 : null; r.output.height = e.target.checked ? 1024 : null;})} /> Tamanho personalizado</label>
+      {custom && <div className="fields three">
+        <label>Largura<input type="number" min={256} max={2048} step={32} value={request.output.width ?? ''} onChange={e => patch(r => {r.output.width = num(e.target.value);})} /></label>
+        <label>Altura<input type="number" min={256} max={2048} step={32} value={request.output.height ?? ''} onChange={e => patch(r => {r.output.height = num(e.target.value);})} /></label>
+      </div>}
+      <label className="block">Prompt negativo (só tem efeito com CFG acima de 1)
+        <textarea rows={2} value={request.engine.negative_prompt} disabled={(request.engine.cfg ?? 1) <= 1}
+          onChange={e => patch(r => {r.engine.negative_prompt = e.target.value;})} /></label>
+    </fieldset>
+  );
+}
+
+function Content({request, patch, library, update}: {request: StudioRequest; patch: Patch; library: LibrarySnapshot;
+  update: (fn: (ws: Workspace) => Workspace) => void}) {
+  const adultIds = new Set(library.items.filter(i => i.adult).map(i => i.id));
+  const setAdult = (on: boolean) => {
+    if (on) {patch(r => {r.content_mode = 'adult';}); return;}
+    update(ws => {
+      const next = structuredClone(ws);
+      next.request.content_mode = 'standard';
+      next.request.confirmations = [];
+      for (const [category, attribute] of Object.entries(next.request.attributes)) {
+        if (attribute?.intent === 'set' && attribute.value?.kind === 'catalog' && adultIds.has(attribute.value.item_id))
+          next.request.attributes[category as Category] = next.request.mode === 'edit' ? {intent: 'keep'} : {intent: 'free'};
+      }
+      return next;
+    });
+  };
+  const confirmation = (key: 'adults_only' | 'consent_or_fictional', on: boolean) => patch(r => {
+    const set = new Set(r.confirmations); if (on) set.add(key); else set.delete(key); r.confirmations = [...set];
+  });
+  return (
+    <fieldset id="confirmations" tabIndex={-1}><legend>Conteúdo</legend>
+      <label className="check"><input type="checkbox" checked={request.content_mode === 'adult'} onChange={e => setAdult(e.target.checked)} /> Mostrar opções adultas (+18)</label>
+      <p className="help">Só organiza a biblioteca. Não muda as instruções dos outros campos.</p>
+      {request.content_mode === 'adult' && <>
+        <label className="check"><input type="checkbox" checked={request.confirmations.includes('adults_only')}
+          onChange={e => confirmation('adults_only', e.target.checked)} /> Confirmo que todas as pessoas retratadas são adultas.</label>
+        {request.mode === 'edit' && <label className="check"><input type="checkbox" checked={request.confirmations.includes('consent_or_fictional')}
+          onChange={e => confirmation('consent_or_fictional', e.target.checked)} /> Confirmo que a pessoa da foto é fictícia ou consentiu com esta edição.</label>}
+      </>}
+    </fieldset>
   );
 }

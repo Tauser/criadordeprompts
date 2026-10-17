@@ -73,7 +73,7 @@ export function App() {
         <button className="toast-close" onClick={() => setMessage(null)} aria-label="Fechar"><Icon name="close" size={14} /></button></div>}
       <div className="app-body">
         {!library ? <p className="loading">Carregando…</p> :
-          view === 'studio' ? <Studio library={library} comfyOnline={online} notify={notify} /> :
+          view === 'studio' ? <div className="page studio-page"><Studio library={library} comfyOnline={online} notify={notify} /></div> :
           <div className="page">{view === 'library'
             ? <Library snapshot={library} onSaved={setLibrary} notify={notify} setDirty={setLibraryDirty} />
             : <Diagnostics health={health} refresh={refreshHealth} />}</div>}
