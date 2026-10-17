@@ -1,7 +1,7 @@
 import {useEffect, useMemo, useState} from 'react';
 import {api} from '../api/client';
 import {CATEGORIES, type Category, type Item, type LibrarySnapshot} from '../api/types';
-import {CATEGORY_LABELS} from '../lib/labels';
+import {CATEGORY_LABELS, FRAMING_LABELS, GAZE_LABELS, POSTURE_LABELS} from '../lib/labels';
 import {metadataLabel, missingMetadata} from '../lib/metadata';
 
 interface Props {snapshot: LibrarySnapshot; onSaved: (s: LibrarySnapshot) => void; notify: (m: string, e?: boolean) => void;
@@ -105,6 +105,7 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
                 <strong>{item.label}</strong>
                 <span className="muted small">{CATEGORY_LABELS[item.category]}{item.adult ? ' · +18' : ''}{!item.enabled ? ' · desativada' : ''}
                   {snapshot.origins[item.id] !== 'builtin' ? ' · sua' : ''}</span>
+                {item.prompt_pt && <span className="item-pt">{item.prompt_pt}</span>}
                 {missingMetadata(item).length > 0 && <span className="missing-meta">Falta: {missingMetadata(item).map(metadataLabel).join(', ')}</span>}
               </button>
             </li>
@@ -121,11 +122,11 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
               </select>
             </label>
             <label>Nome<input value={draft.label} maxLength={80} onChange={e => setDraft({...draft, label: e.target.value})} /></label>
-            <label>Descrição em português (opcional)
+            <label>Descrição em português (para você consultar)
               <textarea rows={3} value={draft.prompt_pt ?? ''} onChange={e => setDraft({...draft, prompt_pt: e.target.value})} /></label>
             <button className="quiet" disabled={translating || !draft.prompt_pt?.trim()} onClick={translate}>
               {translating ? 'Traduzindo no modelo local…' : 'Traduzir para inglês'}</button>
-            <label>Descrição em inglês (enviada ao modelo)
+            <label>Descrição em inglês (é o texto enviado ao modelo)
               <textarea rows={4} value={draft.prompt} onChange={e => setDraft({...draft, prompt: e.target.value})} /></label>
             <label className="check"><input type="checkbox" checked={draft.adult} onChange={e => setDraft({...draft, adult: e.target.checked})} /> Conteúdo adulto (+18)</label>
             <label className="check"><input type="checkbox" checked={draft.enabled} onChange={e => setDraft({...draft, enabled: e.target.checked})} /> Ativa</label>
@@ -137,12 +138,12 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
               {draft.category !== 'expression' && <label>Pessoas<input type="number" min={1} max={10} value={draft.requirements.participants ?? ''}
                 onChange={e => req('participants', e.target.value === '' ? '' : Number(e.target.value))} /></label>}
               {['pose', 'action'].includes(draft.category) && <label>Postura<select value={draft.requirements.posture ?? ''}
-                onChange={e => req('posture', e.target.value)}>{POSTURES.map(p => <option key={p} value={p}>{p || 'não informada'}</option>)}</select></label>}
+                onChange={e => req('posture', e.target.value)}>{POSTURES.map(p => <option key={p} value={p}>{p ? POSTURE_LABELS[p] : 'não informada'}</option>)}</select></label>}
               {draft.category !== 'subject' && <label>Olhar<select value={draft.requirements.gaze ?? ''}
-                onChange={e => req('gaze', e.target.value)}>{GAZES.map(p => <option key={p} value={p}>{p || 'não informado'}</option>)}</select></label>}
+                onChange={e => req('gaze', e.target.value)}>{GAZES.map(p => <option key={p} value={p}>{p ? GAZE_LABELS[p] : 'não informado'}</option>)}</select></label>}
               {['pose', 'action'].includes(draft.category) && <>
                 <label>Enquadramento mínimo<select value={draft.requirements.minimum_framing ?? ''}
-                  onChange={e => req('minimum_framing', e.target.value)}>{FRAMINGS.map(p => <option key={p} value={p}>{p || 'nenhum'}</option>)}</select></label>
+                  onChange={e => req('minimum_framing', e.target.value)}>{FRAMINGS.map(p => <option key={p} value={p}>{p ? FRAMING_LABELS[p] : 'nenhum'}</option>)}</select></label>
                 <label className="check"><input type="checkbox" checked={Array.isArray(draft.requirements.support_any_of) && draft.requirements.support_any_of.length === 0}
                   onChange={e => req('support_any_of', e.target.checked ? [] : '')} /> Nenhum apoio necessário</label>
                 <div className="checks" role="group" aria-label="Apoios aceitos">{SUPPORTS.map(s => (
@@ -169,7 +170,7 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
           {draft.category === 'framing' && (
             <label>Área visível<select value={draft.provides.framing ?? ''}
               onChange={e => setDraft({...draft, provides: {...draft.provides, framing: (e.target.value || null) as Item['provides']['framing']}})}>
-              {FRAMINGS.map(p => <option key={p} value={p}>{p || 'não informada'}</option>)}</select></label>
+              {FRAMINGS.map(p => <option key={p} value={p}>{p ? FRAMING_LABELS[p] : 'não informada'}</option>)}</select></label>
           )}
           <div className="row">
             {snapshot.origins[draft.id] && snapshot.origins[draft.id] !== 'builtin' &&

@@ -48,6 +48,10 @@ export function AttributeField({category, attribute, items, references, targetId
                   aria-label={`Descrição de ${CATEGORY_LABELS[category]} em inglês`}
                   onChange={e => onChange({intent: 'set', value: {kind: 'text', text: e.target.value}})} />
       )}
+      {attribute.intent === 'set' && attribute.value?.kind === 'catalog' && (() => {
+        const item = items.find(i => i.id === (attribute.value as {item_id: string}).item_id);
+        return item?.prompt_pt ? <p className="field-pt">{item.prompt_pt}</p> : null;
+      })()}
       {issues.length > 0 && <ul id={`${id}-issues`} className="field-issues">{issues.map(m => <li key={m}>{m}</li>)}</ul>}
     </div>
   );

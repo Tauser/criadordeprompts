@@ -25,3 +25,15 @@ export const PHASE: Record<string, string> = {
 export const KIND: Record<string, string> = {image: 'Imagem', refine: 'Aprimoramento', verify: 'Verificação'};
 export const VERDICT: Record<string, string> = {met: 'atendido', partial: 'parcial', unmet: 'não atendido', unknown: 'não avaliável'};
 export const TERMINAL = new Set(['completed', 'failed', 'cancelled', 'lost']);
+
+export const POSTURE_LABELS: Record<string, string> = {
+  any: 'qualquer', standing: 'em pé', seated: 'sentado', kneeling: 'ajoelhado', lying: 'deitado',
+  walking: 'caminhando', running: 'correndo',
+};
+export const GAZE_LABELS: Record<string, string> = {
+  any: 'qualquer', camera: 'para a câmera', away: 'desviado da câmera', down: 'para baixo', up: 'para cima',
+  back: 'por cima do ombro', closed: 'olhos fechados',
+};
+export const FRAMING_LABELS: Record<string, string> = {
+  portrait: 'rosto e ombros', half: 'meio corpo', full: 'corpo inteiro', wide: 'plano aberto',
+};
