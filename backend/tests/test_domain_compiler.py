@@ -230,3 +230,48 @@ def test_kept_expression_yields_to_a_declared_gaze(library):
     _, compiled = run(edit_request({**DEFAULT_KEEP, 'expression': keep(), 'action': cat('action.read')}), library)
     assert 'facial expression, apart from the requested gaze direction' in compiled.text
     assert 'The eyes look downwards.' in compiled.text
+
+
+def test_second_character_comes_from_its_own_reference(library):
+    request = generate_request({'subject': cat('subject.woman'), 'environment': cat('env.garden')},
+                               references=[{'id': 'a', 'label': 'Ana'}, {'id': 'b', 'label': 'Bia'}],
+                               characters=[{'reference_id': 'b', 'description': 'standing on the left'}])
+    request = request.model_copy(update={'attributes': {**request.attributes, 'face': Request.model_validate(
+        {'mode': 'generate', 'attributes': {'face': ref('a')}}).attributes['face']}})
+    assessment, compiled = run(request, library)
+    assert assessment.valid
+    assert assessment.slots == {'a': 1, 'b': 2}
+    assert assessment.participants_total == 2
+    assert ir.Character(2, 2, 'standing on the left') in compiled.blocks
+    assert 'Use <image1> as the reference for the facial identity of the first person.' in compiled.text
+    assert ("The second person has the facial identity, body shape, skin tone and hairstyle of the person in <image2>; "
+            "use <image2> only for this person's appearance. The second person: standing on the left.") in compiled.text
+    assert 'The scene contains 2 distinct people' in compiled.text
+
+
+def test_second_character_in_an_edit_counts_as_a_change(library):
+    request = edit_request(dict(DEFAULT_KEEP), references=(('t', 'alvo'), ('b', 'Bia')), characters=[{'reference_id': 'b'}])
+    assessment, compiled = run(request, library)
+    assert 'missing_change' not in codes(assessment)
+    assert assessment.slots == {'t': 1, 'b': 2}
+    assert 'The second person has the facial identity' in compiled.text
+
+
+def test_character_reference_rules(library):
+    target = edit_request(dict(DEFAULT_KEEP), characters=[{'reference_id': 't'}])
+    assert 'character_is_target' in codes(assess(target, library), 'error')
+    missing = generate_request({}, characters=[{'reference_id': 'x'}])
+    assert 'missing_reference' in codes(assess(missing, library), 'error')
+    twice = generate_request({}, references=[{'id': 'b', 'label': 'Bia'}],
+                             characters=[{'reference_id': 'b'}, {'reference_id': 'b'}])
+    assert 'duplicate_character' in codes(assess(twice, library), 'error')
+
+
+def test_adult_content_with_person_photos_needs_the_consent_confirmation(library):
+    request = generate_request({'pose': cat('pose.adult')}, content_mode='adult', confirmations=['adults_only'],
+                               references=[{'id': 'b', 'label': 'Bia'}], characters=[{'reference_id': 'b'}])
+    assert 'confirm_consent' in codes(assess(request, library), 'error')
+    confirmed = request.model_copy(update={'confirmations': frozenset({'adults_only', 'consent_or_fictional'})})
+    assert 'confirm_consent' not in codes(assess(confirmed, library))
+    without_photos = generate_request({'pose': cat('pose.adult')}, content_mode='adult', confirmations=['adults_only'])
+    assert 'confirm_consent' not in codes(assess(without_photos, library))

@@ -57,6 +57,10 @@ FRAMINGS = {
 }
 
 
+ORDINALS = {1: 'first', 2: 'second', 3: 'third', 4: 'fourth'}
+CHARACTER_ASPECTS = 'facial identity, body shape, skin tone and hairstyle'
+
+
 def _join(words) -> str:
     words = list(words)
     if len(words) <= 2:
@@ -79,6 +83,7 @@ def render(blocks) -> list[tuple[str, str]]:
             return f'<image{slot}>'
         return 'the image' if edit else 'the reference image'
 
+    cast = any(isinstance(b, ir.Character) for b in blocks)
     out: list[tuple[str, str]] = []
     for block in blocks:
         if isinstance(block, ir.Manual):
@@ -90,10 +95,14 @@ def render(blocks) -> list[tuple[str, str]]:
         elif isinstance(block, ir.Transfer):
             aspects = _join(ASPECT_NAMES[a] for a in block.aspects)
             if edit:
-                out.append((block.id, f'Take the {aspects} from {image(block.slot)} and apply them to {image(1)}; '
+                to = f'the first person in {image(1)}' if cast else image(1)
+                out.append((block.id, f'Take the {aspects} from {image(block.slot)} and apply them to {to}; '
                                       f'use {image(block.slot)} only for these aspects.'))
             else:
-                out.append((block.id, f'Use {image(block.slot)} as the reference for the {aspects}.'))
+                whose = ' of the first person' if cast else ''
+                out.append((block.id, f'Use {image(block.slot)} as the reference for the {aspects}{whose}.'))
+        elif isinstance(block, ir.Character):
+            out.append((block.id, _character(block, image(block.slot))))
         elif isinstance(block, ir.Keep):
             names = [ASPECT_NAMES[a] for a in block.aspects]
             if block.allow_action_movement and 'body pose' in names:
@@ -153,6 +162,15 @@ def _operation(block: ir.Operation, edit: bool, blocks) -> str:
     if block.category == 'pose':
         sentence += ' ' + BODY_EMPHASIS['pose']
     return sentence
+
+
+def _character(block: ir.Character, source: str) -> str:
+    ordinal = ORDINALS.get(block.ordinal, f'person number {block.ordinal}')
+    text = (f'The {ordinal} person has the {CHARACTER_ASPECTS} of the person in {source}; '
+            f'use {source} only for this person\'s appearance.')
+    if block.description:
+        text += f' The {ordinal} person: ' + _sentence(block.description)
+    return text
 
 
 def _guidance(block: ir.Guidance) -> str:

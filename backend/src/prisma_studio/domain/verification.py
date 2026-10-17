@@ -28,6 +28,9 @@ def checklist(blocks) -> list[Check]:
         elif isinstance(block, ir.Transfer):
             aspects = ', '.join(ASPECT_NAMES[a] for a in block.aspects)
             checks.append(Check(block.id, f'The {aspects} match reference image {block.slot}'))
+        elif isinstance(block, ir.Character):
+            checks.append(Check(block.id, f'Another distinct person in the image matches the appearance of reference '
+                                          f'image {block.slot}'))
         elif isinstance(block, ir.Keep) and block.aspects:
             aspects = ', '.join(ASPECT_NAMES[a] for a in block.aspects)
             checks.append(Check(block.id, f'The {aspects} are unchanged from the original image 1'))

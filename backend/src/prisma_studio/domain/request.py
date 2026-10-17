@@ -56,6 +56,12 @@ class Reference(_Strict):
     label: str = Field(min_length=1, max_length=120)
 
 
+class Character(_Strict):
+    """Another person in the scene whose appearance comes from a reference image."""
+    reference_id: str = Field(pattern=REF_ID)
+    description: str = Field(default='', max_length=500)
+
+
 class Participants(_Strict):
     requested: int | None = Field(default=None, ge=1, le=10)
     existing: int | None = Field(default=None, ge=0, le=10)
@@ -105,6 +111,7 @@ class Request(_Strict):
     references: tuple[Reference, ...] = Field(default=(), max_length=10)
     target_id: str | None = Field(default=None, pattern=REF_ID)
     mask: bool = False
+    characters: tuple[Character, ...] = Field(default=(), max_length=3)
     participants: Participants = Participants()
     context: SceneContext = SceneContext()
     details: str = Field(default='', max_length=4000)

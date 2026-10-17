@@ -33,6 +33,17 @@ class Transfer:
 
 
 @dataclass(frozen=True)
+class Character:
+    slot: int
+    ordinal: int                          # 2 for the second person, 3 for the third...
+    description: str = ''
+
+    @property
+    def id(self) -> str:
+        return f'character.{self.ordinal}'
+
+
+@dataclass(frozen=True)
 class Keep:
     aspects: tuple[str, ...]
     everything_else: bool
@@ -75,4 +86,4 @@ class Manual:
     id: str = 'manual'
 
 
-Block = Header | Operation | Transfer | Keep | Participants | MinimumFraming | Guidance | Details | Manual
+Block = Header | Operation | Transfer | Character | Keep | Participants | MinimumFraming | Guidance | Details | Manual

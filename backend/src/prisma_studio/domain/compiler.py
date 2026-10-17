@@ -8,7 +8,7 @@ from .request import CatalogValue, Request
 from .rules import Assessment
 from .vocabulary import CATEGORIES, FRAMING_ORDER
 
-COMPILER_VERSION = '1.1.0'
+COMPILER_VERSION = '1.2.0'
 
 # Operation order: scene first, then person changes; style leads in generation.
 EDIT_ORDER = ('environment', 'lighting', 'style', 'camera', 'framing', 'subject', 'face', 'body', 'skin', 'hair',
@@ -56,6 +56,8 @@ def build_ir(request: Request, assessment: Assessment) -> list:
             by_slot.setdefault(assessment.slots[attribute.reference_id], []).append(category)
     for slot in sorted(by_slot):
         blocks.append(ir.Transfer(slot, tuple(by_slot[slot])))
+    for index, character in enumerate(request.characters):
+        blocks.append(ir.Character(assessment.slots[character.reference_id], index + 2, character.description.strip()))
 
     if edit:
         kept = tuple(c for c in CATEGORIES if request.attribute(c).intent == 'keep')

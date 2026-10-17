@@ -226,6 +226,10 @@ export function Studio({library, comfyOnline, notify}: Props) {
 
 type Patch = (fn: (r: StudioRequest) => void) => void;
 
+// Mirrors uses_person_photos in the backend rules: a photo supplies a person.
+const usesPersonPhotos = (request: StudioRequest) => request.mode === 'edit' || (request.characters ?? []).length > 0
+  || (['subject', 'face', 'body', 'skin', 'hair'] as const).some(c => request.attributes[c]?.intent === 'transfer');
+
 function OutputBasics({request, patch}: {request: StudioRequest; patch: Patch}) {
   const edit = request.mode === 'edit', custom = request.output.width != null;
   return (
@@ -333,8 +337,8 @@ function Content({request, patch, library, update}: {request: StudioRequest; pat
       {request.content_mode === 'adult' && <>
         <label className="check"><input type="checkbox" checked={request.confirmations.includes('adults_only')}
           onChange={e => confirmation('adults_only', e.target.checked)} /> Confirmo que todas as pessoas retratadas são adultas.</label>
-        {request.mode === 'edit' && <label className="check"><input type="checkbox" checked={request.confirmations.includes('consent_or_fictional')}
-          onChange={e => confirmation('consent_or_fictional', e.target.checked)} /> Confirmo que a pessoa da foto é fictícia ou consentiu com esta edição.</label>}
+        {usesPersonPhotos(request) && <label className="check"><input type="checkbox" checked={request.confirmations.includes('consent_or_fictional')}
+          onChange={e => confirmation('consent_or_fictional', e.target.checked)} /> Confirmo que as pessoas das fotos são fictícias ou consentiram com este uso.</label>}
       </>}
     </fieldset>
   );

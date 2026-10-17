@@ -10,7 +10,7 @@ export interface Workspace {
 }
 
 export const ROLES: Record<string, {label: string; categories: Category[]}> = {
-  character: {label: 'Personagem (rosto, corpo, pele e cabelo)', categories: ['face', 'body', 'skin', 'hair']},
+  character: {label: 'Personagem principal (rosto, corpo, pele e cabelo)', categories: ['face', 'body', 'skin', 'hair']},
   face: {label: 'Rosto', categories: ['face']},
   hair: {label: 'Cabelo', categories: ['hair']},
   body: {label: 'Corpo e pele', categories: ['body', 'skin']},
@@ -27,7 +27,7 @@ export function initialRequest(mode: 'generate' | 'edit'): StudioRequest {
   if (mode === 'edit') for (const category of CATEGORIES) attributes[category] = {intent: 'keep'};
   return {
     schema_version: 1, mode, content_mode: 'standard', prompt_mode: 'structured', manual_prompt: null, attributes,
-    references: [], target_id: null, mask: false, participants: {requested: null, existing: null},
+    references: [], target_id: null, mask: false, characters: [], participants: {requested: null, existing: null},
     context: {supports: null, allow_new_supports: false, allow_reframing: true, original_framing: null},
     details: '', confirmations: [],
     output: {profile: 'qwen21', resolution: mode === 'edit' ? 0 : 1024, aspect: '3:4', width: null, height: null,
@@ -61,6 +61,7 @@ export function addReference(ws: Workspace, id: string, file: FileInfo): Workspa
 export function applyReference(ws: Workspace, id: string, role: keyof typeof ROLES): Workspace {
   if (id === ws.request.target_id) throw new Error('A foto alvo já é a base da edição; use "Manter".');
   const next = clone(ws);
+  next.request.characters = (next.request.characters ?? []).filter(c => c.reference_id !== id);
   const restore = next.restore[id] ?? {};
   for (const category of ROLES[role].categories) {
     const current = next.request.attributes[category] ?? null;
@@ -87,9 +88,41 @@ function release(next: Workspace, id: string) {
   delete next.restore[id];
 }
 
+export const MAX_CHARACTERS = 3;
+
+// Another person in the scene, with the appearance of a reference photo. Order = second, third, fourth person.
+export function addCharacter(ws: Workspace, id: string): Workspace {
+  if (id === ws.request.target_id) throw new Error('A foto editada não pode ser também a de outro personagem.');
+  const characters = ws.request.characters ?? [];
+  if (characters.some(c => c.reference_id === id)) return ws;
+  if (characters.length >= MAX_CHARACTERS) throw new Error(`Use até ${MAX_CHARACTERS} personagens extras.`);
+  const next = clone(ws);
+  release(next, id);                         // a character photo describes that person only
+  next.request.characters = [...characters, {reference_id: id, description: ''}];
+  return next;
+}
+
+export function removeCharacter(ws: Workspace, id: string): Workspace {
+  const next = clone(ws);
+  next.request.characters = (next.request.characters ?? []).filter(c => c.reference_id !== id);
+  return next;
+}
+
+export function describeCharacter(ws: Workspace, id: string, description: string): Workspace {
+  const next = clone(ws);
+  next.request.characters = (next.request.characters ?? []).map(c => c.reference_id === id ? {...c, description} : c);
+  return next;
+}
+
+export function characterNumber(ws: Workspace, id: string): number | null {
+  const index = (ws.request.characters ?? []).findIndex(c => c.reference_id === id);
+  return index < 0 ? null : index + 2;
+}
+
 export function removeReference(ws: Workspace, id: string): Workspace {
   const next = clone(ws);
   release(next, id);
+  next.request.characters = (next.request.characters ?? []).filter(c => c.reference_id !== id);
   next.request.references = next.request.references.filter(ref => ref.id !== id);
   delete next.files[id];
   if (next.request.target_id === id) {      // never promote another image silently
@@ -103,6 +136,7 @@ export function removeReference(ws: Workspace, id: string): Workspace {
 export function setTarget(ws: Workspace, id: string): Workspace {
   const next = clone(ws);
   release(next, id);
+  next.request.characters = (next.request.characters ?? []).filter(c => c.reference_id !== id);
   next.request.target_id = id;
   next.request.mask = false;
   next.maskHash = null;
@@ -139,6 +173,8 @@ export function leaveManual(ws: Workspace): Workspace {
 
 export function requestForSubmit(ws: Workspace): StudioRequest {
   const request = clone(ws.request);
+  request.characters = (request.characters ?? []).map(c => ({...c, description: c.description.trim()}));
+  if (!request.characters.length) delete request.characters;   // older Studio servers do not know this field
   if (request.prompt_mode === 'structured') request.manual_prompt = null;
   if (request.mode === 'generate') {request.target_id = null; request.mask = false;}
   return request;

@@ -11,6 +11,7 @@ export type Gaze = 'camera' | 'away' | 'down' | 'up' | 'back' | 'closed' | 'any'
 export type Value = {kind: 'catalog'; item_id: string} | {kind: 'text'; text: string};
 export interface Attribute {intent: Intent; value?: Value; reference_id?: string}
 export interface Reference {id: string; label: string}
+export interface Character {reference_id: string; description: string}
 
 export interface Output {
   profile: 'qwen21' | 'turbo';
@@ -39,6 +40,7 @@ export interface StudioRequest {
   references: Reference[];
   target_id?: string | null;
   mask: boolean;
+  characters?: Character[];
   participants: {requested?: number | null; existing?: number | null};
   context: {supports?: Support[] | null; allow_new_supports: boolean; allow_reframing: boolean; original_framing?: Framing | null};
   details: string;

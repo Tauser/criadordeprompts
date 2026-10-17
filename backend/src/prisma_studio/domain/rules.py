@@ -97,13 +97,24 @@ def assess(request: Request, library: Library) -> Assessment:
             report('text_not_analyzed', where, 'Descrição personalizada: a compatibilidade não é verificada.',
                    'unknown')
 
+    seen_characters: set[str] = set()
+    for i, character in enumerate(request.characters):
+        where = f'characters.{i}'
+        if character.reference_id not in refs:
+            report('missing_reference', where, 'A foto do personagem não foi anexada.')
+        elif character.reference_id == request.target_id:
+            report('character_is_target', where, 'A foto editada não pode ser também a de outro personagem.')
+        elif character.reference_id in seen_characters:
+            report('duplicate_character', where, 'Esta foto já está sendo usada para outro personagem.')
+        seen_characters.add(character.reference_id)
+
     if any(item.adult for item in resolved.values()):
         if 'adults_only' not in request.confirmations:
             report('confirm_adults', 'confirmations', 'Confirme que todas as pessoas retratadas são adultas.',
                    kind='policy')
-        if request.mode == 'edit' and 'consent_or_fictional' not in request.confirmations:
+        if uses_person_photos(request) and 'consent_or_fictional' not in request.confirmations:
             report('confirm_consent', 'confirmations',
-                   'Confirme que a pessoa da foto é fictícia ou consentiu com esta edição.', kind='policy')
+                   'Confirme que as pessoas das fotos são fictícias ou consentiram com este uso.', kind='policy')
 
     requirements = tuple(item.requirements for item in resolved.values())
     _check_conflicts(request, resolved, report)
@@ -115,7 +126,7 @@ def assess(request: Request, library: Library) -> Assessment:
         report('details_not_analyzed', 'details', 'Os detalhes adicionais são enviados literalmente, sem análise.',
                'unknown')
     changes = [c for c in CATEGORIES if request.attribute(c).intent in ('set', 'transfer')]
-    if request.mode == 'edit' and not changes and not request.details.strip():
+    if request.mode == 'edit' and not changes and not request.characters and not request.details.strip():
         report('missing_change', 'attributes', 'Nenhuma alteração foi pedida para a foto.')
     for ref in request.references:
         if ref.id not in slots:
@@ -134,12 +145,22 @@ def _slots(request: Request) -> dict[str, int]:
         order.append(request.target_id)
     known = {ref.id for ref in request.references}
     used = {a.reference_id for a in request.attributes.values() if a.intent == 'transfer'}
+    used |= {c.reference_id for c in request.characters}
     if request.prompt_mode == 'manual':
         used = known
     for ref in request.references:
         if ref.id in used and ref.id not in order and ref.id in known:
             order.append(ref.id)
     return {ref_id: i + 1 for i, ref_id in enumerate(order)}
+
+
+IDENTITY_CATEGORIES = ('subject', 'face', 'body', 'skin', 'hair')
+
+
+def uses_person_photos(request: Request) -> bool:
+    """True when a photo supplies a person: the edited photo, another character or an identity reference."""
+    return (request.mode == 'edit' or bool(request.characters)
+            or any(request.attribute(c).intent == 'transfer' for c in IDENTITY_CATEGORIES))
 
 
 def _check_target(request, refs, report) -> None:
@@ -227,6 +248,8 @@ def _participants(request, resolved, report):
     counts = [item.requirements.participants for item in resolved.values() if item.requirements.participants]
     if request.participants.requested:
         counts.append(request.participants.requested)
+    if request.characters:
+        counts.append(1 + len(request.characters))
     existing = request.participants.existing if request.mode == 'edit' else None
     if existing:
         counts.append(existing)

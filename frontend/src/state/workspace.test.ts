@@ -72,3 +72,20 @@ describe('sortBy', () => {
       .toEqual(['ângulo alto', 'Ângulo baixo', 'estrada', 'Estúdio', 'Item 2', 'Item 10', 'Rua urbana']);
   });
 });
+
+describe('characters', () => {
+  it('adds a second character from a reference, numbers it and releases it cleanly', async () => {
+    const {addCharacter, characterNumber, describeCharacter, removeReference, applyReference, requestForSubmit} = await import('./workspace');
+    let ws = initialWorkspace('generate');
+    ws = addReference(ws, 'a', {hash: 'h1', width: 1, height: 1, name: 'Ana'});
+    ws = addReference(ws, 'b', {hash: 'h2', width: 1, height: 1, name: 'Bia'});
+    ws = applyReference(ws, 'b', 'face');
+    ws = addCharacter(ws, 'b');
+    expect(ws.request.attributes.face).toBeUndefined();
+    expect(characterNumber(ws, 'b')).toBe(2);
+    ws = describeCharacter(ws, 'b', '  on the left ');
+    expect(requestForSubmit(ws).characters).toEqual([{reference_id: 'b', description: 'on the left'}]);
+    ws = removeReference(ws, 'b');
+    expect(ws.request.characters).toEqual([]);
+  });
+});

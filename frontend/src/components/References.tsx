@@ -2,7 +2,8 @@ import {useState} from 'react';
 import {api, fileUrl} from '../api/client';
 import {CATEGORY_LABELS} from '../lib/labels';
 import {sortBy} from '../lib/sort';
-import {ROLES, addReference, applyReference, referenceRoles, removeReference, setTarget, type Workspace} from '../state/workspace';
+import {MAX_CHARACTERS, ROLES, addCharacter, addReference, applyReference, characterNumber, describeCharacter, referenceRoles,
+  removeCharacter, removeReference, setTarget, type Workspace} from '../state/workspace';
 import {MaskEditor} from './MaskEditor';
 
 interface Props {
@@ -53,7 +54,7 @@ export function References({workspace, slots, disabled, update, notify}: Props) 
         <span className="muted">{request.references.length} / 10</span>
       </div>
       <p className="help">{edit ? 'A foto alvo é a imagem que será editada. As outras imagens só fornecem o que você aplicar a partir delas.'
-        : 'Use imagens para trazer rosto, roupa, pose ou estilo para a cena nova.'}</p>
+        : 'Use imagens para trazer rosto, roupa, pose ou estilo para a cena nova, ou para incluir outro personagem.'}</p>
       <label className={'upload' + (disabled || busy ? ' disabled' : '')}>
         {busy ? 'Enviando…' : '＋ Adicionar imagens'}
         <input type="file" accept="image/png,image/jpeg,image/webp" multiple disabled={disabled || busy}
@@ -64,25 +65,45 @@ export function References({workspace, slots, disabled, update, notify}: Props) 
           const file = workspace.files[ref.id];
           const isTarget = ref.id === request.target_id;
           const roles = referenceRoles(workspace, ref.id);
+          const person = characterNumber(workspace, ref.id);
+          const character = (request.characters ?? []).find(c => c.reference_id === ref.id);
+          const castFull = (request.characters ?? []).length >= MAX_CHARACTERS;
           return (
-            <li key={ref.id} className={'reference' + (isTarget ? ' target' : '')}>
+            <li key={ref.id} className={'reference' + (isTarget ? ' target' : '') + (person ? ' cast' : '')}>
               {file ? <img src={fileUrl(file.hash)} alt={ref.label} /> : <span className="missing">Sem arquivo</span>}
               <div className="reference-body">
                 <strong>{ref.label}</strong>
-                <span className="badge">{isTarget ? 'Foto alvo · image1' : slots[ref.id] ? `image${slots[ref.id]}` : 'Não usada'}</span>
-                {!isTarget && <span className="muted">{roles.length ? 'Fornece: ' + roles.map(r => CATEGORY_LABELS[r]).join(', ') : 'Escolha o que aplicar.'}</span>}
+                <span className="badge">{isTarget ? 'Foto alvo · image1' : person ? `Personagem ${person} · image${slots[ref.id] ?? '?'}`
+                  : slots[ref.id] ? `image${slots[ref.id]}` : 'Não usada'}</span>
+                {!isTarget && !person && <span className="muted">{roles.length ? 'Fornece: ' + roles.map(r => CATEGORY_LABELS[r]).join(', ') : 'Escolha o que aplicar.'}</span>}
+                {person && character && <>
+                  <span className="muted">Outra pessoa na cena, com a aparência desta foto (rosto, corpo, pele e cabelo).</span>
+                  <input className="character-note" value={character.description} maxLength={500} disabled={disabled}
+                         placeholder="Opcional, em inglês: where this person is and what they do"
+                         aria-label={`Descrição do personagem ${person} em inglês`}
+                         onChange={e => update(ws => describeCharacter(ws, ref.id, e.target.value))} />
+                </>}
                 <div className="row">
                   {!isTarget && (
                     <select aria-label={`Aplicar ${ref.label} como`} value="" disabled={disabled}
-                            onChange={e => e.target.value && act(ws => applyReference(ws, ref.id, e.target.value))}>
-                      <option value="">Aplicar como…</option>
-                      {sortBy(Object.entries(ROLES), ([, role]) => role.label).map(([key, role]) => <option key={key} value={key}>{role.label}</option>)}
+                            onChange={e => {
+                              const value = e.target.value;
+                              if (!value) return;
+                              act(ws => value === '@character' ? addCharacter(ws, ref.id) : applyReference(ws, ref.id, value));
+                            }}>
+                      <option value="">{person ? 'Usar de outro jeito…' : 'Aplicar como…'}</option>
+                      {!person && <option value="@character" disabled={castFull}>
+                        {castFull ? `Outro personagem na cena (máximo ${MAX_CHARACTERS})` : 'Outro personagem na cena'}</option>}
+                      <optgroup label="Para a pessoa principal ou a cena">
+                        {sortBy(Object.entries(ROLES), ([, role]) => role.label).map(([key, role]) => <option key={key} value={key}>{role.label}</option>)}
+                      </optgroup>
                     </select>
                   )}
+                  {person && <button className="quiet" disabled={disabled} onClick={() => act(ws => removeCharacter(ws, ref.id))}>Não usar como personagem</button>}
                   {edit && !isTarget && <button className="quiet" disabled={disabled}
                     onClick={() => confirm('Usar esta imagem como foto alvo? Ela deixará de fornecer atributos.') && act(ws => setTarget(ws, ref.id))}>Usar como alvo</button>}
                   <button className="quiet" disabled={disabled}
-                    onClick={() => (!roles.length && !isTarget || confirm('Remover esta imagem? As escolhas anteriores dos campos serão restauradas.')) && act(ws => removeReference(ws, ref.id))}>Remover</button>
+                    onClick={() => (!roles.length && !isTarget && !person || confirm('Remover esta imagem? As escolhas anteriores dos campos serão restauradas.')) && act(ws => removeReference(ws, ref.id))}>Remover</button>
                 </div>
               </div>
             </li>

@@ -14,6 +14,7 @@ interface Props {
 const BLOCK_LABEL = (block: string) => {
   if (block.startsWith('op.')) return CATEGORY_LABELS[block.slice(3) as keyof typeof CATEGORY_LABELS] ?? block;
   if (block.startsWith('transfer.')) return 'Referência';
+  if (block.startsWith('character.')) return `Personagem ${block.slice(10)}`;
   if (block.startsWith('guide.')) return 'Orientação';
   return ({header: 'Início', keep: 'Manter', participants: 'Pessoas', framing: 'Enquadramento', details: 'Detalhes',
            closing: 'Coerência', manual: 'Manual'} as Record<string, string>)[block] ?? block;
