@@ -23,6 +23,11 @@ class JobState:
     error: str | None = None
 
 
+def _seconds(value):
+    """ComfyUI reports timestamps in milliseconds."""
+    return value / 1000 if isinstance(value, (int, float)) else None
+
+
 class ComfyClient:
     def __init__(self, base_url: str = 'http://127.0.0.1:8188', client_id: str | None = None,
                  http: httpx.Client | None = None, timeout: float = 30):
@@ -69,9 +74,8 @@ class ComfyClient:
         data = response.json()
         error = data.get('execution_error')
         message = error.get('exception_message') if isinstance(error, dict) else None
-        ms = lambda v: v / 1000 if isinstance(v, (int, float)) else None   # ComfyUI timestamps are milliseconds
-        return JobState(data.get('status', 'missing'), ms(data.get('execution_start_time')),
-                        ms(data.get('execution_end_time')), message)
+        return JobState(data.get('status', 'missing'), _seconds(data.get('execution_start_time')),
+                        _seconds(data.get('execution_end_time')), message)
 
     def outputs(self, prompt_id: str) -> dict:
         return self._json('GET', f'/history/{prompt_id}').get(prompt_id, {}).get('outputs', {})

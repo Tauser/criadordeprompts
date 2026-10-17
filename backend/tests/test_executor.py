@@ -1,5 +1,3 @@
-import json
-from pathlib import Path
 
 import pytest
 
@@ -84,7 +82,8 @@ def test_same_request_id_is_idempotent(env):
 def test_unconfirmed_submission_is_resolved_without_duplicates(env):
     env.comfy.fail_submit_once = True
     run = env.service.create(generate(), 'req-u', {}, None)
-    env.executor.tick(); env.executor.tick()
+    env.executor.tick()
+    env.executor.tick()
     task = env.repo.tasks(run['id'], 'image')[0]
     assert task['status'] == 'uncertain'
     run = env.run_until(run['id'])
@@ -110,7 +109,8 @@ def test_unconfirmed_submission_that_never_arrived_is_resubmitted_once(env):
 def test_cancel_while_queued(env):
     env.comfy.script = ['pending']
     run = env.service.create(generate(), 'req-c', {}, None)
-    env.executor.tick(); env.executor.tick()
+    env.executor.tick()
+    env.executor.tick()
     env.service.cancel(run['id'])
     run = env.run_until(run['id'])
     assert run['status'] == 'cancelled'
@@ -133,7 +133,9 @@ def test_cancel_after_completion_keeps_the_image(env):
 def test_comfy_offline_during_cancel_keeps_retrying(env):
     env.comfy.script = ['in_progress']
     run = env.service.create(generate(), 'req-off', {}, None)
-    env.executor.tick(); env.executor.tick(); env.executor.tick()
+    env.executor.tick()
+    env.executor.tick()
+    env.executor.tick()
     env.service.cancel(run['id'])
     env.comfy.offline = True
     env.executor.tick()
@@ -145,7 +147,8 @@ def test_comfy_offline_during_cancel_keeps_retrying(env):
 def test_vanished_job_becomes_lost(env):
     env.comfy.script = ['pending']
     run = env.service.create(generate(), 'req-l', {}, None)
-    env.executor.tick(); env.executor.tick()
+    env.executor.tick()
+    env.executor.tick()
     task = env.repo.tasks(run['id'], 'image')[0]
     env.comfy.jobs[task['comfy_prompt_id']]['vanished'] = True
     run = env.run_until(run['id'])
@@ -155,7 +158,8 @@ def test_vanished_job_becomes_lost(env):
 
 def test_restart_continues_from_the_database(env):
     run = env.service.create(generate(), 'req-r', {}, None)
-    env.executor.tick(); env.executor.tick()
+    env.executor.tick()
+    env.executor.tick()
     fresh = Executor(RunRepository(Database(env.tmp / 'studio.db')), env.comfy, env.store, poll_seconds=0)
     for _ in range(10):
         fresh.tick()

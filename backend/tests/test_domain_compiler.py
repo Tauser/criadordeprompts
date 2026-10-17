@@ -1,4 +1,3 @@
-import itertools
 import random
 
 import pytest
@@ -44,7 +43,9 @@ def test_free_attributes_disable_the_everything_else_clause(library):
 def test_catalog_and_text_sources_produce_the_same_structure(library):
     via_catalog = run(edit_request({**DEFAULT_KEEP, 'pose': cat('pose.standing')}), library)[1]
     via_text = run(edit_request({**DEFAULT_KEEP, 'pose': text('standing relaxed')}), library)[1]
-    kinds = lambda c: [(type(b).__name__, getattr(b, 'category', None)) for b in c.blocks if not isinstance(b, ir.Guidance)]
+
+    def kinds(compiled):
+        return [(type(b).__name__, getattr(b, 'category', None)) for b in compiled.blocks if not isinstance(b, ir.Guidance)]
     assert kinds(via_catalog) == kinds(via_text)
 
 
