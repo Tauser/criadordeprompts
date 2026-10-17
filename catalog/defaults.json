@@ -1,0 +1,3767 @@
+{
+ "schema_version": 1,
+ "revision": 0,
+ "items": [
+  {
+   "id": "subject.woman",
+   "category": "subject",
+   "label": "Uma mulher adulta",
+   "prompt": "one fictional adult woman, visibly aged 25 or older",
+   "prompt_pt": "uma mulher adulta fictícia, visivelmente com 25 anos ou mais",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "subject.man",
+   "category": "subject",
+   "label": "Um homem adulto",
+   "prompt": "one fictional adult man, visibly aged 25 or older",
+   "prompt_pt": "um homem adulto fictício, visivelmente com 25 anos ou mais",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "subject.two",
+   "category": "subject",
+   "label": "Dois adultos",
+   "prompt": "two fictional consenting adults, both visibly aged 25 or older",
+   "prompt_pt": "dois adultos fictícios consentindo, ambos visivelmente com 25 anos ou mais",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.loft",
+   "category": "environment",
+   "label": "Apartamento contemporâneo",
+   "prompt": "a refined contemporary apartment with clean architecture",
+   "prompt_pt": "um apartamento contemporâneo elegante e de arquitetura limpa",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "seat",
+     "wall",
+     "table"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.studio",
+   "category": "environment",
+   "label": "Estúdio fotográfico",
+   "prompt": "a minimal professional photography studio",
+   "prompt_pt": "um estúdio fotográfico profissional e minimalista",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "seat",
+     "wall"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.bedroom",
+   "category": "environment",
+   "label": "Quarto elegante",
+   "prompt": "an elegant bedroom with soft neutral decor",
+   "prompt_pt": "um quarto elegante com decoração suave e neutra",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "seat",
+     "bed",
+     "wall",
+     "table"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.street",
+   "category": "environment",
+   "label": "Rua urbana",
+   "prompt": "a realistic urban street with natural depth",
+   "prompt_pt": "uma rua urbana realista com profundidade natural",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "wall"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.garden",
+   "category": "environment",
+   "label": "Jardim natural",
+   "prompt": "a lush garden with natural details",
+   "prompt_pt": "um jardim exuberante com detalhes naturais",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "seat"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.neutral",
+   "category": "environment",
+   "label": "Fundo neutro",
+   "prompt": "a seamless neutral studio backdrop",
+   "prompt_pt": "um fundo neutro e contínuo de estúdio",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "wall"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.beach",
+   "category": "environment",
+   "label": "Praia · areia e mar",
+   "prompt": "a beach with pale sand, ocean waves and a visible horizon",
+   "prompt_pt": "uma praia com areia clara, ondas do mar e horizonte visível",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.terrace",
+   "category": "environment",
+   "label": "Terraço · vista da cidade",
+   "prompt": "a rooftop terrace with glass railings and a city skyline",
+   "prompt_pt": "um terraço com guarda-corpo de vidro e prédios da cidade ao fundo",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "seat",
+     "wall",
+     "table"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.pool",
+   "category": "environment",
+   "label": "Piscina externa",
+   "prompt": "an outdoor swimming pool with blue water, tiled edges and sun loungers",
+   "prompt_pt": "uma piscina externa com água azul, bordas de azulejo e espreguiçadeiras",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "seat"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.library",
+   "category": "environment",
+   "label": "Biblioteca · estantes de madeira",
+   "prompt": "a library with tall wooden bookshelves, books and reading tables",
+   "prompt_pt": "uma biblioteca com estantes altas de madeira, livros e mesas de leitura",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "seat",
+     "wall",
+     "table"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.kitchen",
+   "category": "environment",
+   "label": "Cozinha moderna",
+   "prompt": "a modern kitchen with white cabinets, a stone countertop and pendant lights",
+   "prompt_pt": "uma cozinha moderna com armários brancos, bancada de pedra e luminárias pendentes",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "seat",
+     "wall",
+     "table"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.forest",
+   "category": "environment",
+   "label": "Floresta · trilha natural",
+   "prompt": "a forest with tall trees, green foliage and a visible earth trail",
+   "prompt_pt": "uma floresta com árvores altas, folhagem verde e trilha de terra visível",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.hotel",
+   "category": "environment",
+   "label": "Quarto de hotel",
+   "prompt": "a hotel room with a made bed, upholstered headboard and a large window",
+   "prompt_pt": "um quarto de hotel com cama arrumada, cabeceira estofada e janela ampla",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "seat",
+     "bed",
+     "wall",
+     "table"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.raincity",
+   "category": "environment",
+   "label": "Rua urbana · chuva",
+   "prompt": "a rainy city street with wet pavement, storefronts and reflected lights",
+   "prompt_pt": "uma rua urbana na chuva com calçada molhada, lojas e luzes refletidas",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "wall"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.brickstudio",
+   "category": "environment",
+   "label": "Estúdio · parede de tijolos",
+   "prompt": "a photography studio with an exposed brick wall and a wooden floor",
+   "prompt_pt": "um estúdio fotográfico com parede de tijolos aparentes e piso de madeira",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "seat",
+     "wall"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.dressing",
+   "category": "environment",
+   "label": "Camarim · espelho iluminado",
+   "prompt": "a dressing room with a lighted mirror, clothing racks and a padded stool",
+   "prompt_pt": "um camarim com espelho iluminado, araras de roupas e banco estofado",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "seat",
+     "wall",
+     "table"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "wardrobe.figure_study",
+   "category": "wardrobe",
+   "label": "Sem roupas · nu artístico",
+   "prompt": "non-sexual fine-art nude figure study of an exclusively fictional adult, without emphasis on intimate anatomy",
+   "prompt_pt": "estudo de figura em nu artístico não sexual de adulto exclusivamente fictício, sem ênfase na anatomia íntima",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.arched-back-on-all-fours-6cf69bac",
+   "category": "pose",
+   "label": "Costas profundamente arqueadas · mãos e joelhos",
+   "prompt": "on all fours with back deeply arched, ass raised high, face down",
+   "prompt_pt": "de mãos e joelhos, com costas profundamente arqueadas, quadril elevado e rosto para baixo",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.ass-up-face-down-970082ea",
+   "category": "pose",
+   "label": "Rosto para baixo · quadril elevado",
+   "prompt": "face pressed down with ass raised high in the air, back arched",
+   "prompt_pt": "rosto pressionado para baixo com o quadril elevado no ar e costas arqueadas",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.back-arched-standing-0f4765ec",
+   "category": "pose",
+   "label": "Em pé · costas arqueadas e peito à frente",
+   "prompt": "standing with back deeply arched pushing chest forward and ass out",
+   "prompt_pt": "em pé com as costas arqueadas empurrando o peito para a frente",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.bent-over-13f1120a",
+   "category": "pose",
+   "label": "Inclinado à frente pela cintura",
+   "prompt": "bent over at the waist, ass presented, upper body lowered",
+   "prompt_pt": "inclinado à frente pela cintura, quadril apresentado e tronco abaixado",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.bent-over-looking-back-c70e9393",
+   "category": "pose",
+   "label": "Inclinado à frente · olhando para trás",
+   "prompt": "bent over at the waist looking back over shoulder, ass prominently displayed",
+   "prompt_pt": "inclinado à frente pela cintura olhando para trás por cima do ombro",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.chest-pressed-together-arms-22508dab",
+   "category": "pose",
+   "label": "Braços a juntar e elevar os seios",
+   "prompt": "upper arms squeezing breasts together from the outside, pushing them up and forward, deepening cleavage",
+   "prompt_pt": "braços apertando os seios juntos a partir do exterior, aprofundando o decote",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.hands-and-knees-46665fd6",
+   "category": "pose",
+   "label": "Mãos e joelhos · costas levemente arqueadas",
+   "prompt": "on hands and knees, back slightly arched",
+   "prompt_pt": "de mãos e joelhos, com as costas levemente arqueadas",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.kneeling-legs-apart-42fb52f4",
+   "category": "pose",
+   "label": "Ajoelhado · joelhos afastados",
+   "prompt": "kneeling with knees spread wide apart",
+   "prompt_pt": "ajoelhado com os joelhos bem afastados",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.kneeling-looking-up-3cd30514",
+   "category": "pose",
+   "label": "Ajoelhado · a olhar para cima",
+   "prompt": "kneeling on the floor looking up with lips slightly parted",
+   "prompt_pt": "ajoelhado no chão olhando para cima com lábios entreabertos",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.legs-open-seated-faca6fa2",
+   "category": "pose",
+   "label": "Sentado · pernas abertas",
+   "prompt": "sitting with legs spread wide open",
+   "prompt_pt": "sentado com as pernas bem afastadas",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.legs-spread-lying-back-3adbdb31",
+   "category": "pose",
+   "label": "Deitado de costas · pernas abertas",
+   "prompt": "lying on back with legs spread wide open",
+   "prompt_pt": "deitado de costas com as pernas bem abertas",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.legs-up-lying-back-ff688c28",
+   "category": "pose",
+   "label": "Deitado de costas · pernas erguidas no ar",
+   "prompt": "lying on back with both legs raised up in the air",
+   "prompt_pt": "deitado de costas com ambas as pernas erguidas no ar",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.lying-face-down-hips-raised-7041261a",
+   "category": "pose",
+   "label": "De bruços · quadril elevado",
+   "prompt": "lying face down with hips and ass raised up off the surface",
+   "prompt_pt": "deitado de bruços com o quadril elevado da superfície",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.lying-on-back-knees-bent-d6ec656b",
+   "category": "pose",
+   "label": "Deitado de costas · joelhos flexionados ao peito",
+   "prompt": "lying on back with knees bent and pulled toward chest",
+   "prompt_pt": "deitado de costas com joelhos flexionados junto ao peito",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.lying-on-side-leg-raised-a6f011ef",
+   "category": "pose",
+   "label": "De lado · perna superior elevada",
+   "prompt": "lying on side with top leg raised high, exposing inner thigh",
+   "prompt_pt": "deitado de lado com a perna superior elevada, expondo a coxa",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.on-elbows-and-knees-ddb750b3",
+   "category": "pose",
+   "label": "Antebraços e joelhos · quadril elevado",
+   "prompt": "on elbows and knees with ass raised high, face near the ground",
+   "prompt_pt": "sobre antebraços e joelhos com o quadril elevado e rosto rente ao chão",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.on-knees-back-arched-23ee8f3b",
+   "category": "pose",
+   "label": "De joelhos · costas arqueadas",
+   "prompt": "on knees with back deeply arched, chest pushed forward",
+   "prompt_pt": "de joelhos com costas profundamente arqueadas e peito para a frente",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.on-knees-hands-on-thighs-9df08a47",
+   "category": "pose",
+   "label": "De joelhos · mãos nas coxas",
+   "prompt": "on knees with hands resting on spread thighs",
+   "prompt_pt": "de joelhos com as mãos apoiadas nas coxas afastadas",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.one-leg-up-against-wall-05fa6a0f",
+   "category": "pose",
+   "label": "Em pé · uma perna elevada na parede",
+   "prompt": "standing with one leg raised up against wall, exposing inner thigh",
+   "prompt_pt": "em pé com uma perna elevada contra a parede",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.presenting-from-behind-e0b67cb7",
+   "category": "pose",
+   "label": "De quatro · quadril apresentado para trás",
+   "prompt": "on all fours with ass raised and presented toward camera, back arched, looking back over shoulder",
+   "prompt_pt": "de quatro com o quadril elevado para a câmera, costas arqueadas, olhando para trás",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.reclining-legs-parted-483957d2",
+   "category": "pose",
+   "label": "Reclinado · pernas entreabertas",
+   "prompt": "reclining back with legs parted and relaxed open",
+   "prompt_pt": "reclinado com as pernas entreabertas e relaxadas",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.riding-position-ddb31340",
+   "category": "pose",
+   "label": "Posição de montaria com quadril projetado",
+   "prompt": "straddling position with hips thrust forward as if riding",
+   "prompt_pt": "posição de montaria com o quadril projetado para a frente",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.sitting-legs-open-78b80be6",
+   "category": "pose",
+   "label": "Sentado · pernas bem abertas",
+   "prompt": "sitting with legs spread wide open",
+   "prompt_pt": "sentado com as pernas bem abertas",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.sitting-spread-eagle-83e88ea1",
+   "category": "pose",
+   "label": "Sentado · pernas completamente abertas",
+   "prompt": "sitting with legs fully spread eagle, wide open",
+   "prompt_pt": "sentado com as pernas completamente abertas e afastadas",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.squatting-legs-apart-5d2b4ea6",
+   "category": "pose",
+   "label": "Agachamento · joelhos afastados",
+   "prompt": "squatting down with knees spread wide apart",
+   "prompt_pt": "agachado com os joelhos bem afastados",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.standing-bent-at-waist-4b6b0d56",
+   "category": "pose",
+   "label": "Em pé · inclinado à frente",
+   "prompt": "standing and bent forward at the waist, ass pushed back",
+   "prompt_pt": "em pé e inclinado para a frente pela cintura",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.standing-legs-apart-73f7b962",
+   "category": "pose",
+   "label": "Em pé · pernas afastadas",
+   "prompt": "standing with legs spread wide apart",
+   "prompt_pt": "em pé com as pernas afastadas",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.straddling",
+   "category": "pose",
+   "label": "Montado com uma perna de cada lado",
+   "prompt": "straddling with legs on either side, hips lowered",
+   "prompt_pt": "montado com uma perna de cada lado e quadril abaixado",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.stretching-on-bed-19f6422c",
+   "category": "pose",
+   "label": "Alongando o corpo na cama",
+   "prompt": "stretching body across bed with limbs extended, body elongated",
+   "prompt_pt": "alongando o corpo na cama com membros estendidos",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.topless-covering-with-hands-7fd009d8",
+   "category": "pose",
+   "label": "Sem camisa · cobrindo os seios com as mãos",
+   "prompt": "topless with hands cupping and covering bare breasts",
+   "prompt_pt": "sem parte de cima, cobrindo os seios com as mãos",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.topless-hair-covering-147c29b9",
+   "category": "pose",
+   "label": "Sem camisa · cabelo cobrindo os seios",
+   "prompt": "topless with long hair draped over and partially covering bare breasts",
+   "prompt_pt": "sem parte de cima, com cabelos longos cobrindo parcialmente os seios",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.neutral",
+   "category": "pose",
+   "label": "Em pé · braços relaxados",
+   "prompt": "standing naturally, with relaxed shoulders and balanced weight",
+   "prompt_pt": "em pé naturalmente, ombros relaxados e peso bem distribuído",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "standing",
+    "gaze": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.seated",
+   "category": "pose",
+   "label": "Sentado · postura ereta",
+   "prompt": "sitting comfortably with anatomically plausible posture",
+   "prompt_pt": "sentado confortavelmente com postura anatomicamente plausível",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "seated",
+    "gaze": "any",
+    "support_any_of": [
+     "seat",
+     "bed"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.kneeling",
+   "category": "pose",
+   "label": "Ajoelhado · tronco ereto",
+   "prompt": "kneeling upright, with knees supporting body weight and torso naturally aligned",
+   "prompt_pt": "ajoelhado com o tronco alinhado naturalmente e o peso apoiado nos joelhos",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "kneeling",
+    "gaze": "any",
+    "support_any_of": [
+     "floor",
+     "bed"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.lookback",
+   "category": "pose",
+   "label": "Giro de tronco · olhar sobre o ombro",
+   "prompt": "turning the upper torso slightly and looking over one shoulder",
+   "prompt_pt": "girando levemente o tronco e olhando por cima do ombro",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "standing",
+    "gaze": "back",
+    "support_any_of": [],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.walking",
+   "category": "pose",
+   "label": "Caminhada · passo natural",
+   "prompt": "walking at a relaxed pace with a natural stride",
+   "prompt_pt": "caminhando tranquilamente com passos naturais",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "walking",
+    "gaze": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.recline",
+   "category": "pose",
+   "label": "Reclinado no sofá",
+   "prompt": "reclining naturally on a sofa, with the body comfortably supported",
+   "prompt_pt": "reclinando naturalmente em um sofá, com o corpo apoiado",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "lying",
+    "gaze": "any",
+    "support_any_of": [
+     "seat"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.handsknees",
+   "category": "pose",
+   "label": "Apoio em mãos e joelhos",
+   "prompt": "on hands and knees, with balanced support points and natural alignment",
+   "prompt_pt": "com mãos e joelhos apoiados, pontos de apoio equilibrados e alinhamento natural",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "kneeling",
+    "gaze": "any",
+    "support_any_of": [
+     "floor",
+     "bed"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.side",
+   "category": "pose",
+   "label": "Deitado de lado · corpo apoiado",
+   "prompt": "lying on one side, legs naturally arranged and shoulders supported",
+   "prompt_pt": "deitado de lado, pernas posicionadas naturalmente e ombros apoiados",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "lying",
+    "gaze": "any",
+    "support_any_of": [
+     "floor",
+     "bed",
+     "seat"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.walllean",
+   "category": "pose",
+   "label": "Em pé · costas na parede",
+   "prompt": "standing with the upper back resting against a wall, one knee softly bent and hands relaxed at the sides",
+   "prompt_pt": "em pé com a parte superior das costas apoiada na parede, um joelho levemente flexionado e mãos relaxadas ao lado do corpo",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "standing",
+    "gaze": "any",
+    "support_any_of": [
+     "wall"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.chairside",
+   "category": "pose",
+   "label": "Cadeira · sentado de lado",
+   "prompt": "sitting sideways on a chair, both feet on the floor, torso turned gently toward the camera and one hand on the backrest",
+   "prompt_pt": "sentado de lado em uma cadeira, pés no chão, tronco voltado suavemente à câmera e uma mão no encosto",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "seated",
+    "gaze": "any",
+    "support_any_of": [
+     "seat"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.ankles",
+   "category": "pose",
+   "label": "Cadeira · tornozelos cruzados",
+   "prompt": "sitting upright on a chair with ankles crossed, knees aligned and hands resting on the thighs",
+   "prompt_pt": "sentado ereto em uma cadeira, tornozelos cruzados, joelhos alinhados e mãos nas coxas",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "seated",
+    "gaze": "any",
+    "support_any_of": [
+     "seat"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.sofaarm",
+   "category": "pose",
+   "label": "Sofá · cotovelo no apoio",
+   "prompt": "sitting near the end of a sofa, one elbow on the armrest, feet on the floor and torso upright",
+   "prompt_pt": "sentado junto à extremidade do sofá, um cotovelo no braço do sofá, pés no chão e tronco ereto",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "seated",
+    "gaze": "any",
+    "support_any_of": [
+     "seat"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.bededge",
+   "category": "pose",
+   "label": "Cama · sentado na borda",
+   "prompt": "sitting on the edge of a bed with feet on the floor, knees aligned and hands beside the hips",
+   "prompt_pt": "sentado na borda da cama, pés no chão, joelhos alinhados e mãos ao lado dos quadris",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "seated",
+    "gaze": "any",
+    "support_any_of": [
+     "bed"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.hiphand",
+   "category": "pose",
+   "label": "Em pé · uma mão na cintura",
+   "prompt": "standing with weight on one leg, the other knee relaxed, one hand on the hip and shoulders turned slightly toward the camera",
+   "prompt_pt": "em pé com peso em uma perna, outro joelho relaxado, uma mão na cintura e ombros ligeiramente voltados à câmera",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "standing",
+    "gaze": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.armsup",
+   "category": "pose",
+   "label": "Em pé · mãos atrás da cabeça",
+   "prompt": "standing upright with both hands resting behind the head, elbows pointing outward and shoulders relaxed",
+   "prompt_pt": "em pé com as duas mãos atrás da cabeça, cotovelos para os lados e ombros relaxados",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "standing",
+    "gaze": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.seatedcross",
+   "category": "pose",
+   "label": "Cadeira · pernas cruzadas",
+   "prompt": "sitting on a chair with one leg crossed over the other at the knee, torso upright and hands on the upper knee",
+   "prompt_pt": "sentado em uma cadeira com uma perna cruzada sobre a outra na altura do joelho, tronco ereto e mãos no joelho superior",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "seated",
+    "gaze": "any",
+    "support_any_of": [
+     "seat"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.floorseated",
+   "category": "pose",
+   "label": "Chão · pernas cruzadas",
+   "prompt": "sitting on the floor with legs crossed, spine upright and hands on the knees",
+   "prompt_pt": "sentado no chão com pernas cruzadas, coluna ereta e mãos nos joelhos",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "seated",
+    "gaze": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.arching-back-in-pleasure-db2061a9",
+   "category": "action",
+   "label": "Arqueando as costas de prazer",
+   "prompt": "arching back with eyes closed and mouth slightly open in pleasure",
+   "prompt_pt": "arqueando as costas com os olhos fechados e boca ligeiramente aberta de prazer",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.biting-finger-3d208d24",
+   "category": "action",
+   "label": "Mordendo o dedo de forma sedutora",
+   "prompt": "biting index finger seductively while looking at camera",
+   "prompt_pt": "mordendo o dedo indicador de forma sedutora enquanto olha para a câmera",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.biting-lip-ccc88b52",
+   "category": "action",
+   "label": "Mordendo o lábio inferior",
+   "prompt": "biting lower lip seductively",
+   "prompt_pt": "mordendo o lábio inferior de forma sedutora",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.caressing-inner-thigh-68f46f8a",
+   "category": "action",
+   "label": "Acariciando a parte interna da coxa",
+   "prompt": "hand slowly caressing up the inner thigh",
+   "prompt_pt": "mão a acariciar lentamente a parte interna da coxa",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.cupping-breasts-058c1813",
+   "category": "action",
+   "label": "Segurando e apertando os seios",
+   "prompt": "both hands cupping and squeezing breasts together",
+   "prompt_pt": "ambas as mãos a segurar e apertar os seios juntos",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.dripping-wet-from-shower-1793c8cd",
+   "category": "action",
+   "label": "Molhado e brilhante do duche",
+   "prompt": "skin glistening wet with water dripping down body fresh from shower",
+   "prompt_pt": "pele molhada e brilhante com água a pingar, fresca do duche",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.finger-in-mouth-f2245da0",
+   "category": "action",
+   "label": "Dedo na boca de forma sugestiva",
+   "prompt": "finger inserted in mouth, lips wrapped around it suggestively",
+   "prompt_pt": "dedo na boca, com os lábios à volta de forma sugestiva",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.grabbing-bedsheets-c1050153",
+   "category": "action",
+   "label": "Agarrando os lençóis com força",
+   "prompt": "hands gripping and clutching the bedsheets tightly",
+   "prompt_pt": "mãos a agarrar e apertar os lençóis com força",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.grinding-on-pillow-5d54f2c8",
+   "category": "action",
+   "label": "Esfregando o quadril numa almofada",
+   "prompt": "straddling a pillow and grinding hips against it",
+   "prompt_pt": "montado numa almofada a esfregar o quadril contra ela",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.hands-between-legs-d8a482ca",
+   "category": "action",
+   "label": "Mão entre as pernas abertas",
+   "prompt": "one hand reaching down between spread legs",
+   "prompt_pt": "uma mão a alcançar o espaço entre as pernas abertas",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.holding-vibrator-fbe28ac9",
+   "category": "action",
+   "label": "Segurando um vibrador",
+   "prompt": "holding a vibrator in hand near body",
+   "prompt_pt": "a segurar um vibrador na mão junto ao corpo",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.licking-finger-494f31e9",
+   "category": "action",
+   "label": "Lamber a ponta do dedo",
+   "prompt": "tongue slowly licking finger tip",
+   "prompt_pt": "língua a lamber lentamente a ponta do dedo",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.licking-lollipop-9c3c263e",
+   "category": "action",
+   "label": "Lamber chupa-chupa sugestivamente",
+   "prompt": "tongue licking a lollipop suggestively",
+   "prompt_pt": "língua a lamber um chupa-chupa de forma sugestiva",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.looking-over-shoulder-seductively-0133a996",
+   "category": "action",
+   "label": "Olhar sedutor por cima do ombro",
+   "prompt": "looking back over bare shoulder with seductive half-lidded eyes",
+   "prompt_pt": "olhando para trás por cima do ombro nu com olhar sedutor",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.moaning-expression-a0231c68",
+   "category": "action",
+   "label": "Expressão de êxtase / gemido",
+   "prompt": "head tilted back, mouth open, eyes closed in ecstasy",
+   "prompt_pt": "cabeça para trás, boca aberta, olhos fechados em êxtase",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.oil-dripping-on-body-e118758d",
+   "category": "action",
+   "label": "Óleo corporal brilhante na pele",
+   "prompt": "glistening body oil being dripped onto skin, body shining wet",
+   "prompt_pt": "óleo corporal brilhante a pingar na pele",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.peeling-off-shirt-036333fb",
+   "category": "action",
+   "label": "A despir a camisa pela cabeça",
+   "prompt": "pulling shirt up and off over head, midriff exposed",
+   "prompt_pt": "a puxar a camisa para cima e para fora pela cabeça",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.playing-with-waistband-781afc95",
+   "category": "action",
+   "label": "Puxando levemente o cós da roupa",
+   "prompt": "fingers hooked in waistband, tugging it down slightly",
+   "prompt_pt": "dedos enganchados no cós, puxando-o levemente para baixo",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.pulling-down-strap-c23bf5fb",
+   "category": "action",
+   "label": "Puxando a alça para fora do ombro",
+   "prompt": "pulling a bra or top strap down off the shoulder",
+   "prompt_pt": "a puxar a alça do sutiã ou top para fora do ombro",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.pulling-hair-back-a1d558dc",
+   "category": "action",
+   "label": "Puxando o cabelo para trás",
+   "prompt": "both hands pulling hair back behind head, body stretched and exposed",
+   "prompt_pt": "ambas as mãos a puxar o cabelo para trás",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.pulling-panties-aside-5a430af5",
+   "category": "action",
+   "label": "Puxando as cuecas para o lado",
+   "prompt": "fingers pulling panties to the side",
+   "prompt_pt": "dedos a puxar as cuecas para o lado",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.rubbing-lotion-on-legs-75d8c4ef",
+   "category": "action",
+   "label": "Espalhando loção nas pernas",
+   "prompt": "hands rubbing lotion slowly up along legs and thighs",
+   "prompt_pt": "mãos a espalhar loção lentamente pelas pernas e coxas",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.running-hands-through-hair-fddc5202",
+   "category": "action",
+   "label": "Passando as mãos pelos cabelos",
+   "prompt": "running both hands up through hair sensually with eyes closed",
+   "prompt_pt": "passando ambas as mãos pelos cabelos sensualmente de olhos fechados",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.sliding-hand-down-body-b8cf25e2",
+   "category": "action",
+   "label": "Mão a deslizar do peito para o quadril",
+   "prompt": "hand sliding slowly down from chest over stomach toward hips",
+   "prompt_pt": "mão a deslizar lentamente do peito pelo abdómen em direção aos quadris",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.slowly-undressing-8105dc47",
+   "category": "action",
+   "label": "Em processo de despir-se lentamente",
+   "prompt": "in the process of slowly removing clothing, half undressed",
+   "prompt_pt": "no processo de despir lentamente a roupa, semivestido",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.smearing-lipstick-cbb54b42",
+   "category": "action",
+   "label": "Batom borrado",
+   "prompt": "lipstick smeared messily across lips",
+   "prompt_pt": "batom borrado nos lábios",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.spreading-legs-slowly-44b83e43",
+   "category": "action",
+   "label": "Abrindo as pernas lentamente",
+   "prompt": "slowly spreading legs apart wider",
+   "prompt_pt": "a abrir lentamente as pernas mais afastadas",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.squeezing-breasts-together-870a5362",
+   "category": "action",
+   "label": "Apertando os seios para aprofundar decote",
+   "prompt": "hands squeezing breasts together tightly, deepening cleavage",
+   "prompt_pt": "mãos a apertar os seios com força, aprofundando o decote",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.stepping-out-of-panties-f4b84bf6",
+   "category": "action",
+   "label": "A sair de dentro das cuecas",
+   "prompt": "panties around ankles, one foot stepping out of them",
+   "prompt_pt": "cuecas nos tornozelos, um pé a sair delas",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.sucking-finger-3a9d90d8",
+   "category": "action",
+   "label": "Chupando o dedo",
+   "prompt": "sucking on finger with lips wrapped around it",
+   "prompt_pt": "a chupar o dedo com os lábios à volta",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.touching-neck-sensually-ba6d4dd3",
+   "category": "action",
+   "label": "Tocando o pescoço sensualmente",
+   "prompt": "hand on neck, head tilted, fingers trailing along throat",
+   "prompt_pt": "mão no pescoço, cabeça inclinada, dedos a deslizar pela garganta",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.undoing-bra-clasp-6b17b1bd",
+   "category": "action",
+   "label": "Abrindo o fecho do sutiã",
+   "prompt": "hands behind back undoing bra clasp, bra loosening",
+   "prompt_pt": "mãos atrás das costas a abrir o fecho do sutiã",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.being-carried-against-wall-1059c3c3",
+   "category": "action",
+   "label": "Carregado contra a parede",
+   "prompt": "Two distinct adult bodies in close contact: a man is standing and holding a woman up against a flat wall, her legs wrapped firmly around his waist, facing each other with locked eyes and intimate physical contact, perfectly separated limbs, no extra body parts",
+   "prompt_pt": "homem a segurá-la presa contra a parede, pernas à volta da cintura",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.being-fingered-031d6a4b",
+   "category": "action",
+   "label": "Sendo estimulada com os dedos",
+   "prompt": "Two distinct consenting adults interacting closely: a man is positioned near a woman, his hand placed precisely between her legs with realistic finger contact, proper anatomical alignment, clear and separate body proportions",
+   "prompt_pt": "a mão dele entre as pernas dela, com os dedos no interior",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.being-held-down-on-bed-598e31fa",
+   "category": "action",
+   "label": "Imobilizada na cama",
+   "prompt": "Two distinct adults on a bed: a man is leaning over a woman, firmly holding both of her wrists down against the mattress above her head, maintaining realistic body weight distribution and correct limb anatomy",
+   "prompt_pt": "homem a segurar os pulsos dela na cama acima da cabeça",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.being-kissed-on-neck-from-behind-f16d10bc",
+   "category": "action",
+   "label": "Beijo no pescoço por trás",
+   "prompt": "Two distinct adults standing together: a man is positioned directly behind a woman, kissing and biting her neck while his hands grip her hips securely, clear spatial depth, correct anatomical separation of both figures",
+   "prompt_pt": "homem em pé por trás a beijar e morder o pescoço, mãos nas ancas",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.being-pinned-against-wall-39626b20",
+   "category": "action",
+   "label": "Pressionada contra a parede por trás",
+   "prompt": "Two distinct adults against a vertical wall: a man is pressing a woman's body face-first against the wall from behind, holding her waist with precise structural contact, no merging of limbs",
+   "prompt_pt": "homem a pressionar o corpo dela contra a parede por trás",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.bent-over-receiving-from-behind-caa8a011",
+   "category": "action",
+   "label": "Inclinada recebendo por trás",
+   "prompt": "Two distinct adults in an intimate posture: a woman is bent forward at the waist with an arched back, while a man is positioned directly behind her performing entry, his hands firmly gripping her hips, perfectly delineated skeletons",
+   "prompt_pt": "inclinada com o homem a penetrá-la por trás, mãos a agarrar as ancas",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.blowjob-on-knees-eb5609f9",
+   "category": "action",
+   "label": "Sexo oral de joelhos",
+   "prompt": "Two distinct adults: a woman is kneeling directly on the floor in front of a standing or sitting man, performing oral sex with realistic facial positioning and direct eye contact looking upward, clear body boundaries",
+   "prompt_pt": "de joelhos com o pénis ereto dele na boca, a olhar para cima",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.cowgirl-riding-b9c33a64",
+   "category": "action",
+   "label": "Cavalgando por cima (Cowgirl)",
+   "prompt": "Two distinct adults: a woman is straddling on top of a man lying on a surface, facing forward and riding actively with her hips, her hands resting on his chest, distinct anatomical separation and correct perspective",
+   "prompt_pt": "montada por cima dele a cavalgar com o pénis no interior",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.deep-throat-4e8725de",
+   "category": "action",
+   "label": "Garganta profunda",
+   "prompt": "Two distinct adults: a woman is kneeling closely in front of a partner, positioned with precise mouth-to-body alignment, maintaining clear facial identity and distinct anatomical structures",
+   "prompt_pt": "de joelhos com o pénis dele fundo na garganta",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.doggy-style-6eee4ddc",
+   "category": "action",
+   "label": "Estilo Doggy Style",
+   "prompt": "Two distinct adults: a woman is on all fours with an arched back, while a man is positioned behind her with his hands on her waist, maintaining anatomically accurate joint connections and clear individual body forms",
+   "prompt_pt": "de quatro com o homem a investir por trás",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.face-sitting-on-him-b92b40e2",
+   "category": "action",
+   "label": "Sentada no rosto dele",
+   "prompt": "Two distinct adults in close interaction: a woman is sitting directly on a man's face, her thighs framing his head while he lies underneath, correct perspective and anatomically plausible contact",
+   "prompt_pt": "sentada no rosto dele, boca entre as pernas",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.giving-handjob-464b0d1f",
+   "category": "action",
+   "label": "Masturbação manual",
+   "prompt": "Two distinct adults: a woman's hand is wrapped securely around an erect penis, performing a smooth stroking motion, with realistic finger placement and separate body framing",
+   "prompt_pt": "mão dela envolta no pénis ereto dele, a masturbá-lo",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.grabbed-by-hair-from-behind-85de8d43",
+   "category": "action",
+   "label": "Agarrada pelo cabelo por trás",
+   "prompt": "Two distinct adults: a man is standing directly behind a woman, gently gripping her hair to pull her head back in an intimate pose, clear depth layers between the two figures",
+   "prompt_pt": "homem a agarrar o cabelo e a puxar a cabeça para trás",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.grinding-on-his-lap-bfa32329",
+   "category": "action",
+   "label": "Esfregando as ancas no colo dele",
+   "prompt": "Two distinct adults sitting face-to-face: a woman is straddling a man's lap, grinding her hips against him with aligned torsos and separate, realistic arm placements",
+   "prompt_pt": "sentada no colo dele a esfregar as ancas, face a face",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.hand-around-her-throat-89ca6fec",
+   "category": "action",
+   "label": "Mão na garganta",
+   "prompt": "Two distinct adults facing each other: a man's hand is lightly and securely cupped around a woman's throat, realistic hand anatomy, correct proportions, no distortion",
+   "prompt_pt": "mão do homem a apertar suavemente a garganta dela",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.hands-tied-while-being-taken-63a092ea",
+   "category": "action",
+   "label": "Mãos atadas",
+   "prompt": "Two distinct adults: a woman's hands are bound together above her head during an intimate interaction with a partner, clear separation of limbs and correct skeletal alignment",
+   "prompt_pt": "mãos atadas acima da cabeça enquanto o homem a possui",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.him-holding-her-legs-up-missionary-c2e31136",
+   "category": "action",
+   "label": "Missionário com pernas levantadas",
+   "prompt": "Two distinct adults on a bed: a woman is lying on her back with her legs held up and wide apart by a partner positioned between them, correct anatomical structure and clear physical contact points",
+   "prompt_pt": "deitada de costas com o homem a segurar as pernas levantadas",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.him-pulling-her-hair-during-doggy-aa72167e",
+   "category": "action",
+   "label": "Puxando o cabelo em doggy style",
+   "prompt": "Two distinct adults: a woman is on all fours while a man positioned behind her pulls her hair back with one hand and holds her waist with the other, perfectly distinct bodies",
+   "prompt_pt": "de quatro com o homem atrás a puxar o cabelo com uma mão",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.kissing-passionately-dd50efec",
+   "category": "action",
+   "label": "Beijo apaixonado",
+   "prompt": "Two distinct adult figures locked in a deep, passionate kiss with open mouths and closely pressed upper bodies, showing absolute separation of individual limbs and correct facial proportions",
+   "prompt_pt": "beijo profundo com bocas abertas e línguas em contacto",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.legs-over-his-shoulders-e23ff87f",
+   "category": "action",
+   "label": "Pernas sobre os ombros dele",
+   "prompt": "Two distinct adults: a woman is lying flat on her back with both of her legs resting up over a partner's shoulders, anatomically correct joint bends and clear individual form",
+   "prompt_pt": "deitada de costas com ambas as pernas sobre os ombros dele",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.legs-wrapped-around-him-standing-dc3245ec",
+   "category": "action",
+   "label": "Pernas à volta da cintura em pé",
+   "prompt": "Two distinct adults face-to-face: a woman is lifted completely into the air with her legs wrapped tightly around a man's waist, her arms around his neck, correct weight support and physics",
+   "prompt_pt": "suspensa com as pernas à volta da cintura dele, face a face",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.lying-back-receiving-oral-ec23b5e4",
+   "category": "action",
+   "label": "Sexo oral deitada de costas",
+   "prompt": "Two distinct adults: a woman is lying on her back with legs spread wide open, and a partner's face is positioned between her thighs, clear spatial separation and realistic proportions",
+   "prompt_pt": "deitada de costas com pernas abertas, rosto dele entre as coxas",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.missionary",
+   "category": "action",
+   "label": "Posição missionária",
+   "prompt": "Two distinct adults: a woman is lying on her back with a partner positioned on top between her legs in a classic missionary alignment, correct overlay of torsos and separate limbs",
+   "prompt_pt": "deitada de costas com o homem por cima a penetrá-la",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.on-top-reverse-cowgirl-96870e5d",
+   "category": "action",
+   "label": "Reverse cowgirl por cima",
+   "prompt": "Two distinct adults: a woman is sitting on top of a partner facing away toward his feet, performing a reverse riding position with correct anatomical orientation",
+   "prompt_pt": "sentada por cima dele virada de costas, a cavalgar",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.pressed-against-glass-d018e287",
+   "category": "action",
+   "label": "Pressionada contra vidro",
+   "prompt": "Two distinct adults: a woman's body and breasts are pressed flat against a transparent glass surface from behind by a partner, realistic surface deformation and clear depth separation",
+   "prompt_pt": "seios e corpo pressionados contra superfície de vidro por trás",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.prone-bone-dc7ca913",
+   "category": "action",
+   "label": "Prone bone (de bruços)",
+   "prompt": "Two distinct adults on a bed: a woman is lying flat face down while a partner is positioned on top executing a prone-position entry, correct weight distribution and body layers",
+   "prompt_pt": "deitada de bruços com o homem deitado por cima a penetrar",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.receiving-facial-ee46bc6c",
+   "category": "action",
+   "label": "Ejaculação facial",
+   "prompt": "Two distinct adults: a woman is kneeling with eyes closed as a partner finishes close to her face, realistic fluid details, correct individual face and head proportions",
+   "prompt_pt": "de joelhos de olhos fechados, com sémen no rosto",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.reverse-cowgirl-8eba9e96",
+   "category": "action",
+   "label": "Reverse cowgirl",
+   "prompt": "Two distinct adults: a woman is sitting on top of a partner facing away from his face, riding actively with synchronized body posture and clearly separated anatomy",
+   "prompt_pt": "sentada por cima dele virada ao contrário, a cavalgar",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.side-by-side-spooning-47c2de78",
+   "category": "action",
+   "label": "De lado em concha (Spooning)",
+   "prompt": "Two distinct adults lying down: a woman is on her side with a partner spooning closely behind her in an intimate lateral position, parallel bodies with distinct outlines",
+   "prompt_pt": "deitada de lado com o homem em concha por trás",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.sitting-on-his-face-90f89cae",
+   "category": "action",
+   "label": "Sentada no rosto",
+   "prompt": "Two distinct adults: a woman is squatting closely over a partner's face, maintaining a stable and anatomically plausible posture with clear separation between the two figures",
+   "prompt_pt": "agachada sobre o rosto dele, língua entre as pernas",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.spread-eagle-for-him-2d212afb",
+   "category": "action",
+   "label": "Aberta para ele",
+   "prompt": "Two distinct adults: a woman is lying flat on her back with legs spread extremely wide open as a partner positions in the center, correct perspective and proportional limbs",
+   "prompt_pt": "deitada de costas com pernas totalmente abertas",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.standing-carry-position-0394b5a0",
+   "category": "action",
+   "label": "Carregada em pé",
+   "prompt": "Two distinct adults: a man is carrying a woman upright in the air with her legs wrapped around his body, maintaining sturdy posture and realistic physical interaction",
+   "prompt_pt": "homem a transportá-la no ar a penetrar em pé",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.straddling-his-lap-face-to-face-fac80903",
+   "category": "action",
+   "label": "No colo face a face",
+   "prompt": "Two distinct adults face-to-face: a woman is straddling closely on a man's lap, arms wrapped around his neck with full upper-body contact and clearly defined individual silhouettes",
+   "prompt_pt": "montada no colo dele face a face, braços ao pescoço",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.sucking-while-looking-up-7625962b",
+   "category": "action",
+   "label": "Chupando olhando para cima",
+   "prompt": "Two distinct adults: a woman is kneeling and performing oral sex while lifting her chin to maintain direct eye contact looking upward, correct facial alignment and hand placement",
+   "prompt_pt": "de joelhos a chupar o pénis com contacto visual a olhar para cima",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.undressing-each-other-0998aa13",
+   "category": "action",
+   "label": "Despindo-se mutuamente",
+   "prompt": "Two distinct adults interacting closely while pulling each other's clothing off in a mid-undressing state, precise hand-to-fabric interaction and separate body structures",
+   "prompt_pt": "a despir a roupa um do outro, ambos semivestidos",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "expression.subtle_smile",
+   "category": "expression",
+   "label": "Sorriso discreto",
+   "prompt": "smiling subtly, with relaxed eyes",
+   "prompt_pt": "sorrindo discretamente, com olhar relaxado",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": "any",
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.hair",
+   "category": "action",
+   "label": "Ajustar cabelo",
+   "prompt": "gently adjusting their hair with one hand",
+   "prompt_pt": "ajustando delicadamente o cabelo com uma das mãos",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "expression.look_back",
+   "category": "expression",
+   "label": "Olhar por cima do ombro",
+   "prompt": "looking back over one shoulder",
+   "prompt_pt": "olhando para trás por cima do ombro",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": "back",
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.embrace",
+   "category": "action",
+   "label": "Abraçar (dois adultos)",
+   "prompt": "sharing a warm, consensual embrace",
+   "prompt_pt": "compartilhando um abraço afetuoso e consensual",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.handshake",
+   "category": "action",
+   "label": "Apertar mãos (dois adultos)",
+   "prompt": "shaking hands naturally with another adult",
+   "prompt_pt": "apertando a mão de outro adulto naturalmente",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.dance_pair",
+   "category": "action",
+   "label": "Dançar em dupla (dois adultos)",
+   "prompt": "dancing socially with an adult partner, with balanced posture and natural hand contact",
+   "prompt_pt": "dançando socialmente com um parceiro adulto, com postura equilibrada e contato natural das mãos",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.conversation",
+   "category": "action",
+   "label": "Conversar (dois adultos)",
+   "prompt": "talking face to face with another adult, with natural conversational gestures",
+   "prompt_pt": "conversando frente a frente com outro adulto, com gestos naturais de conversa",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "camera.front",
+   "category": "camera",
+   "label": "Frontal",
+   "prompt": "eye-level front camera view",
+   "prompt_pt": "câmera frontal na altura dos olhos",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "camera.threequarter",
+   "category": "camera",
+   "label": "Três quartos",
+   "prompt": "natural three-quarter camera angle",
+   "prompt_pt": "ângulo natural de três quartos",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "camera.side",
+   "category": "camera",
+   "label": "Perfil lateral",
+   "prompt": "natural side-profile camera angle",
+   "prompt_pt": "ângulo lateral de perfil natural",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "camera.low",
+   "category": "camera",
+   "label": "Ângulo baixo",
+   "prompt": "subtle low-angle camera perspective",
+   "prompt_pt": "perspectiva de câmera discretamente baixa",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "camera.high",
+   "category": "camera",
+   "label": "Ângulo alto",
+   "prompt": "subtle high-angle camera perspective",
+   "prompt_pt": "perspectiva de câmera discretamente elevada",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "framing.portrait",
+   "category": "framing",
+   "label": "Rosto / retrato",
+   "prompt": "head-and-shoulders portrait with the entire face unobstructed",
+   "prompt_pt": "retrato de cabeça e ombros, com todo o rosto desobstruído",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": "portrait"
+   }
+  },
+  {
+   "id": "framing.half",
+   "category": "framing",
+   "label": "Meio-corpo",
+   "prompt": "medium shot showing face, torso and arms",
+   "prompt_pt": "plano médio incluindo rosto, tronco e braços",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": "half"
+   }
+  },
+  {
+   "id": "framing.full",
+   "category": "framing",
+   "label": "Corpo inteiro",
+   "prompt": "full-body framing with hands, legs and feet clearly visible",
+   "prompt_pt": "enquadramento de corpo inteiro com mãos, pernas e pés visíveis",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": "full"
+   }
+  },
+  {
+   "id": "framing.wide",
+   "category": "framing",
+   "label": "Plano aberto",
+   "prompt": "wide shot with subjects visible in the environment",
+   "prompt_pt": "plano aberto com personagens visíveis no ambiente",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": "wide"
+   }
+  },
+  {
+   "id": "lighting.soft",
+   "category": "lighting",
+   "label": "Suave e natural",
+   "prompt": "soft daylight, natural skin response and gentle believable shadows",
+   "prompt_pt": "luz natural suave, resposta natural da pele e sombras delicadas e críveis",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "lighting.studio",
+   "category": "lighting",
+   "label": "Estúdio profissional",
+   "prompt": "professional controlled studio lighting, subtle catchlights and balanced shadows",
+   "prompt_pt": "iluminação profissional de estúdio, reflexos suaves e sombras equilibradas",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "lighting.golden",
+   "category": "lighting",
+   "label": "Luz dourada",
+   "prompt": "golden-hour directional light with warm natural highlights",
+   "prompt_pt": "luz direcional de fim de tarde com realces quentes e naturais",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "lighting.moody",
+   "category": "lighting",
+   "label": "Cinematográfica dramática",
+   "prompt": "cinematic low-key lighting with controlled contrast",
+   "prompt_pt": "iluminação cinematográfica dramática com contraste controlado",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "lighting.night",
+   "category": "lighting",
+   "label": "Noite urbana",
+   "prompt": "natural nighttime practical lights with plausible reflections",
+   "prompt_pt": "luzes noturnas naturais com reflexos plausíveis",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "style.real",
+   "category": "style",
+   "label": "Realista",
+   "prompt": "photorealistic professional photography, natural pores, realistic hair strands, true-to-life fabric detail",
+   "prompt_pt": "fotografia profissional fotorrealista, poros naturais, fios de cabelo realistas e detalhes fiéis dos tecidos",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "style.anime",
+   "category": "style",
+   "label": "Anime",
+   "prompt": "premium contemporary anime illustration, crisp expressive line art, controlled cel shading, coherent anime anatomy",
+   "prompt_pt": "ilustração anime contemporânea de qualidade, linhas expressivas e definidas, sombreamento cel-shading controlado e anatomia consistente",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "style.cinematic",
+   "category": "style",
+   "label": "Cinema",
+   "prompt": "premium cinematic film still, natural skin, filmic contrast, realistic photographic depth",
+   "prompt_pt": "frame cinematográfico de alto nível, pele natural, contraste de cinema e profundidade fotográfica realista",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "style.illustration",
+   "category": "style",
+   "label": "Ilustração",
+   "prompt": "polished semi-realistic digital illustration, consistent material rendering, elegant color design",
+   "prompt_pt": "ilustração digital semirrealista refinada, materiais consistentes e design elegante de cores",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "expression.smile",
+   "category": "expression",
+   "label": "Sorriso natural",
+   "prompt": "a small closed-mouth smile, relaxed cheeks and soft eyes",
+   "prompt_pt": "um sorriso discreto com boca fechada, bochechas relaxadas e olhar suave",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": "any",
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "expression.neutral",
+   "category": "expression",
+   "label": "Expressão neutra",
+   "prompt": "relaxed eyebrows, closed lips and a calm gaze",
+   "prompt_pt": "sobrancelhas relaxadas, lábios fechados e olhar calmo",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": "any",
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "expression.confident",
+   "category": "expression",
+   "label": "Confiante",
+   "prompt": "steady eye contact, a subtly lifted chin and relaxed closed lips",
+   "prompt_pt": "contato visual firme, queixo levemente elevado e lábios fechados relaxados",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": "camera",
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "expression.serene",
+   "category": "expression",
+   "label": "Serena",
+   "prompt": "soft eyes, relaxed eyebrows and a faint closed-mouth smile",
+   "prompt_pt": "olhar suave, sobrancelhas relaxadas e um leve sorriso com boca fechada",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": "any",
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "expression.looking",
+   "category": "expression",
+   "label": "Olhar para a câmera",
+   "prompt": "eyes directed at the camera, with a relaxed mouth",
+   "prompt_pt": "olhos direcionados à câmera e boca relaxada",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": "camera",
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "expression.laugh",
+   "category": "expression",
+   "label": "Riso natural",
+   "prompt": "a natural laugh, lifted cheeks and a slightly open mouth",
+   "prompt_pt": "uma risada natural, bochechas elevadas e boca ligeiramente aberta",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": "any",
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "expression.thoughtful",
+   "category": "expression",
+   "label": "Pensativo · olhar desviado",
+   "prompt": "eyes looking slightly away, relaxed closed lips and a thoughtful expression",
+   "prompt_pt": "olhar ligeiramente desviado, lábios fechados relaxados e expressão pensativa",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": "away",
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "expression.serious",
+   "category": "expression",
+   "label": "Sério · sem sorriso",
+   "prompt": "a steady gaze, neutral eyebrows and closed lips without a smile",
+   "prompt_pt": "olhar firme, sobrancelhas neutras e lábios fechados sem sorriso",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": "any",
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "expression.eyesclosed",
+   "category": "expression",
+   "label": "Olhos fechados · relaxado",
+   "prompt": "gently closed eyelids and relaxed facial muscles",
+   "prompt_pt": "pálpebras suavemente fechadas e músculos faciais relaxados",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": "closed",
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "expression.surprise",
+   "category": "expression",
+   "label": "Surpresa discreta",
+   "prompt": "slightly raised eyebrows, widened eyes and a softly parted mouth",
+   "prompt_pt": "sobrancelhas levemente elevadas, olhos mais abertos e boca discretamente entreaberta",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": "any",
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "expression.coy",
+   "category": "expression",
+   "label": "Sorriso discreto · olhar de lado",
+   "prompt": "a subtle closed-mouth smile and eyes looking slightly sideways",
+   "prompt_pt": "um sorriso discreto com boca fechada e olhar ligeiramente de lado",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": "away",
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.wave",
+   "category": "action",
+   "label": "Acenar · mão direita",
+   "prompt": "waving with the right hand raised, palm facing the camera",
+   "prompt_pt": null,
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.thumbs_up",
+   "category": "action",
+   "label": "Sinal de positivo · mão direita",
+   "prompt": "giving a thumbs-up with the right hand",
+   "prompt_pt": null,
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.point",
+   "category": "action",
+   "label": "Apontar · indicador direito",
+   "prompt": "pointing to the subject's right with the right index finger",
+   "prompt_pt": null,
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.folded_arms",
+   "category": "action",
+   "label": "Cruzar os braços",
+   "prompt": "folding both arms naturally across the chest",
+   "prompt_pt": null,
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.hold_mug",
+   "category": "action",
+   "label": "Segurar uma caneca",
+   "prompt": "holding a ceramic mug in the right hand at chest height",
+   "prompt_pt": null,
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.drink_mug",
+   "category": "action",
+   "label": "Beber numa caneca",
+   "prompt": "bringing a ceramic mug to the lips with the right hand",
+   "prompt_pt": null,
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.hold_book",
+   "category": "action",
+   "label": "Segurar um livro aberto",
+   "prompt": "holding an open book with both hands at waist height",
+   "prompt_pt": null,
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.read",
+   "category": "action",
+   "label": "Ler um livro",
+   "prompt": "reading an open book held in both hands, looking down at its pages",
+   "prompt_pt": null,
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "down",
+    "support_any_of": [],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.use_phone",
+   "category": "action",
+   "label": "Usar o celular",
+   "prompt": "holding a smartphone in the left hand and tapping its screen with the right index finger",
+   "prompt_pt": null,
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.phone_call",
+   "category": "action",
+   "label": "Telefone junto ao ouvido",
+   "prompt": "holding a smartphone against the right ear with the right hand",
+   "prompt_pt": null,
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.adjust_glasses",
+   "category": "action",
+   "label": "Ajustar os óculos",
+   "prompt": "adjusting the frame of worn eyeglasses with the right hand",
+   "prompt_pt": null,
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.carry_bag",
+   "category": "action",
+   "label": "Carregar uma bolsa",
+   "prompt": "holding a small bag by its handles in the left hand beside the hip",
+   "prompt_pt": null,
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  }
+ ]
+}

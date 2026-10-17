@@ -1,0 +1,117 @@
+{
+  "source": "criadordeprompts/kppb-image-studio/studio/catalogs/defaults.json",
+  "notes": "Revisão explícita dos dados importados. Nenhuma regra por nome existe no código; estas correções são dados.",
+  "drop": {
+    "action.eye": "Duplicava a expressão 'Olhar para a câmera'.",
+    "action.confidence": "Duplicava a expressão 'Confiante'."
+  },
+  "move": {
+    "action.smile": {
+      "id": "expression.subtle_smile",
+      "category": "expression",
+      "requirements": {
+        "gaze": "any"
+      }
+    },
+    "action.lookback": {
+      "id": "expression.look_back",
+      "category": "expression",
+      "requirements": {
+        "gaze": "back"
+      }
+    }
+  },
+  "requirements": {
+    "pose.handsknees": {
+      "posture": "kneeling"
+    },
+    "pose.armsup": {
+      "minimum_framing": "half"
+    },
+    "pose.lookback": {
+      "posture": "standing"
+    }
+  },
+  "supports": {
+    "environment.loft": [
+      "floor",
+      "seat",
+      "wall",
+      "table"
+    ],
+    "environment.studio": [
+      "floor",
+      "seat",
+      "wall"
+    ],
+    "environment.bedroom": [
+      "floor",
+      "seat",
+      "bed",
+      "wall",
+      "table"
+    ],
+    "environment.street": [
+      "floor",
+      "wall"
+    ],
+    "environment.garden": [
+      "floor",
+      "seat"
+    ],
+    "environment.neutral": [
+      "floor",
+      "wall"
+    ],
+    "environment.beach": [
+      "floor"
+    ],
+    "environment.terrace": [
+      "floor",
+      "seat",
+      "wall",
+      "table"
+    ],
+    "environment.pool": [
+      "floor",
+      "seat"
+    ],
+    "environment.library": [
+      "floor",
+      "seat",
+      "wall",
+      "table"
+    ],
+    "environment.kitchen": [
+      "floor",
+      "seat",
+      "wall",
+      "table"
+    ],
+    "environment.forest": [
+      "floor"
+    ],
+    "environment.hotel": [
+      "floor",
+      "seat",
+      "bed",
+      "wall",
+      "table"
+    ],
+    "environment.raincity": [
+      "floor",
+      "wall"
+    ],
+    "environment.brickstudio": [
+      "floor",
+      "seat",
+      "wall"
+    ],
+    "environment.dressing": [
+      "floor",
+      "seat",
+      "wall",
+      "table"
+    ]
+  }
+}
