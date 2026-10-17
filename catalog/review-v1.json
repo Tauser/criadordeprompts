@@ -1,6 +1,6 @@
 {
   "source": "criadordeprompts/kppb-image-studio/studio/catalogs/defaults.json",
-  "notes": "Revisão explícita dos dados importados. Nenhuma regra por nome existe no código; estas correções são dados.",
+  "notes": "Revisão explícita dos dados importados. Nenhuma regra por nome existe no código; estas correções são dados. Os textos de pose e ação comuns foram reescritos parte por parte do corpo (lado direito/esquerdo do ponto de vista da pessoa).",
   "drop": {
     "action.eye": "Duplicava a expressão 'Olhar para a câmera'.",
     "action.confidence": "Duplicava a expressão 'Confiante'."
@@ -30,6 +30,12 @@
     },
     "pose.lookback": {
       "posture": "standing"
+    },
+    "action.use_phone": {
+      "gaze": "down"
+    },
+    "action.drink_mug": {
+      "gaze": "any"
     }
   },
   "supports": {
@@ -113,5 +119,151 @@
       "wall",
       "table"
     ]
+  },
+  "prompts": {
+    "pose.neutral": {
+      "prompt": "standing upright facing the camera, weight evenly on both feet set hip-width apart, arms hanging relaxed at the sides with open hands, shoulders level and head straight",
+      "prompt_pt": "em pé de frente para a câmera, peso igual nos dois pés afastados na largura do quadril, braços soltos ao lado do corpo com as mãos abertas, ombros nivelados e cabeça reta"
+    },
+    "pose.seated": {
+      "prompt": "sitting upright on a seat with the back straight, both thighs resting on the seat, knees bent at about ninety degrees, both feet flat on the floor and both hands resting on the thighs",
+      "prompt_pt": "sentado ereto num assento, costas retas, as duas coxas apoiadas no assento, joelhos dobrados em cerca de noventa graus, os dois pés apoiados no chão e as mãos sobre as coxas"
+    },
+    "pose.kneeling": {
+      "prompt": "kneeling upright on both knees, thighs vertical and in line with the torso, shins and the tops of the feet flat on the ground behind, back straight and arms relaxed at the sides",
+      "prompt_pt": "ajoelhado ereto sobre os dois joelhos, coxas na vertical alinhadas ao tronco, canelas e peito dos pés apoiados no chão atrás, costas retas e braços soltos ao lado do corpo"
+    },
+    "pose.lookback": {
+      "prompt": "standing with the hips and back turned away from the camera, the upper torso rotated back toward the camera and the head turned to look back over the right shoulder",
+      "prompt_pt": "em pé com o quadril e as costas virados para longe da câmera, a parte de cima do tronco girada de volta para a câmera e a cabeça virada olhando por cima do ombro direito"
+    },
+    "pose.walking": {
+      "prompt": "walking forward in mid-stride, the front foot landing heel first, the back foot pushing off from the toes, the arm opposite the front leg swinging forward and the torso upright",
+      "prompt_pt": "caminhando para a frente no meio do passo, o pé da frente tocando o chão pelo calcanhar, o pé de trás impulsionando pelos dedos, o braço oposto à perna da frente balançando para a frente e o tronco ereto"
+    },
+    "pose.recline": {
+      "prompt": "reclining on a sofa with the upper back and shoulders resting against the armrest, both legs extended along the seat cushion, one arm resting across the waist and the other along the backrest",
+      "prompt_pt": "reclinado num sofá com a parte de cima das costas e os ombros apoiados no braço do sofá, as duas pernas estendidas sobre o assento, um braço sobre a cintura e o outro ao longo do encosto"
+    },
+    "pose.handsknees": {
+      "prompt": "on hands and knees, both palms flat on the surface directly below the shoulders with straight arms, both knees directly below the hips, the back flat and level and the head in line with the spine",
+      "prompt_pt": "apoiado nas mãos e nos joelhos, as duas palmas apoiadas logo abaixo dos ombros com os braços retos, os dois joelhos logo abaixo do quadril, as costas retas na horizontal e a cabeça alinhada à coluna"
+    },
+    "pose.side": {
+      "prompt": "lying on one side on a flat surface, the lower arm bent under the head like a pillow, shoulders and hips stacked vertically, both knees slightly bent and stacked, the upper arm resting along the body",
+      "prompt_pt": "deitado de lado numa superfície plana, o braço de baixo dobrado sob a cabeça como travesseiro, ombros e quadril alinhados na vertical, os dois joelhos levemente dobrados um sobre o outro e o braço de cima apoiado ao longo do corpo"
+    },
+    "pose.walllean": {
+      "prompt": "standing with the shoulder blades and upper back resting flat against a wall, both feet planted a short step in front of the wall, one knee slightly bent and both arms hanging relaxed at the sides",
+      "prompt_pt": "em pé com as escápulas e a parte de cima das costas encostadas na parede, os dois pés apoiados um passo à frente da parede, um joelho levemente dobrado e os dois braços soltos ao lado do corpo"
+    },
+    "pose.chairside": {
+      "prompt": "sitting sideways on a chair with the backrest beside the body, both feet flat on the floor, the torso turned toward the camera and one forearm resting on top of the backrest",
+      "prompt_pt": "sentado de lado numa cadeira com o encosto ao lado do corpo, os dois pés apoiados no chão, o tronco virado para a câmera e um antebraço apoiado em cima do encosto"
+    },
+    "pose.ankles": {
+      "prompt": "sitting upright on a chair with the back straight, knees together and bent, both ankles crossed in front of the seat and both hands resting flat on the thighs",
+      "prompt_pt": "sentado ereto numa cadeira com as costas retas, joelhos juntos e dobrados, os dois tornozelos cruzados à frente do assento e as duas mãos apoiadas sobre as coxas"
+    },
+    "pose.sofaarm": {
+      "prompt": "sitting upright at one end of a sofa, the near elbow resting on the armrest with that hand relaxed, the other hand resting on the lap and both feet flat on the floor",
+      "prompt_pt": "sentado ereto numa ponta do sofá, o cotovelo do lado do braço apoiado no braço do sofá com a mão relaxada, a outra mão sobre o colo e os dois pés apoiados no chão"
+    },
+    "pose.bededge": {
+      "prompt": "sitting on the edge of a bed with the back straight, knees bent at about ninety degrees, both feet flat on the floor and both hands resting on the mattress beside the hips",
+      "prompt_pt": "sentado na beira da cama com as costas retas, joelhos dobrados em cerca de noventa graus, os dois pés apoiados no chão e as duas mãos apoiadas no colchão ao lado do quadril"
+    },
+    "pose.hiphand": {
+      "prompt": "standing with the weight on one leg and that hip shifted slightly outward, the other knee relaxed and slightly bent, one hand placed on the hip with the elbow pointing out to the side, the other arm relaxed and the shoulders angled slightly toward the camera",
+      "prompt_pt": "em pé com o peso numa perna e esse lado do quadril levemente projetado, o outro joelho relaxado e levemente dobrado, uma mão na cintura com o cotovelo apontando para o lado, o outro braço solto e os ombros levemente voltados para a câmera"
+    },
+    "pose.armsup": {
+      "prompt": "standing upright with both hands behind the head and the fingers interlaced at the back of the head, both elbows raised and pointing out to the sides, chest open and feet hip-width apart",
+      "prompt_pt": "em pé ereto com as duas mãos atrás da cabeça e os dedos entrelaçados na nuca, os dois cotovelos erguidos e apontando para os lados, peito aberto e pés afastados na largura do quadril"
+    },
+    "pose.seatedcross": {
+      "prompt": "sitting upright on a chair with one leg crossed over the other at the knee, the upper foot off the floor, the lower foot flat on the floor and both hands resting on the upper knee",
+      "prompt_pt": "sentado ereto numa cadeira com uma perna cruzada sobre a outra na altura do joelho, o pé de cima fora do chão, o pé de baixo apoiado no chão e as duas mãos sobre o joelho de cima"
+    },
+    "pose.floorseated": {
+      "prompt": "sitting directly on the floor with the legs crossed in front, each foot tucked under the opposite knee, the spine straight and both hands resting palms down on the knees",
+      "prompt_pt": "sentado direto no chão com as pernas cruzadas à frente, cada pé encaixado sob o joelho oposto, a coluna reta e as duas mãos apoiadas com as palmas para baixo sobre os joelhos"
+    },
+    "action.hair": {
+      "prompt": "raising one hand to the side of the head and running the fingers through the hair near the temple, with that elbow lifted",
+      "prompt_pt": "levando uma mão à lateral da cabeça e passando os dedos pelo cabelo perto da têmpora, com esse cotovelo erguido"
+    },
+    "action.embrace": {
+      "prompt": "two adults standing face to face in a hug, each wrapping both arms around the other's back, their chests touching and each head resting beside the other's shoulder",
+      "prompt_pt": "dois adultos em pé, de frente um para o outro, abraçados, cada um envolvendo as costas do outro com os dois braços, os peitos encostados e cada cabeça ao lado do ombro do outro"
+    },
+    "action.handshake": {
+      "prompt": "two adults facing each other, each extending the right arm forward and clasping the other's right hand at waist height, palms pressed together",
+      "prompt_pt": "dois adultos de frente um para o outro, cada um estendendo o braço direito e apertando a mão direita do outro na altura da cintura, palmas encostadas"
+    },
+    "action.dance_pair": {
+      "prompt": "two adults facing each other in a ballroom dance hold: one person's right hand on the partner's upper back, the partner's left hand on that person's shoulder, their other hands joined and raised to the side at shoulder height, both caught mid-step",
+      "prompt_pt": "dois adultos de frente um para o outro na posição de dança de salão: a mão direita de um nas costas do parceiro, a mão esquerda do parceiro no ombro dele, as outras mãos unidas e erguidas para o lado na altura do ombro, os dois no meio de um passo"
+    },
+    "action.conversation": {
+      "prompt": "two adults standing face to face about an arm's length apart and looking at each other, one speaking with an open-palm hand gesture while the other listens",
+      "prompt_pt": "dois adultos em pé, de frente um para o outro, a cerca de um braço de distância e olhando um para o outro, um falando com um gesto de palma aberta enquanto o outro escuta"
+    },
+    "action.wave": {
+      "prompt": "raising the right hand above shoulder height, palm open and facing the camera with the fingers spread, in the middle of a wave",
+      "prompt_pt": "erguendo a mão direita acima da altura do ombro, palma aberta voltada para a câmera com os dedos afastados, no meio de um aceno"
+    },
+    "action.thumbs_up": {
+      "prompt": "holding the right hand at chest height in a fist with the thumb pointing straight up",
+      "prompt_pt": "segurando a mão direita fechada na altura do peito com o polegar apontando para cima"
+    },
+    "action.point": {
+      "prompt": "extending the right arm out to the person's right side and pointing with the index finger, the other fingers curled into the palm",
+      "prompt_pt": "estendendo o braço direito para o lado direito da pessoa e apontando com o indicador, os outros dedos dobrados na palma"
+    },
+    "action.folded_arms": {
+      "prompt": "folding both arms across the chest, each forearm resting over the other and the hands tucked against the upper arms",
+      "prompt_pt": "cruzando os dois braços sobre o peito, um antebraço sobre o outro e as mãos encostadas na parte de cima dos braços"
+    },
+    "action.hold_mug": {
+      "prompt": "holding a ceramic mug by its handle in the right hand at chest height, the mug clearly visible in front of the body",
+      "prompt_pt": "segurando uma caneca de cerâmica pela alça com a mão direita na altura do peito, a caneca bem visível à frente do corpo"
+    },
+    "action.drink_mug": {
+      "prompt": "bringing a ceramic mug to the mouth with the right hand, the rim touching the lower lip and the elbow raised",
+      "prompt_pt": "levando uma caneca de cerâmica à boca com a mão direita, a borda encostada no lábio inferior e o cotovelo erguido"
+    },
+    "action.hold_book": {
+      "prompt": "holding an open book with both hands at waist height, the open pages facing up and both thumbs resting on the pages",
+      "prompt_pt": "segurando um livro aberto com as duas mãos na altura da cintura, as páginas abertas voltadas para cima e os dois polegares sobre as páginas"
+    },
+    "action.read": {
+      "prompt": "reading an open book held in both hands at chest height, the head tilted down and the eyes on the pages",
+      "prompt_pt": "lendo um livro aberto seguro com as duas mãos na altura do peito, a cabeça inclinada para baixo e os olhos nas páginas"
+    },
+    "action.use_phone": {
+      "prompt": "holding a smartphone in the left hand at chest height with the screen facing the person, tapping the screen with the right index finger and looking down at it",
+      "prompt_pt": "segurando um celular com a mão esquerda na altura do peito com a tela voltada para a pessoa, tocando a tela com o indicador direito e olhando para ela"
+    },
+    "action.phone_call": {
+      "prompt": "holding a smartphone against the right ear with the right hand, the elbow raised and the phone touching the ear",
+      "prompt_pt": "segurando um celular junto à orelha direita com a mão direita, o cotovelo erguido e o celular encostado na orelha"
+    },
+    "action.adjust_glasses": {
+      "prompt": "wearing eyeglasses and pushing them up the nose by touching the bridge of the frame with the right index finger",
+      "prompt_pt": "usando óculos e empurrando-os para cima do nariz tocando a ponte da armação com o indicador direito"
+    },
+    "action.carry_bag": {
+      "prompt": "carrying a small handbag by its handles in the left hand, the arm hanging straight beside the hip and the bag visible next to the thigh",
+      "prompt_pt": "carregando uma bolsa pequena pelas alças com a mão esquerda, o braço esticado ao lado do quadril e a bolsa visível ao lado da coxa"
+    },
+    "expression.subtle_smile": {
+      "prompt": "a subtle closed-mouth smile with the corners of the mouth slightly raised and relaxed eyes",
+      "prompt_pt": "um sorriso discreto de boca fechada, cantos da boca levemente erguidos e olhos relaxados"
+    },
+    "expression.look_back": {
+      "prompt": "the head turned to look back over one shoulder, with the eyes following the head",
+      "prompt_pt": "a cabeça virada olhando por cima de um ombro, com os olhos acompanhando a cabeça"
+    }
   }
 }

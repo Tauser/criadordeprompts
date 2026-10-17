@@ -8,7 +8,7 @@ from .request import CatalogValue, Request
 from .rules import Assessment
 from .vocabulary import CATEGORIES, FRAMING_ORDER
 
-COMPILER_VERSION = '1.0.0'
+COMPILER_VERSION = '1.1.0'
 
 # Operation order: scene first, then person changes; style leads in generation.
 EDIT_ORDER = ('environment', 'lighting', 'style', 'camera', 'framing', 'subject', 'face', 'body', 'skin', 'hair',
@@ -41,11 +41,13 @@ def build_ir(request: Request, assessment: Assessment) -> list:
         attribute = request.attribute(category)
         if attribute.intent != 'set':
             continue
+        participants = None
         if isinstance(attribute.value, CatalogValue):
-            text = assessment.resolved[category].prompt
+            item = assessment.resolved[category]
+            text, participants = item.prompt, item.requirements.participants
         else:
             text = attribute.value.text
-        blocks.append(ir.Operation(category, text.strip()))
+        blocks.append(ir.Operation(category, text.strip(), participants))
 
     by_slot: dict[int, list[str]] = {}
     for category in CATEGORIES:

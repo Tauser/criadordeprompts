@@ -86,11 +86,7 @@ def render(blocks) -> list[tuple[str, str]]:
         elif isinstance(block, ir.Header):
             out.append((block.id, f'Edit {image(1)}.' if edit else 'Create an image.'))
         elif isinstance(block, ir.Operation):
-            text = block.text.rstrip('. ')
-            if edit:
-                out.append((block.id, EDIT_OPERATIONS[block.category].format(text)))
-            else:
-                out.append((block.id, f'{GENERATE_LABELS[block.category]}: {text}.'))
+            out.append((block.id, _operation(block, edit, blocks)))
         elif isinstance(block, ir.Transfer):
             aspects = _join(ASPECT_NAMES[a] for a in block.aspects)
             if edit:
@@ -102,6 +98,9 @@ def render(blocks) -> list[tuple[str, str]]:
             names = [ASPECT_NAMES[a] for a in block.aspects]
             if block.allow_action_movement and 'body pose' in names:
                 names[names.index('body pose')] = 'body pose, apart from the movement the action needs'
+            gaze_changes = any(isinstance(b, ir.Guidance) and b.key == 'gaze' for b in blocks)
+            if gaze_changes and 'facial expression' in names:
+                names[names.index('facial expression')] = 'facial expression, apart from the requested gaze direction'
             target = image(1)
             if block.everything_else and names:
                 text = f'Keep everything else in {target} unchanged, including the {_join(names)}.'
@@ -128,6 +127,32 @@ def render(blocks) -> list[tuple[str, str]]:
     if header is not None and not edit:
         out.append(('closing', 'Keep anatomy, perspective and lighting coherent.'))
     return out
+
+
+BODY_EMPHASIS = {
+    'pose': 'Reposition the head, torso, arms, hands, legs and feet exactly as described, so the new pose is '
+            'unmistakable.',
+    'action': 'Make the hands, any held object and every point of contact clearly visible and readable.',
+}
+
+
+def _operation(block: ir.Operation, edit: bool, blocks) -> str:
+    text = block.text.rstrip('. ')
+    has_pose = any(isinstance(b, ir.Operation) and b.category == 'pose' for b in blocks)
+    if block.category == 'action':
+        group = (block.participants or 1) > 1
+        subject = '' if group else 'the person '
+        sentence = f'Show {subject}{text}' if edit else f'Action: {text}'
+        if has_pose and not group:
+            sentence += '; keep the requested pose for the torso and legs, and let the arms and hands follow this action'
+        return f'{sentence}. {BODY_EMPHASIS["action"]}'
+    if edit:
+        sentence = EDIT_OPERATIONS[block.category].format(text)
+    else:
+        sentence = f'{GENERATE_LABELS[block.category]}: {text}.'
+    if block.category == 'pose':
+        sentence += ' ' + BODY_EMPHASIS['pose']
+    return sentence
 
 
 def _guidance(block: ir.Guidance) -> str:

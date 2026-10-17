@@ -35,13 +35,15 @@ def convert(legacy: dict, review: dict) -> Library:
         requirements.update(review['requirements'].get(item_id, {}))
         if category == 'expression':
             requirements = {k: v for k, v in requirements.items() if k == 'gaze'}
+        rewrite = review.get('prompts', {}).get(item_id)
+        prompt, prompt_pt = (rewrite['prompt'], rewrite['prompt_pt']) if rewrite else (old['prompt'], old.get('prompt_pt'))
         if item_id in review['supports']:
             provides['supports'] = review['supports'][item_id]
         if item_id in seen:
             raise SystemExit(f'Identificador repetido após a conversão: {item_id}')
         seen.add(item_id)
-        items.append(Item(id=item_id, category=category, label=old['label'], prompt=old['prompt'],
-                          prompt_pt=old.get('prompt_pt'), adult=bool(old.get('adult_only')),
+        items.append(Item(id=item_id, category=category, label=old['label'], prompt=prompt,
+                          prompt_pt=prompt_pt, adult=bool(old.get('adult_only')),
                           enabled=bool(old.get('enabled', True)), requirements=requirements, provides=provides))
     library = Library(items=items)
     merge(library, Library())

@@ -114,3 +114,14 @@ def test_graph_validation_against_object_info_shapes():
     assert any('unet_name' in p for p in problems) and any('steps=40' in p for p in problems)
     del info['VAEDecode']
     assert any('VAEDecode' in p for p in validate_graph(graph, info))
+
+
+def test_common_pose_and_action_texts_are_concrete(client):
+    import re
+    vague = re.compile(r'\b(naturally|comfortably|nicely|natural pose|plausible)\b', re.I)
+    items = [i for i in client.get('/api/library').json()['items']
+             if i['category'] in ('pose', 'action') and not i['adult']]
+    for item in items:
+        assert not vague.search(item['prompt']), item['id']
+        assert item['requirements']['posture'] and item['requirements']['gaze'], item['id']
+        assert item['prompt_pt'], item['id']

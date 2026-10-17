@@ -15,6 +15,7 @@ class Header:
 class Operation:
     category: str
     text: str
+    participants: int | None = None      # declared by the catalog item; None when unknown
 
     @property
     def id(self) -> str:

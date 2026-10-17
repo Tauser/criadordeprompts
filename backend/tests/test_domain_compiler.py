@@ -213,3 +213,20 @@ def test_supports(library):
     allowed = edit_request({'pose': cat('pose.seated'), 'environment': cat('env.studio')},
                            context={'allow_new_supports': True})
     assert assess(allowed, library).valid
+
+
+def test_pose_and_action_are_rendered_as_explicit_body_instructions(library):
+    _, compiled = run(edit_request({**DEFAULT_KEEP, 'pose': cat('pose.seated'), 'action': cat('action.read')},
+                                   context={'allow_new_supports': True}), library)
+    assert 'Change the body pose to sitting upright. Reposition the head, torso, arms, hands, legs and feet' in compiled.text
+    assert 'Show the person reading a book; keep the requested pose for the torso and legs, and let the arms and hands follow this action. Make the hands' in compiled.text
+    _, group = run(generate_request({'action': cat('action.hug')}), library)
+    assert 'Action: hugging each other. Make the hands' in group.text
+    _, edit_group = run(edit_request({**DEFAULT_KEEP, 'action': cat('action.hug')}, participants={'existing': 1}), library)
+    assert 'Show hugging each other.' in edit_group.text and 'the person hugging' not in edit_group.text
+
+
+def test_kept_expression_yields_to_a_declared_gaze(library):
+    _, compiled = run(edit_request({**DEFAULT_KEEP, 'expression': keep(), 'action': cat('action.read')}), library)
+    assert 'facial expression, apart from the requested gaze direction' in compiled.text
+    assert 'The eyes look downwards.' in compiled.text
