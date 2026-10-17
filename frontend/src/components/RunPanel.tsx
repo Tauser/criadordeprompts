@@ -3,6 +3,8 @@ import {api, fileUrl} from '../api/client';
 import type {Run, Task} from '../api/types';
 import {wordDiff} from '../lib/diff';
 import {KIND, PHASE, RUN_STATUS, TASK_STATUS, TERMINAL, VERDICT} from '../lib/labels';
+import {useCollapsed} from '../lib/useCollapsed';
+import {CollapseButton} from './Collapse';
 
 interface Props {run: Run | null; connection: string; onReuse: (hash: string) => void; notify: (m: string, e?: boolean) => void;
   onRepeat: (sameSeed: boolean) => Promise<void>}
@@ -21,9 +23,15 @@ const seconds = (value: number) => value < 60 ? `${value.toFixed(value < 10 ? 1 
 
 export function RunPanel({run, connection, onReuse, notify, onRepeat}: Props) {
   const [repeating, setRepeating] = useState(false);
+  const [collapsed, toggle] = useCollapsed('result');
   const active = !!run && !TERMINAL.has(run.status);
   const now = useNow(active);
-  if (!run) return <section className="card"><h2>Resultado</h2><p className="muted">Nenhum pedido selecionado.</p></section>;
+  if (!run) return (
+    <section className={'card collapsible' + (collapsed ? ' is-collapsed' : '')}>
+      <div className="section-title"><h2>Resultado</h2><CollapseButton collapsed={collapsed} onToggle={toggle} controls="run-body" label="resultado" /></div>
+      {!collapsed && <p id="run-body" className="muted">Nenhum pedido selecionado.</p>}
+    </section>
+  );
   const review = run.status === 'review';
   const checks = Object.fromEntries((run.settings.checks ?? []).map(c => [c.id, c.question]));
   const refineEvent = [...(run.events ?? [])].reverse().find(e => e.type === 'refine_checked') as
@@ -32,11 +40,14 @@ export function RunPanel({run, connection, onReuse, notify, onRepeat}: Props) {
     try {await api.review(run.id, choice);} catch (error) {notify((error as Error).message, true);}
   };
   return (
-    <section className="card run" aria-labelledby="run-title" aria-live="polite">
+    <section className={'card run collapsible' + (collapsed ? ' is-collapsed' : '')} aria-labelledby="run-title" aria-live="polite">
       <div className="section-title">
         <h2 id="run-title">{RUN_STATUS[run.status] ?? run.status}</h2>
         <span className="muted small">{connection === 'offline' ? 'Sem conexão com o Studio · tentando de novo' : ''}</span>
+        {collapsed && <span className="collapsed-summary">{run.images.filter(i => i.files.length).length} {run.images.filter(i => i.files.length).length === 1 ? 'imagem' : 'imagens'}</span>}
+        <CollapseButton collapsed={collapsed} onToggle={toggle} controls="run-body" label="resultado" />
       </div>
+      {!collapsed && <div id="run-body">
       {run.error && <p className="issue error">{run.error}</p>}
       {!active && (
         <div className="row repeat">
@@ -91,6 +102,7 @@ export function RunPanel({run, connection, onReuse, notify, onRepeat}: Props) {
         <summary>Prompt efetivamente enviado</summary>
         <pre>{run.effective_prompt}</pre>
       </details>
+      </div>}
     </section>
   );
 }

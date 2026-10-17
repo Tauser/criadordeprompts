@@ -232,6 +232,17 @@ select { height: 38px; }
 .verdicts .met strong { color: var(--ok); } .verdicts .partial strong { color: var(--warn); }
 .verdicts .unmet strong { color: var(--bad); } .verdicts .unknown strong { color: var(--muted); }
 
+/* collapsible cards */
+.collapse-btn { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; color: var(--muted); transition: background .12s, color .12s; }
+.collapse-btn:hover { background: var(--surface-2); color: var(--ink); }
+.collapse-btn svg { transform: rotate(90deg); transition: transform .18s ease; }
+.collapse-btn.collapsed svg { transform: rotate(0deg); }
+.collapsible .section-title > .collapse-btn { margin-left: auto; }
+.collapsible .section-title > .muted.small:empty { display: none; }
+.collapsible.is-collapsed { padding-top: 14px; padding-bottom: 14px; }
+.collapsible.is-collapsed .section-title { margin-bottom: 0; }
+.collapsed-summary { font-size: 12.5px; color: var(--muted); }
+
 /* history */
 .history-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 12px; }
 .history-tile { position: relative; }

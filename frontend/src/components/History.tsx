@@ -3,6 +3,8 @@ import {api, fileUrl} from '../api/client';
 import type {Run} from '../api/types';
 import {RUN_STATUS, TERMINAL} from '../lib/labels';
 import {relativeTime} from '../lib/time';
+import {useCollapsed} from '../lib/useCollapsed';
+import {CollapseButton} from './Collapse';
 
 type Filter = 'all' | 'completed' | 'active' | 'problems';
 const FILTERS: Record<Filter, string> = {all: 'Todos', completed: 'Concluídos', active: 'Em andamento', problems: 'Falhas e cancelados'};
@@ -24,6 +26,7 @@ export function History({activeRun, onSelect, keepFiles, notify}: Props) {
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleting, setDeleting] = useState(false);
+  const [collapsed, toggleCollapsed] = useCollapsed('history');
 
   const refresh = useCallback(() => api.runs().then(r => {setRuns(r.runs); setError(null);})
     .catch(e => setError((e as Error).message)), []);
@@ -57,18 +60,22 @@ export function History({activeRun, onSelect, keepFiles, notify}: Props) {
   });
 
   return (
-    <section className="card history-card" aria-labelledby="history-title">
+    <section className={'card history-card collapsible' + (collapsed ? ' is-collapsed' : '')} aria-labelledby="history-title">
       <div className="section-title">
         <h2 id="history-title">Histórico <span className="muted small">{runs.length}</span></h2>
         <div className="row tight">
+          {!collapsed && <>
           {selecting ? <>
             <button className="quiet" onClick={() => setSelected(new Set(visible.filter(r => TERMINAL.has(r.status)).map(r => r.id)))}>Todos</button>
             <button className="stop" disabled={!selected.size || deleting} onClick={() => remove([...selected])}>
               {deleting ? 'Apagando…' : `Apagar (${selected.size})`}</button>
             <button className="quiet" onClick={() => {setSelecting(false); setSelected(new Set());}}>Cancelar</button>
           </> : <button className="quiet" disabled={!runs.length} onClick={() => setSelecting(true)}>Selecionar</button>}
+          </>}
+          <CollapseButton collapsed={collapsed} onToggle={toggleCollapsed} controls="history-body" label="histórico" />
         </div>
       </div>
+      {!collapsed && <div id="history-body">
       <div className="chips" role="tablist" aria-label="Filtrar histórico">
         {(Object.keys(FILTERS) as Filter[]).map(f => (
           <button key={f} role="tab" aria-selected={filter === f} className={'chip' + (filter === f ? ' active' : '')}
@@ -108,6 +115,7 @@ export function History({activeRun, onSelect, keepFiles, notify}: Props) {
         })}
       </ul>
       {!visible.length && !error && <p className="muted">{runs.length ? 'Nenhum pedido neste filtro.' : 'Os pedidos aparecem aqui.'}</p>}
+      </div>}
     </section>
   );
 }
