@@ -105,6 +105,34 @@ class RunRepository:
         rows = self.db.query('SELECT * FROM events WHERE run_id=? AND id>? ORDER BY id', (run_id, after))
         return [{'id': r['id'], 'at': r['at'], 'type': r['type'], **loads(r['data_json'])} for r in rows]
 
+    def delete(self, run_id: str) -> list[str]:
+        """Remove a finished run with its tasks and events; returns the file hashes it referenced."""
+        with self.db.transaction() as tx:
+            row = tx.execute('SELECT status, files_json, settings_json FROM runs WHERE id=?', (run_id,)).fetchone()
+            if row is None:
+                raise KeyError(run_id)
+            if row['status'] not in TERMINAL:
+                raise InvalidTransition('Pare o pedido antes de apagá-lo.')
+            hashes = set(_hashes(loads(row['files_json'])))
+            for task in tx.execute('SELECT result_json FROM tasks WHERE run_id=?', (run_id,)).fetchall():
+                hashes |= set((loads(task['result_json']) or {}).get('files', []))
+            tx.execute('DELETE FROM events WHERE run_id=?', (run_id,))
+            tx.execute('DELETE FROM tasks WHERE run_id=?', (run_id,))
+            tx.execute('DELETE FROM runs WHERE id=?', (run_id,))
+        return sorted(hashes)
+
+    def referenced_files(self) -> set[str]:
+        hashes: set[str] = set()
+        for row in self.db.query('SELECT files_json FROM runs'):
+            hashes |= set(_hashes(loads(row['files_json'])))
+        for row in self.db.query('SELECT result_json FROM tasks WHERE result_json IS NOT NULL'):
+            hashes |= set((loads(row['result_json']) or {}).get('files', []))
+        return hashes
+
+    def forget_file(self, file_hash: str) -> None:
+        with self.db.transaction() as tx:
+            tx.execute('DELETE FROM files WHERE hash=?', (file_hash,))
+
     # tasks ----------------------------------------------------------------
     def add_task(self, run_id: str, kind: str, position: int = 0, seed: int | None = None) -> dict:
         task_id = new_id()
@@ -171,6 +199,12 @@ class LibraryRepository:
                            (item['id'], dumps(item), now()))
             tx.execute("UPDATE meta SET value=? WHERE key='library_revision'", (str(revision + 1),))
         return revision + 1
+
+
+def _hashes(files: dict | None) -> list[str]:
+    if not files:
+        return []
+    return [h for h in [*(files.get('references') or {}).values(), files.get('mask')] if h]
 
 
 def _run(row) -> dict:

@@ -85,7 +85,9 @@ class FakeComfy:
 
     def view(self, filename, subfolder, kind):
         self._check()
-        return png(color=(len(filename) % 255, 10, 10))
+        import hashlib
+        digest = hashlib.sha256(filename.encode()).digest()
+        return png(color=(digest[0], digest[1], digest[2]))
 
 
 class _PermissiveInfo(dict):

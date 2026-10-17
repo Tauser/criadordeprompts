@@ -99,6 +99,16 @@ class RunService:
         self._wake()
         return run
 
+    def delete(self, run_id: str, keep_files: set[str] = frozenset()) -> dict:
+        """Delete a finished run. Images no other run uses are removed from disk as well."""
+        hashes = self.repository.delete(run_id)
+        still_used = self.repository.referenced_files() | set(keep_files)
+        removed = [h for h in hashes if h not in still_used]
+        for file_hash in removed:
+            self.store.delete(file_hash)
+            self.repository.forget_file(file_hash)
+        return {'deleted': run_id, 'files_removed': len(removed)}
+
     def discard_uncertain(self, run_id: str) -> dict:
         run = self._get(run_id)
         if run['status'] != 'uncertain':

@@ -174,7 +174,8 @@ export function Studio({library, comfyOnline, notify}: Props) {
           <PromptPreview request={request} prepared={prepared} pending={pending} error={prepareError}
             onManual={toggleManual} onManualText={text => patch(r => {r.manual_prompt = text;})} onFocusField={focusField} />
           <RunPanel run={run} connection={connection} onReuse={reuse} notify={notify} />
-          <History activeRun={activeRun} onSelect={setActiveRun} />
+          <History activeRun={activeRun} onSelect={setActiveRun} notify={notify}
+            keepFiles={[...Object.values(workspace.files).map(f => f.hash), ...(workspace.maskHash ? [workspace.maskHash] : [])]} />
         </div>
       </div>
       <footer className="execution-bar" aria-label="Execução">

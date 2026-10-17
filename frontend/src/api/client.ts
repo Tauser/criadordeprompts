@@ -34,6 +34,8 @@ export const api = {
   run: (id: string) => call<Run>('GET', `/api/runs/${id}`),
   runByRequest: (requestId: string) => call<Run>('GET', `/api/runs/by-request/${requestId}`),
   runs: () => call<{runs: Run[]}>('GET', '/api/runs?limit=40'),
+  deleteRuns: (ids: string[], keepFiles: string[]) =>
+    call<{deleted: string[]; files_removed: number}>('POST', '/api/runs/delete', {ids, keep_files: keepFiles}),
   cancel: (id: string) => call<Run>('POST', `/api/runs/${id}/cancel`),
   review: (id: string, choice: 'refined' | 'original') => call<Run>('POST', `/api/runs/${id}/review`, {choice}),
   translate: (text: string) => call<{id: string; status: string}>('POST', '/api/translations', {text}),

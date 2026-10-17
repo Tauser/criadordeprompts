@@ -125,3 +125,21 @@ def test_common_pose_and_action_texts_are_concrete(client):
         assert not vague.search(item['prompt']), item['id']
         assert item['requirements']['posture'] and item['requirements']['gaze'], item['id']
         assert item['prompt_pt'], item['id']
+
+
+def test_delete_runs_removes_unshared_files_only(client):
+    shared = client.post('/api/files', files={'file': ('a.png', png(64, 64), 'image/png')}).json()['hash']
+    request = {'mode': 'edit', 'target_id': 't', 'references': [{'id': 't', 'label': 'alvo'}],
+               'attributes': {'environment': {'intent': 'set', 'value': {'kind': 'catalog', 'item_id': 'environment.garden'}}}}
+    first = client.post('/api/runs', json={'request_id': 'delete-test-000001', 'request': request, 'files': {'t': shared}}).json()
+    second = client.post('/api/runs', json={'request_id': 'delete-test-000002', 'request': request, 'files': {'t': shared}}).json()
+    assert client.post('/api/runs/delete', json={'ids': [first['id']]}).status_code == 409   # still open
+    tick(client, 20)
+    output = client.get(f'/api/runs/{first["id"]}').json()['images'][0]['files'][0]
+    result = client.post('/api/runs/delete', json={'ids': [first['id']]}).json()
+    assert result['deleted'] == [first['id']] and result['files_removed'] == 1
+    assert client.get(f'/api/runs/{first["id"]}').status_code == 404
+    assert client.get(f'/api/files/{output}').status_code == 404
+    assert client.get(f'/api/files/{shared}').status_code == 200          # still used by the second run
+    client.post('/api/runs/delete', json={'ids': [second['id']], 'keep_files': [shared]})
+    assert client.get(f'/api/files/{shared}').status_code == 200          # kept: still attached in the editor

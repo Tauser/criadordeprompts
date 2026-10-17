@@ -55,6 +55,9 @@ class FileStore:
             os.replace(temporary, target)
         return StoredFile(digest, FORMATS[fmt], width, height, len(data))
 
+    def delete(self, file_hash: str) -> None:
+        self.path(file_hash).unlink(missing_ok=True)
+
     def read(self, file_hash: str) -> bytes:
         return self.path(file_hash).read_bytes()
 

@@ -71,3 +71,25 @@ describe('Studio', () => {
     expect((screen.getByRole('button', {name: 'Gerar edição'}) as HTMLButtonElement).disabled).toBe(true);
   });
 });
+
+describe('History', () => {
+  it('filters, deletes a finished run and keeps files still attached in the editor', async () => {
+    runStatus = 'completed';
+    vi.stubGlobal('confirm', () => true);
+    const fetchMock = vi.fn((path: string, init?: RequestInit) => path === '/api/runs/delete'
+      ? (calls.push({path, body: JSON.parse(init!.body as string)}), Promise.resolve(new Response(JSON.stringify({deleted: ['run1'], files_removed: 1}), {status: 200})))
+      : respond(path, init));
+    vi.stubGlobal('fetch', fetchMock);
+    const {History} = await import('./components/History');
+    const notify = vi.fn();
+    render(<History activeRun="run1" onSelect={() => undefined} keepFiles={['abc']} notify={notify} />);
+    expect(await screen.findByRole('tab', {name: /Concluídos 1/})).toBeTruthy();
+    fireEvent.click(screen.getByRole('tab', {name: /Em andamento/}));
+    expect(await screen.findByText('Nenhum pedido neste filtro.')).toBeTruthy();
+    fireEvent.click(screen.getByRole('tab', {name: /Todos/}));
+    await act(async () => {fireEvent.click(await screen.findByRole('button', {name: 'Apagar este pedido'}));});
+    const request = calls.find(c => c.path === '/api/runs/delete');
+    expect(request?.body).toEqual({ids: ['run1'], keep_files: ['abc']});
+    expect(notify).toHaveBeenCalledWith('1 pedido apagado.');
+  });
+});

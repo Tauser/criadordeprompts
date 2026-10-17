@@ -39,6 +39,11 @@ class RunCreate(BaseModel):
     mask: str | None = None
 
 
+class RunDelete(BaseModel):
+    ids: list[str] = Field(min_length=1, max_length=200)
+    keep_files: list[str] = Field(default=[], max_length=50)
+
+
 class Review(BaseModel):
     choice: str
 
@@ -202,6 +207,11 @@ def create_app(config: Config | None = None, container: Container | None = None)
         if run is None:
             raise HTTPException(404, 'Pedido não encontrado.')
         return run_view(run)
+
+    @app.post('/api/runs/delete')
+    def delete_runs(body: RunDelete):
+        results = [c.service.delete(run_id, set(body.keep_files)) for run_id in body.ids]
+        return {'deleted': [r['deleted'] for r in results], 'files_removed': sum(r['files_removed'] for r in results)}
 
     @app.post('/api/runs/{run_id}/cancel')
     def cancel_run(run_id: str):
