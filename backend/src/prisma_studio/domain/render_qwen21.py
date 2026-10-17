@@ -164,4 +164,4 @@ def _guidance(block: ir.Guidance) -> str:
         return 'Add only the support surfaces the pose or action needs.'
     options = [SUPPORTS[s] for s in block.value.split('|')]
     choice = options[0] if len(options) == 1 else ', '.join(options[:-1]) + ' or ' + options[-1]
-    return f'The body rests on {choice}, with believable contact and weight.'
+    return f'The pose is supported by {choice}, with believable contact and weight.'
