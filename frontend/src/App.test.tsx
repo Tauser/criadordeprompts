@@ -48,6 +48,7 @@ describe('Studio', () => {
     render(<App />);
     const environment = await screen.findByLabelText('Cenário');
     fireEvent.change(environment, {target: {value: 'catalog:environment.garden'}});
+    fireEvent.click(screen.getByRole('tab', {name: /Prompt/}));
     await screen.findByText('Setting: a quiet garden.');
     const generate = screen.getByRole('button', {name: 'Gerar imagem'});
     await waitFor(() => expect((generate as HTMLButtonElement).disabled).toBe(false));
@@ -67,6 +68,7 @@ describe('Studio', () => {
     await screen.findByLabelText('Cenário');
     fireEvent.click(screen.getByRole('radio', {name: 'Editar foto'}));
     expect(((await screen.findByLabelText('Cenário')) as HTMLSelectElement).value).toBe('keep');
+    fireEvent.click(await screen.findByRole('button', {name: /erro para corrigir/}));
     expect(await screen.findByText('Nenhuma alteração foi pedida para a foto.')).toBeTruthy();
     expect((screen.getByRole('button', {name: 'Gerar edição'}) as HTMLButtonElement).disabled).toBe(true);
   });

@@ -57,7 +57,7 @@ export function History({activeRun, onSelect, keepFiles, notify}: Props) {
   });
 
   return (
-    <section className="card history-card" aria-labelledby="history-title">
+    <section className="filmstrip" aria-labelledby="history-title">
       <div className="section-title">
         <h2 id="history-title">Histórico <span className="muted small">{runs.length}</span></h2>
         <div className="row tight">

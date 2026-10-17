@@ -3,6 +3,7 @@ import {api} from './api/client';
 import type {Health, LibrarySnapshot} from './api/types';
 import {Diagnostics} from './components/Diagnostics';
 import {Library} from './components/Library';
+import {Icon} from './components/Icon';
 import {Studio} from './components/Studio';
 
 type View = 'studio' | 'library' | 'diagnostics';
@@ -39,22 +40,22 @@ export function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <button className="brand" onClick={() => go('studio')}>Prisma <span>Studio</span></button>
+        <button className="brand" onClick={() => go('studio')}><span className="logo" aria-hidden="true" />Prisma <span>Studio</span></button>
         <nav aria-label="Seções">
-          <button className={view === 'studio' ? 'active' : ''} onClick={() => go('studio')}>Estúdio</button>
-          <button className={view === 'library' ? 'active' : ''} onClick={() => go('library')}>Biblioteca</button>
-          <button className={view === 'diagnostics' ? 'active' : ''} onClick={() => go('diagnostics')}>Diagnóstico</button>
+          <button className={view === 'studio' ? 'active' : ''} onClick={() => go('studio')}><Icon name="image" size={14} /> Estúdio</button>
+          <button className={view === 'library' ? 'active' : ''} onClick={() => go('library')}><Icon name="library" size={14} /> Biblioteca</button>
+          <button className={view === 'diagnostics' ? 'active' : ''} onClick={() => go('diagnostics')}><Icon name="pulse" size={14} /> Diagnóstico</button>
         </nav>
         <span className={'status ' + (online ? 'ok' : 'off')} title={health?.comfy_url}>{online ? '● ComfyUI conectado' : '○ ComfyUI offline'}</span>
       </header>
       {message && <div className={'toast' + (message.error ? ' error' : '')} role="status">{message.text}
         <button className="link" onClick={() => setMessage(null)} aria-label="Fechar">×</button></div>}
-      <main>
+      <div className={"app-body" + (view === "studio" ? " full" : "")}>
         {!library ? <p className="card">Carregando…</p> :
           view === 'studio' ? <Studio library={library} comfyOnline={online} notify={notify} /> :
           view === 'library' ? <Library snapshot={library} onSaved={setLibrary} notify={notify} setDirty={setLibraryDirty} /> :
           <Diagnostics health={health} refresh={refreshHealth} />}
-      </main>
+      </div>
     </div>
   );
 }
