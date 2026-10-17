@@ -21,7 +21,10 @@ def validate_graph(graph: dict, object_info: dict) -> list[str]:
         if not info.get('input', {}).get('required') and not info.get('input', {}).get('optional'):
             continue                              # no schema to compare against
         values = node.get('inputs', {})
-        for name in info.get('input', {}).get('required', {}):
+        for name, spec in info.get('input', {}).get('required', {}).items():
+            kind = str(spec[0]).upper() if isinstance(spec, (list, tuple)) and spec else ''
+            if 'AUTOGROW' in kind or 'DYNAMIC' in kind or any(key.startswith(name + '.') for key in values):
+                continue                          # dynamic inputs: zero or more sub-inputs
             if name not in values:
                 problems.append(f'Nó {node_id} ({cls}): entrada obrigatória "{name}" ausente.')
         for name, value in values.items():

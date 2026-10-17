@@ -1,4 +1,4 @@
-# Encerra o Studio. Trabalhos em andamento continuam no ComfyUI e são reconciliados no próximo início.
+﻿# Encerra o Studio. Trabalhos em andamento continuam no ComfyUI e são reconciliados no próximo início.
 $root = Split-Path $PSScriptRoot -Parent
 $pidFile = Join-Path $root 'data\studio.pid'
 if (-not (Test-Path $pidFile)) { Write-Output 'O Studio não está em execução.'; exit 0 }

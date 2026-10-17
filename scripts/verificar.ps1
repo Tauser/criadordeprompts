@@ -1,4 +1,4 @@
-# Verificação completa sem GPU: lint, testes do servidor e, se o Node estiver instalado, da interface.
+﻿# Verificação completa sem GPU: lint, testes do servidor e, se o Node estiver instalado, da interface.
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $py = Join-Path $root '.venv\Scripts\python.exe'

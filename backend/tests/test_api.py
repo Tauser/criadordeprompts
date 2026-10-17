@@ -87,3 +87,30 @@ def test_library_save_conflict_and_validation(client):
 
 def test_bad_upload_is_rejected(client):
     assert client.post('/api/files', files={'file': ('x.png', b'not an image', 'image/png')}).status_code == 400
+
+
+def test_graph_validation_against_object_info_shapes():
+    from kppb.infrastructure.comfy.validation import validate_graph
+    from kppb.infrastructure.comfy.workflows import ImageJob, image_graph
+    graph = image_graph(ImageJob(mode='generate', prompt='x', width=512, height=512))
+    info = {cls: {'input': {'required': {}}} for cls in {n['class_type'] for n in graph.values()}}
+    info['UNETLoader'] = {'input': {'required': {'unet_name': [['qwen_image_2.1_int8_convrot.safetensors']],
+                                                 'weight_dtype': [['default']]}}}
+    info['TextEncodeQwenImage21'] = {'input': {'required': {'clip': ['CLIP'], 'prompt': ['STRING', {}],
+        'negative_prompt': ['STRING', {}], 'resolution': ['INT', {'min': 0, 'max': 4096}],
+        'images': ['COMFY_AUTOGROW_V3', {}]}, 'optional': {'vae': ['VAE']}}}
+    info['KSampler'] = {'input': {'required': {'steps': ['INT', {'min': 1, 'max': 10000}],
+                                               'sampler_name': ['COMBO', {'options': ['euler']}]}}}
+    for node in graph.values():                       # every other input exists, untyped
+        spec = info[node['class_type']]['input']
+        spec.setdefault('optional', {})
+        for name in node['inputs']:
+            if name not in spec['required'] and not name.startswith('images.'):
+                spec['optional'].setdefault(name, ['*'])
+    assert validate_graph(graph, info) == []
+    info['UNETLoader']['input']['required']['unet_name'] = [['other.safetensors']]
+    info['KSampler']['input']['required']['steps'] = ['INT', {'min': 50, 'max': 60}]
+    problems = validate_graph(graph, info)
+    assert any('unet_name' in p for p in problems) and any('steps=40' in p for p in problems)
+    del info['VAEDecode']
+    assert any('VAEDecode' in p for p in validate_graph(graph, info))

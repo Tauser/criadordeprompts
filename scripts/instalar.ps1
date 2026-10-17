@@ -1,4 +1,4 @@
-# Cria o ambiente Python do Studio em .venv e instala as dependências.
+﻿# Cria o ambiente Python do Studio em .venv e instala as dependências.
 param([string]$Python = '')
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent

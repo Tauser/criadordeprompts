@@ -1,4 +1,4 @@
-# Inicia o Studio em segundo plano e abre o navegador.
+﻿# Inicia o Studio em segundo plano e abre o navegador.
 param([int]$Port = 8780, [string]$ComfyUrl = 'http://127.0.0.1:8188', [switch]$SemNavegador)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
