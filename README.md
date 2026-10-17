@@ -42,7 +42,7 @@ data/               (fora do Git) studio.db, files/, logs/
 scripts\verificar.ps1
 ```
 
-Lint, 54 testes do servidor (domínio, executor, API e ponta a ponta contra o ComfyUI simulado) e 8 testes da interface. Nenhum trabalho é enviado ao ComfyUI real.
+Lint, testes do servidor (domínio, executor, API e ponta a ponta contra o ComfyUI simulado) e testes da interface. Nenhum trabalho é enviado ao ComfyUI real.
 
 ## Pendências conhecidas
 
