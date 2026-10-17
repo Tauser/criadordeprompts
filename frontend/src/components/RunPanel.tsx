@@ -4,7 +4,8 @@ import type {Run, Task} from '../api/types';
 import {wordDiff} from '../lib/diff';
 import {KIND, PHASE, RUN_STATUS, TASK_STATUS, TERMINAL, VERDICT} from '../lib/labels';
 
-interface Props {run: Run | null; connection: string; onReuse: (hash: string) => void; notify: (m: string, e?: boolean) => void}
+interface Props {run: Run | null; connection: string; onReuse: (hash: string) => void; notify: (m: string, e?: boolean) => void;
+  onRepeat: (sameSeed: boolean) => Promise<void>}
 
 function useNow(active: boolean) {
   const [now, setNow] = useState(Date.now() / 1000);
@@ -18,7 +19,8 @@ function useNow(active: boolean) {
 
 const seconds = (value: number) => value < 60 ? `${value.toFixed(value < 10 ? 1 : 0)} s` : `${Math.floor(value / 60)} min ${Math.round(value % 60)} s`;
 
-export function RunPanel({run, connection, onReuse, notify}: Props) {
+export function RunPanel({run, connection, onReuse, notify, onRepeat}: Props) {
+  const [repeating, setRepeating] = useState(false);
   const active = !!run && !TERMINAL.has(run.status);
   const now = useNow(active);
   if (!run) return <section className="card"><h2>Resultado</h2><p className="muted">Nenhum pedido selecionado.</p></section>;
@@ -36,6 +38,16 @@ export function RunPanel({run, connection, onReuse, notify}: Props) {
         <span className="muted small">{connection === 'offline' ? 'Sem conexão com o Studio · tentando de novo' : ''}</span>
       </div>
       {run.error && <p className="issue error">{run.error}</p>}
+      {!active && (
+        <div className="row repeat">
+          <button className="secondary" disabled={repeating} title="Mesmo pedido, nova seed"
+                  onClick={async () => {setRepeating(true); try {await onRepeat(false);} finally {setRepeating(false);}}}>
+            {repeating ? 'Enviando…' : '↻ Gerar de novo'}</button>
+          <button className="quiet" disabled={repeating} title={`Mesmo pedido e mesma seed (${run.settings.seed})`}
+                  onClick={async () => {setRepeating(true); try {await onRepeat(true);} finally {setRepeating(false);}}}>
+            Repetir com a mesma seed</button>
+        </div>
+      )}
       {run.cancel_requested && active && <p className="help">Parada solicitada. Aguardando a confirmação do ComfyUI.</p>}
       <TaskList tasks={run.tasks ?? []} now={now} />
       {review && (

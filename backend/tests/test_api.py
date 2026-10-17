@@ -143,3 +143,18 @@ def test_delete_runs_removes_unshared_files_only(client):
     assert client.get(f'/api/files/{shared}').status_code == 200          # still used by the second run
     client.post('/api/runs/delete', json={'ids': [second['id']], 'keep_files': [shared]})
     assert client.get(f'/api/files/{shared}').status_code == 200          # kept: still attached in the editor
+
+
+def test_repeat_run_with_new_or_same_seed(client):
+    request = {'mode': 'generate', 'attributes': {
+        'environment': {'intent': 'set', 'value': {'kind': 'catalog', 'item_id': 'environment.garden'}}},
+        'output': {'seed': 77}}
+    first = client.post('/api/runs', json={'request_id': 'repeat-test-000001', 'request': request}).json()
+    tick(client)
+    same = client.post(f'/api/runs/{first["id"]}/repeat', json={'request_id': 'repeat-test-000002', 'same_seed': True}).json()
+    new = client.post(f'/api/runs/{first["id"]}/repeat', json={'request_id': 'repeat-test-000003'}).json()
+    again = client.post(f'/api/runs/{first["id"]}/repeat', json={'request_id': 'repeat-test-000003'}).json()
+    assert same['settings']['seed'] == 77 and same['prompt'] == first['prompt']
+    assert new['id'] == again['id'] and new['id'] != first['id']
+    tick(client)
+    assert client.get(f'/api/runs/{same["id"]}').json()['status'] == 'completed'

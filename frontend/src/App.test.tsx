@@ -93,3 +93,17 @@ describe('History', () => {
     expect(notify).toHaveBeenCalledWith('1 pedido apagado.');
   });
 });
+
+describe('Regenerate', () => {
+  it('repeats a finished run with a new seed or the same seed', async () => {
+    runStatus = 'completed';
+    localStorage.setItem('kppb.active-run', JSON.stringify('run1'));
+    render(<App />);
+    const again = await screen.findByRole('button', {name: '↻ Gerar de novo'});
+    await act(async () => {fireEvent.click(again);});
+    await act(async () => {fireEvent.click(screen.getByRole('button', {name: 'Repetir com a mesma seed'}));});
+    const repeats = calls.filter(c => c.path === '/api/runs/run1/repeat');
+    expect(repeats.map(c => c.body.same_seed)).toEqual([false, true]);
+    expect(repeats[0].body.request_id).not.toEqual(repeats[1].body.request_id);
+  });
+});

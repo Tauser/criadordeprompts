@@ -78,6 +78,15 @@ class RunService:
             self._wake()
         return run
 
+    def repeat(self, run_id: str, request_id: str, same_seed: bool = False) -> dict:
+        """Run the same request again, with the same files, optionally keeping the seed."""
+        original = self._get(run_id)
+        data = dict(original['request'])
+        data['output'] = {**data.get('output', {}), 'seed': original['settings']['seed'] if same_seed else None}
+        files = original['files'] or {}
+        return self.create(Request.model_validate(data), request_id, dict(files.get('references') or {}),
+                           files.get('mask'))
+
     def approve(self, run_id: str, choice: str) -> dict:
         run = self._get(run_id)
         if run['status'] != 'review':

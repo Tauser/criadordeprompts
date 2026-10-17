@@ -44,6 +44,11 @@ class RunDelete(BaseModel):
     keep_files: list[str] = Field(default=[], max_length=50)
 
 
+class RunRepeat(BaseModel):
+    request_id: str = Field(pattern=REQUEST_ID.pattern)
+    same_seed: bool = False
+
+
 class Review(BaseModel):
     choice: str
 
@@ -216,6 +221,10 @@ def create_app(config: Config | None = None, container: Container | None = None)
     @app.post('/api/runs/{run_id}/cancel')
     def cancel_run(run_id: str):
         return run_view(c.service.cancel(run_id))
+
+    @app.post('/api/runs/{run_id}/repeat')
+    def repeat_run(run_id: str, body: RunRepeat):
+        return run_view(c.service.repeat(run_id, body.request_id, body.same_seed))
 
     @app.post('/api/runs/{run_id}/review')
     def review(run_id: str, body: Review):

@@ -107,6 +107,20 @@ export function Studio({library, comfyOnline, notify}: Props) {
       else notify('Sem resposta do Studio. Assim que ele responder, o pedido será localizado sem duplicar.', true);
     } finally {setSubmitting(false);}
   };
+  const repeat = async (sameSeed: boolean) => {
+    if (!run) return;
+    const requestId = crypto.randomUUID();
+    save(PENDING_KEY, requestId);
+    try {
+      const created = await api.repeat(run.id, requestId, sameSeed);
+      setActiveRun(created.id);
+      save(PENDING_KEY, null);
+      notify(sameSeed ? 'Repetindo com a mesma seed.' : 'Gerando de novo com uma nova seed.');
+    } catch (error) {
+      if (error instanceof ApiError) {save(PENDING_KEY, null); notify(error.message, true);}
+      else notify('Sem resposta do Studio. Assim que ele responder, o pedido será localizado sem duplicar.', true);
+    }
+  };
   const stop = async () => {
     if (!activeRun) return;
     try {await api.cancel(activeRun);} catch (error) {notify((error as Error).message, true);}
@@ -173,7 +187,7 @@ export function Studio({library, comfyOnline, notify}: Props) {
         <div className="column">
           <PromptPreview request={request} prepared={prepared} pending={pending} error={prepareError}
             onManual={toggleManual} onManualText={text => patch(r => {r.manual_prompt = text;})} onFocusField={focusField} />
-          <RunPanel run={run} connection={connection} onReuse={reuse} notify={notify} />
+          <RunPanel run={run} connection={connection} onReuse={reuse} notify={notify} onRepeat={repeat} />
           <History activeRun={activeRun} onSelect={setActiveRun} notify={notify}
             keepFiles={[...Object.values(workspace.files).map(f => f.hash), ...(workspace.maskHash ? [workspace.maskHash] : [])]} />
         </div>

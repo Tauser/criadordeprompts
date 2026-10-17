@@ -36,6 +36,8 @@ export const api = {
   runs: () => call<{runs: Run[]}>('GET', '/api/runs?limit=40'),
   deleteRuns: (ids: string[], keepFiles: string[]) =>
     call<{deleted: string[]; files_removed: number}>('POST', '/api/runs/delete', {ids, keep_files: keepFiles}),
+  repeat: (id: string, requestId: string, sameSeed: boolean) =>
+    call<Run>('POST', `/api/runs/${id}/repeat`, {request_id: requestId, same_seed: sameSeed}, 60000),
   cancel: (id: string) => call<Run>('POST', `/api/runs/${id}/cancel`),
   review: (id: string, choice: 'refined' | 'original') => call<Run>('POST', `/api/runs/${id}/review`, {choice}),
   translate: (text: string) => call<{id: string; status: string}>('POST', '/api/translations', {text}),
