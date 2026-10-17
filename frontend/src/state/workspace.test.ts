@@ -51,3 +51,15 @@ describe('wordDiff', () => {
     expect(pieces.filter(p => p.type !== 'same').map(p => [p.type, p.text.trim()])).toEqual([['removed', 'red'], ['added', 'blue']]);
   });
 });
+
+import {missingMetadata} from '../lib/metadata';
+
+describe('missingMetadata', () => {
+  it('lists only the fields the rules depend on', () => {
+    const base = {id: 'pose.x', label: 'x', prompt: 'x', adult: false, enabled: true, provides: {}};
+    expect(missingMetadata({...base, category: 'pose', requirements: {participants: 1, posture: 'seated', gaze: null}})).toEqual(['gaze', 'support_any_of']);
+    expect(missingMetadata({...base, category: 'pose', requirements: {participants: 1, posture: 'any', gaze: 'any', support_any_of: []}})).toEqual([]);
+    expect(missingMetadata({...base, category: 'environment', requirements: {}})).toEqual(['supports']);
+    expect(missingMetadata({...base, category: 'lighting', requirements: {}})).toEqual([]);
+  });
+});

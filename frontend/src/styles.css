@@ -130,3 +130,4 @@ pre { white-space: pre-wrap; font-size: 12px; background: var(--panel-2); paddin
   .execution-bar { padding: 10px 12px; }
   .segment .tag { display: block; }
 }
+.missing-meta { font-size: 12px; color: var(--warn); }

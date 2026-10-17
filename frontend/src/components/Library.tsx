@@ -2,6 +2,7 @@ import {useEffect, useMemo, useState} from 'react';
 import {api} from '../api/client';
 import {CATEGORIES, type Category, type Item, type LibrarySnapshot} from '../api/types';
 import {CATEGORY_LABELS} from '../lib/labels';
+import {metadataLabel, missingMetadata} from '../lib/metadata';
 
 interface Props {snapshot: LibrarySnapshot; onSaved: (s: LibrarySnapshot) => void; notify: (m: string, e?: boolean) => void;
   setDirty: (dirty: boolean) => void}
@@ -18,6 +19,7 @@ const blank = (category: Category): Item => ({id: `user.${category}.${crypto.ran
 export function Library({snapshot, onSaved, notify, setDirty}: Props) {
   const [category, setCategory] = useState<Category | 'all'>('all');
   const [query, setQuery] = useState('');
+  const [incomplete, setIncomplete] = useState(false);
   const [draft, setDraft] = useState<Item | null>(null);
   const [original, setOriginal] = useState<string>('');
   const [saving, setSaving] = useState(false);
@@ -26,7 +28,9 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
   useEffect(() => setDirty(dirty), [dirty, setDirty]);
 
   const items = useMemo(() => snapshot.items.filter(item => (category === 'all' || item.category === category)
-    && (!query || (item.label + ' ' + item.prompt).toLowerCase().includes(query.toLowerCase()))), [snapshot, category, query]);
+    && (!incomplete || missingMetadata(item).length > 0)
+    && (!query || (item.label + ' ' + item.prompt).toLowerCase().includes(query.toLowerCase()))), [snapshot, category, query, incomplete]);
+  const incompleteCount = useMemo(() => snapshot.items.filter(i => missingMetadata(i).length).length, [snapshot]);
 
   const open = (item: Item | null) => {
     if (dirty && !confirm('Descartar as alterações não salvas?')) return;
@@ -90,6 +94,10 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
           <input type="search" placeholder="Buscar" value={query} onChange={e => setQuery(e.target.value)} aria-label="Buscar opções" />
           <button className="secondary" onClick={() => open(blank(category === 'all' ? 'environment' : category))}>Nova opção</button>
         </div>
+        <label className="check"><input type="checkbox" checked={incomplete} onChange={e => setIncomplete(e.target.checked)} />
+          Só metadados incompletos ({incompleteCount})</label>
+        {incomplete && <p className="help">Sem esses dados, as regras não verificam conflitos e o compilador não acrescenta as orientações de postura, olhar e apoio.</p>}
+        <p className="muted small">{items.length} opções</p>
         <ul className="item-list">
           {items.map(item => (
             <li key={item.id}>
@@ -97,6 +105,7 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
                 <strong>{item.label}</strong>
                 <span className="muted small">{CATEGORY_LABELS[item.category]}{item.adult ? ' · +18' : ''}{!item.enabled ? ' · desativada' : ''}
                   {snapshot.origins[item.id] !== 'builtin' ? ' · sua' : ''}</span>
+                {missingMetadata(item).length > 0 && <span className="missing-meta">Falta: {missingMetadata(item).map(metadataLabel).join(', ')}</span>}
               </button>
             </li>
           ))}
@@ -121,6 +130,8 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
             <label className="check"><input type="checkbox" checked={draft.adult} onChange={e => setDraft({...draft, adult: e.target.checked})} /> Conteúdo adulto (+18)</label>
             <label className="check"><input type="checkbox" checked={draft.enabled} onChange={e => setDraft({...draft, enabled: e.target.checked})} /> Ativa</label>
           </div>
+          {missingMetadata(draft).length > 0 && <p className="issue warning">Falta informar: {missingMetadata(draft).map(metadataLabel).join(', ')}.
+            Use "qualquer" ou deixe os apoios vazios quando a opção não exigir nada.</p>}
           {['pose', 'action', 'expression', 'subject'].includes(draft.category) && (
             <fieldset><legend>Metadados (usados nas regras)</legend>
               {draft.category !== 'expression' && <label>Pessoas<input type="number" min={1} max={10} value={draft.requirements.participants ?? ''}
@@ -132,6 +143,8 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
               {['pose', 'action'].includes(draft.category) && <>
                 <label>Enquadramento mínimo<select value={draft.requirements.minimum_framing ?? ''}
                   onChange={e => req('minimum_framing', e.target.value)}>{FRAMINGS.map(p => <option key={p} value={p}>{p || 'nenhum'}</option>)}</select></label>
+                <label className="check"><input type="checkbox" checked={Array.isArray(draft.requirements.support_any_of) && draft.requirements.support_any_of.length === 0}
+                  onChange={e => req('support_any_of', e.target.checked ? [] : '')} /> Nenhum apoio necessário</label>
                 <div className="checks" role="group" aria-label="Apoios aceitos">{SUPPORTS.map(s => (
                   <label key={s} className="check"><input type="checkbox" checked={!!draft.requirements.support_any_of?.includes(s)}
                     onChange={e => {
