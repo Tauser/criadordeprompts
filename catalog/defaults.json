@@ -66,8 +66,8 @@
    "id": "environment.loft",
    "category": "environment",
    "label": "Apartamento contemporâneo",
-   "prompt": "a refined contemporary apartment with clean architecture",
-   "prompt_pt": "um apartamento contemporâneo elegante e de arquitetura limpa",
+   "prompt": "a contemporary apartment with white walls, light oak floors, a low linen sofa, a floor lamp and large windows with sheer curtains",
+   "prompt_pt": "um apartamento contemporâneo com paredes brancas, piso de carvalho claro, sofá baixo de linho, luminária de chão e janelas amplas com cortinas leves",
    "adult": false,
    "enabled": true,
    "requirements": {
@@ -91,8 +91,8 @@
    "id": "environment.studio",
    "category": "environment",
    "label": "Estúdio fotográfico",
-   "prompt": "a minimal professional photography studio",
-   "prompt_pt": "um estúdio fotográfico profissional e minimalista",
+   "prompt": "a minimal photography studio with a seamless light-grey backdrop, a large softbox and a wooden stool",
+   "prompt_pt": "um estúdio fotográfico minimalista com fundo infinito cinza-claro, um softbox grande e uma banqueta de madeira",
    "adult": false,
    "enabled": true,
    "requirements": {
@@ -115,8 +115,8 @@
    "id": "environment.bedroom",
    "category": "environment",
    "label": "Quarto elegante",
-   "prompt": "an elegant bedroom with soft neutral decor",
-   "prompt_pt": "um quarto elegante com decoração suave e neutra",
+   "prompt": "an elegant bedroom with a linen-covered bed, an upholstered headboard, brass bedside lamps and soft neutral decor",
+   "prompt_pt": "um quarto elegante com cama de roupa de linho, cabeceira estofada, abajures de latão e decoração neutra e suave",
    "adult": false,
    "enabled": true,
    "requirements": {
@@ -141,8 +141,8 @@
    "id": "environment.street",
    "category": "environment",
    "label": "Rua urbana",
-   "prompt": "a realistic urban street with natural depth",
-   "prompt_pt": "uma rua urbana realista com profundidade natural",
+   "prompt": "a city street with brick buildings, shop windows, parked bicycles and a sidewalk receding into the distance",
+   "prompt_pt": "uma rua da cidade com prédios de tijolo, vitrines, bicicletas estacionadas e a calçada se afastando ao fundo",
    "adult": false,
    "enabled": true,
    "requirements": {
@@ -164,8 +164,8 @@
    "id": "environment.garden",
    "category": "environment",
    "label": "Jardim natural",
-   "prompt": "a lush garden with natural details",
-   "prompt_pt": "um jardim exuberante com detalhes naturais",
+   "prompt": "a lush garden with flowering shrubs, a stone path, a wooden bench and dappled sunlight through the leaves",
+   "prompt_pt": "um jardim exuberante com arbustos floridos, caminho de pedra, banco de madeira e luz do sol filtrada pelas folhas",
    "adult": false,
    "enabled": true,
    "requirements": {
@@ -187,8 +187,8 @@
    "id": "environment.neutral",
    "category": "environment",
    "label": "Fundo neutro",
-   "prompt": "a seamless neutral studio backdrop",
-   "prompt_pt": "um fundo neutro e contínuo de estúdio",
+   "prompt": "a seamless warm-grey backdrop with a soft curve from floor to wall",
+   "prompt_pt": "um fundo infinito cinza quente com curva suave do chão para a parede",
    "adult": false,
    "enabled": true,
    "requirements": {
@@ -2947,8 +2947,8 @@
    "id": "camera.front",
    "category": "camera",
    "label": "Frontal",
-   "prompt": "eye-level front camera view",
-   "prompt_pt": "câmera frontal na altura dos olhos",
+   "prompt": "camera at eye level directly in front of the person, the lens pointing straight at the face",
+   "prompt_pt": "câmera na altura dos olhos bem à frente da pessoa, com a lente apontada direto para o rosto",
    "adult": false,
    "enabled": true,
    "requirements": {
@@ -2967,8 +2967,8 @@
    "id": "camera.threequarter",
    "category": "camera",
    "label": "Três quartos",
-   "prompt": "natural three-quarter camera angle",
-   "prompt_pt": "ângulo natural de três quartos",
+   "prompt": "camera at eye level about forty-five degrees to one side, showing three quarters of the face",
+   "prompt_pt": "câmera na altura dos olhos, cerca de quarenta e cinco graus para um lado, mostrando três quartos do rosto",
    "adult": false,
    "enabled": true,
    "requirements": {
@@ -2987,8 +2987,8 @@
    "id": "camera.side",
    "category": "camera",
    "label": "Perfil lateral",
-   "prompt": "natural side-profile camera angle",
-   "prompt_pt": "ângulo lateral de perfil natural",
+   "prompt": "camera at eye level at ninety degrees to the person, showing a clean side profile",
+   "prompt_pt": "câmera na altura dos olhos a noventa graus da pessoa, mostrando o perfil lateral limpo",
    "adult": false,
    "enabled": true,
    "requirements": {
@@ -3007,8 +3007,8 @@
    "id": "camera.low",
    "category": "camera",
    "label": "Ângulo baixo",
-   "prompt": "subtle low-angle camera perspective",
-   "prompt_pt": "perspectiva de câmera discretamente baixa",
+   "prompt": "camera slightly below chest height, angled about fifteen degrees upward",
+   "prompt_pt": "câmera um pouco abaixo da altura do peito, inclinada cerca de quinze graus para cima",
    "adult": false,
    "enabled": true,
    "requirements": {
@@ -3027,8 +3027,8 @@
    "id": "camera.high",
    "category": "camera",
    "label": "Ângulo alto",
-   "prompt": "subtle high-angle camera perspective",
-   "prompt_pt": "perspectiva de câmera discretamente elevada",
+   "prompt": "camera slightly above head height, angled about fifteen degrees downward",
+   "prompt_pt": "câmera um pouco acima da altura da cabeça, inclinada cerca de quinze graus para baixo",
    "adult": false,
    "enabled": true,
    "requirements": {
@@ -3127,8 +3127,8 @@
    "id": "lighting.soft",
    "category": "lighting",
    "label": "Suave e natural",
-   "prompt": "soft daylight, natural skin response and gentle believable shadows",
-   "prompt_pt": "luz natural suave, resposta natural da pele e sombras delicadas e críveis",
+   "prompt": "soft diffused daylight from a large source, with gentle shadows and true-to-life skin tones",
+   "prompt_pt": "luz do dia difusa e suave vinda de uma fonte grande, com sombras delicadas e tons de pele fiéis",
    "adult": false,
    "enabled": true,
    "requirements": {
@@ -3147,8 +3147,8 @@
    "id": "lighting.studio",
    "category": "lighting",
    "label": "Estúdio profissional",
-   "prompt": "professional controlled studio lighting, subtle catchlights and balanced shadows",
-   "prompt_pt": "iluminação profissional de estúdio, reflexos suaves e sombras equilibradas",
+   "prompt": "professional three-point studio lighting: a large soft key light, gentle fill and a subtle hair light, with clear catchlights in the eyes",
+   "prompt_pt": "iluminação de estúdio profissional em três pontos: luz principal grande e suave, preenchimento delicado e luz de cabelo sutil, com brilho nítido nos olhos",
    "adult": false,
    "enabled": true,
    "requirements": {
@@ -3167,8 +3167,8 @@
    "id": "lighting.golden",
    "category": "lighting",
    "label": "Luz dourada",
-   "prompt": "golden-hour directional light with warm natural highlights",
-   "prompt_pt": "luz direcional de fim de tarde com realces quentes e naturais",
+   "prompt": "low golden-hour sunlight from one side, with long warm shadows and a warm glow on skin and hair",
+   "prompt_pt": "sol baixo da hora dourada vindo de um lado, com sombras longas e quentes e um brilho dourado na pele e no cabelo",
    "adult": false,
    "enabled": true,
    "requirements": {
@@ -3187,8 +3187,8 @@
    "id": "lighting.moody",
    "category": "lighting",
    "label": "Cinematográfica dramática",
-   "prompt": "cinematic low-key lighting with controlled contrast",
-   "prompt_pt": "iluminação cinematográfica dramática com contraste controlado",
+   "prompt": "low-key cinematic lighting with a single hard key light, deep shadows and controlled contrast",
+   "prompt_pt": "iluminação cinematográfica de tom baixo com uma única luz principal dura, sombras profundas e contraste controlado",
    "adult": false,
    "enabled": true,
    "requirements": {
@@ -3207,8 +3207,8 @@
    "id": "lighting.night",
    "category": "lighting",
    "label": "Noite urbana",
-   "prompt": "natural nighttime practical lights with plausible reflections",
-   "prompt_pt": "luzes noturnas naturais com reflexos plausíveis",
+   "prompt": "a nighttime scene lit by street lamps, shop windows and passing car lights, with colored reflections",
+   "prompt_pt": "cena noturna iluminada por postes, vitrines e faróis de carros, com reflexos coloridos",
    "adult": false,
    "enabled": true,
    "requirements": {
@@ -3756,6 +3756,2496 @@
     "posture": "any",
     "gaze": "any",
     "support_any_of": [],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "subject.young_woman",
+   "category": "subject",
+   "label": "Mulher jovem adulta",
+   "prompt": "one fictional young adult woman in her late twenties",
+   "prompt_pt": "uma mulher jovem adulta fictícia, com cerca de vinte e oito anos",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "subject.young_man",
+   "category": "subject",
+   "label": "Homem jovem adulto",
+   "prompt": "one fictional young adult man in his late twenties",
+   "prompt_pt": "um homem jovem adulto fictício, com cerca de vinte e oito anos",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "subject.mature_woman",
+   "category": "subject",
+   "label": "Mulher madura",
+   "prompt": "one fictional woman in her sixties, with natural silver hair and expressive smile lines",
+   "prompt_pt": "uma mulher fictícia de uns sessenta anos, com cabelo grisalho natural e linhas de expressão ao sorrir",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "subject.mature_man",
+   "category": "subject",
+   "label": "Homem maduro",
+   "prompt": "one fictional man in his sixties, with a trimmed grey beard and weathered skin",
+   "prompt_pt": "um homem fictício de uns sessenta anos, com barba grisalha aparada e pele marcada pelo tempo",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "subject.mature_couple",
+   "category": "subject",
+   "label": "Casal maduro",
+   "prompt": "two fictional adults in their fifties, a long-time couple standing close together",
+   "prompt_pt": "dois adultos fictícios na casa dos cinquenta, um casal de longa data lado a lado",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "subject.group_three",
+   "category": "subject",
+   "label": "Grupo de três amigos",
+   "prompt": "three fictional adult friends in their thirties, each with a distinct face, hairstyle and outfit",
+   "prompt_pt": "três amigos adultos fictícios na casa dos trinta, cada um com rosto, penteado e roupa diferentes",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 3,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "subject.painter",
+   "category": "subject",
+   "label": "Artista pintor(a)",
+   "prompt": "one fictional adult painter with paint-stained fingers and a canvas apron",
+   "prompt_pt": "uma pessoa adulta fictícia que pinta, com dedos manchados de tinta e avental de lona",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "subject.athlete",
+   "category": "subject",
+   "label": "Atleta",
+   "prompt": "one fictional adult athlete with a lean, strong build and a focused presence",
+   "prompt_pt": "uma pessoa atleta adulta fictícia, de corpo enxuto e forte e presença concentrada",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.cafe",
+   "category": "environment",
+   "label": "Café de esquina",
+   "prompt": "a small corner café with marble tables, bentwood chairs, a chalkboard menu and morning light through the front window",
+   "prompt_pt": "um pequeno café de esquina com mesas de mármore, cadeiras de madeira curvada, cardápio em lousa e luz da manhã entrando pela vitrine",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "seat",
+     "wall",
+     "table"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.desert",
+   "category": "environment",
+   "label": "Deserto · dunas",
+   "prompt": "rolling sand dunes under a clear sky, with long wind ripples across the sand",
+   "prompt_pt": "dunas de areia ondulantes sob céu limpo, com longas marcas de vento na areia",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.mountain",
+   "category": "environment",
+   "label": "Mirante na montanha",
+   "prompt": "a rocky mountain overlook above a pine valley, with distant ridges fading into blue haze",
+   "prompt_pt": "um mirante rochoso acima de um vale de pinheiros, com cordilheiras distantes se perdendo na névoa azulada",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.snow",
+   "category": "environment",
+   "label": "Floresta nevada",
+   "prompt": "a snowy pine forest with fresh powder on the branches and soft winter haze",
+   "prompt_pt": "uma floresta de pinheiros nevada, com neve fresca nos galhos e névoa suave de inverno",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.gallery",
+   "category": "environment",
+   "label": "Galeria de arte",
+   "prompt": "a white-walled art gallery with large framed paintings, a polished concrete floor and track lighting",
+   "prompt_pt": "uma galeria de arte de paredes brancas com grandes quadros emoldurados, piso de concreto polido e iluminação de trilho",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "seat",
+     "wall"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.subway",
+   "category": "environment",
+   "label": "Estação de metrô",
+   "prompt": "an underground subway platform with tiled walls, a waiting train and fluorescent strip lights",
+   "prompt_pt": "uma plataforma de metrô subterrânea com paredes de azulejo, um trem parado e luzes fluorescentes",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "seat",
+     "wall"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.market",
+   "category": "environment",
+   "label": "Feira de rua",
+   "prompt": "an open-air street market with fruit stalls, striped awnings and wooden crates of produce",
+   "prompt_pt": "uma feira de rua ao ar livre com bancas de frutas, toldos listrados e caixotes de madeira com hortaliças",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "seat",
+     "wall",
+     "table"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.greenhouse",
+   "category": "environment",
+   "label": "Estufa de plantas",
+   "prompt": "a glass greenhouse full of tropical plants, hanging ferns and white wrought-iron frames",
+   "prompt_pt": "uma estufa de vidro cheia de plantas tropicais, samambaias penduradas e estrutura de ferro branco",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "seat",
+     "table"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.vintage_room",
+   "category": "environment",
+   "label": "Sala vintage",
+   "prompt": "a vintage living room with patterned wallpaper, a velvet armchair, dark wood furniture and warm table lamps",
+   "prompt_pt": "uma sala vintage com papel de parede estampado, poltrona de veludo, móveis de madeira escura e abajures de luz quente",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "seat",
+     "wall",
+     "table"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.neon_alley",
+   "category": "environment",
+   "label": "Beco neon",
+   "prompt": "a narrow city alley at night with neon signs, wet asphalt and steam rising from a street grate",
+   "prompt_pt": "um beco estreito da cidade à noite com letreiros de neon, asfalto molhado e vapor saindo de uma grade",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "wall"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.lake_dock",
+   "category": "environment",
+   "label": "Píer no lago",
+   "prompt": "a wooden dock over a calm lake at dawn, with mist on the water and pine trees on the far shore",
+   "prompt_pt": "um píer de madeira sobre um lago calmo ao amanhecer, com névoa sobre a água e pinheiros na outra margem",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "seat"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.warehouse",
+   "category": "environment",
+   "label": "Galpão industrial",
+   "prompt": "an industrial loft with exposed steel beams, tall factory windows and worn concrete floors",
+   "prompt_pt": "um galpão industrial com vigas de aço aparentes, janelas altas de fábrica e piso de concreto gasto",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "seat",
+     "wall",
+     "table"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.ballroom",
+   "category": "environment",
+   "label": "Salão clássico",
+   "prompt": "a classical ballroom with crystal chandeliers, gilded mouldings and a polished parquet floor",
+   "prompt_pt": "um salão clássico com lustres de cristal, molduras douradas e piso de parquê polido",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "seat",
+     "wall"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.office",
+   "category": "environment",
+   "label": "Escritório moderno",
+   "prompt": "a modern office with a walnut desk, an ergonomic chair, bookshelves and floor-to-ceiling windows over the city",
+   "prompt_pt": "um escritório moderno com mesa de nogueira, cadeira ergonômica, estantes e janelas do chão ao teto com vista para a cidade",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "seat",
+     "wall",
+     "table"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.rooftop_night",
+   "category": "environment",
+   "label": "Cobertura à noite",
+   "prompt": "a rooftop at night with string lights, potted plants and a glittering city skyline",
+   "prompt_pt": "uma cobertura à noite com varal de luzes, vasos de plantas e o horizonte da cidade iluminado",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor",
+     "seat",
+     "wall",
+     "table"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "environment.vineyard",
+   "category": "environment",
+   "label": "Vinhedo ao entardecer",
+   "prompt": "rows of grapevines on rolling hills at sunset, with a stone farmhouse in the distance",
+   "prompt_pt": "fileiras de videiras em colinas ondulantes ao pôr do sol, com uma casa de pedra ao longe",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": [
+     "floor"
+    ],
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.contrapposto",
+   "category": "pose",
+   "label": "Em pé · contrapposto",
+   "prompt": "standing in contrapposto: weight on the right leg with the right hip raised, the left knee relaxed and slightly forward, shoulders tilted opposite to the hips and both arms hanging loosely",
+   "prompt_pt": "em pé em contrapposto: peso na perna direita com o quadril direito elevado, joelho esquerdo relaxado e levemente à frente, ombros inclinados no sentido oposto ao quadril e os braços soltos",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "standing",
+    "gaze": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.hands_pockets",
+   "category": "pose",
+   "label": "Em pé · mãos nos bolsos",
+   "prompt": "standing upright with both hands in the front trouser pockets, thumbs outside, elbows relaxed and feet shoulder-width apart",
+   "prompt_pt": "em pé ereto com as duas mãos nos bolsos da frente, polegares para fora, cotovelos relaxados e pés afastados na largura dos ombros",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "standing",
+    "gaze": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.crouch",
+   "category": "pose",
+   "label": "Agachado",
+   "prompt": "crouching low with both knees deeply bent, feet flat on the ground, forearms resting on the knees and the back straight",
+   "prompt_pt": "agachado com os dois joelhos bem dobrados, pés apoiados no chão, antebraços sobre os joelhos e as costas retas",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.railing",
+   "category": "pose",
+   "label": "Apoiado no parapeito",
+   "prompt": "standing and leaning forward with both forearms resting on a railing, one foot crossed behind the other at the ankle",
+   "prompt_pt": "em pé, inclinado para a frente com os dois antebraços apoiados num parapeito, um pé cruzado atrás do outro na altura do tornozelo",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "standing",
+    "gaze": "any",
+    "support_any_of": [
+     "wall",
+     "table"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.stool",
+   "category": "pose",
+   "label": "Banqueta alta",
+   "prompt": "sitting on a tall stool with one foot on the footrest, the other leg extended down to the floor and both hands resting on the front edge of the seat",
+   "prompt_pt": "sentado numa banqueta alta com um pé no apoio, a outra perna estendida até o chão e as duas mãos na borda da frente do assento",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "seated",
+    "gaze": "any",
+    "support_any_of": [
+     "seat"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.stairs",
+   "category": "pose",
+   "label": "Sentado na escada",
+   "prompt": "sitting on a step of a staircase with forearms resting on the knees and hands loosely clasped between the knees",
+   "prompt_pt": "sentado num degrau de escada com os antebraços sobre os joelhos e as mãos levemente entrelaçadas entre os joelhos",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "seated",
+    "gaze": "any",
+    "support_any_of": [
+     "floor",
+     "seat"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.hug_knees",
+   "category": "pose",
+   "label": "Abraçando os joelhos",
+   "prompt": "sitting on the floor with the knees drawn up to the chest, both arms wrapped around the shins and the chin resting near the knees",
+   "prompt_pt": "sentado no chão com os joelhos puxados até o peito, os dois braços envolvendo as canelas e o queixo perto dos joelhos",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "seated",
+    "gaze": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.chin_hand",
+   "category": "pose",
+   "label": "Mão no queixo",
+   "prompt": "sitting at a table with one elbow on the tabletop, the chin resting on that hand and the other hand flat on the table",
+   "prompt_pt": "sentado à mesa com um cotovelo sobre o tampo, o queixo apoiado nessa mão e a outra mão espalmada sobre a mesa",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "seated",
+    "gaze": "any",
+    "support_any_of": [
+     "table"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.sky_gazing",
+   "category": "pose",
+   "label": "Deitado olhando o céu",
+   "prompt": "lying on the back with both hands folded behind the head, legs extended and ankles crossed, face turned up toward the sky",
+   "prompt_pt": "deitado de costas com as duas mãos cruzadas atrás da cabeça, pernas estendidas e tornozelos cruzados, rosto voltado para o céu",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "lying",
+    "gaze": "up",
+    "support_any_of": [
+     "floor",
+     "bed"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.jump",
+   "category": "pose",
+   "label": "Salto no ar",
+   "prompt": "caught mid-jump with both feet off the ground, knees bent and both arms raised above the head",
+   "prompt_pt": "flagrado no meio de um salto com os dois pés fora do chão, joelhos dobrados e os dois braços erguidos acima da cabeça",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.run",
+   "category": "pose",
+   "label": "Corrida",
+   "prompt": "running at full stride with the front knee lifted high, the back leg extended behind and both arms bent at ninety degrees and swinging",
+   "prompt_pt": "correndo em passada larga com o joelho da frente bem erguido, a perna de trás estendida e os dois braços dobrados em noventa graus balançando",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "running",
+    "gaze": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "pose.wall_profile",
+   "category": "pose",
+   "label": "Perfil · ombro na parede",
+   "prompt": "standing in profile with one shoulder against a wall, arms loosely crossed and the outer foot crossed in front of the inner foot",
+   "prompt_pt": "em pé de perfil com um ombro encostado na parede, braços cruzados de leve e o pé de fora cruzado à frente do pé de dentro",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "standing",
+    "gaze": "any",
+    "support_any_of": [
+     "wall"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "expression.joy",
+   "category": "expression",
+   "label": "Alegria radiante",
+   "prompt": "a wide open smile showing the upper teeth, raised cheeks and crinkled eyes",
+   "prompt_pt": "um sorriso largo mostrando os dentes de cima, bochechas erguidas e olhos apertados de alegria",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": "any",
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "expression.determined",
+   "category": "expression",
+   "label": "Determinado",
+   "prompt": "a firm jaw, slightly lowered brows and a focused gaze straight into the camera",
+   "prompt_pt": "mandíbula firme, sobrancelhas levemente baixas e olhar concentrado direto para a câmera",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": "camera",
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "expression.melancholy",
+   "category": "expression",
+   "label": "Melancólico",
+   "prompt": "softly downturned mouth corners, relaxed brows and eyes looking down",
+   "prompt_pt": "cantos da boca levemente caídos, sobrancelhas relaxadas e olhos voltados para baixo",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": "down",
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "expression.curious",
+   "category": "expression",
+   "label": "Curioso",
+   "prompt": "one eyebrow slightly raised, the head tilted a little to one side and lips gently pressed together",
+   "prompt_pt": "uma sobrancelha levemente erguida, a cabeça um pouco inclinada para o lado e os lábios suavemente apertados",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": "any",
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "expression.playful",
+   "category": "expression",
+   "label": "Sorriso travesso",
+   "prompt": "a lopsided half smile with one corner of the mouth raised and slightly narrowed eyes looking at the camera",
+   "prompt_pt": "um meio sorriso torto com um canto da boca erguido e olhos levemente semicerrados olhando para a câmera",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": "camera",
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "expression.dreamy",
+   "category": "expression",
+   "label": "Sonhador",
+   "prompt": "a faint smile, relaxed eyelids and eyes gazing upward",
+   "prompt_pt": "um sorriso leve, pálpebras relaxadas e olhos voltados para cima",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": "up",
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "expression.focused",
+   "category": "expression",
+   "label": "Concentrado",
+   "prompt": "slightly narrowed eyes, brows drawn together and lips closed in concentration",
+   "prompt_pt": "olhos levemente semicerrados, sobrancelhas franzidas e lábios fechados em concentração",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": "any",
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "expression.stifled_laugh",
+   "category": "expression",
+   "label": "Segurando o riso",
+   "prompt": "a suppressed laugh with closed lips curving upward and eyes squinting with amusement",
+   "prompt_pt": "um riso contido com os lábios fechados curvados para cima e os olhos apertados de diversão",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": "any",
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.paint",
+   "category": "action",
+   "label": "Pintar numa tela",
+   "prompt": "painting on a canvas on an easel, holding a brush in the right hand and a wooden palette in the left hand",
+   "prompt_pt": "pintando uma tela num cavalete, com um pincel na mão direita e uma paleta de madeira na mão esquerda",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "away",
+    "support_any_of": [],
+    "minimum_framing": "half"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.guitar",
+   "category": "action",
+   "label": "Tocar violão",
+   "prompt": "playing an acoustic guitar, the left hand fretting a chord on the neck and the right hand strumming over the sound hole",
+   "prompt_pt": "tocando violão, a mão esquerda formando um acorde no braço e a mão direita dedilhando sobre a boca do instrumento",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": "half"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.photograph",
+   "category": "action",
+   "label": "Fotografar",
+   "prompt": "holding a camera up to the right eye with both hands, the right index finger on the shutter button",
+   "prompt_pt": "segurando uma câmera junto ao olho direito com as duas mãos, o indicador direito no botão do obturador",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": "half"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.umbrella",
+   "category": "action",
+   "label": "Segurar guarda-chuva",
+   "prompt": "holding an open umbrella above the head with the right hand gripping the handle",
+   "prompt_pt": "segurando um guarda-chuva aberto acima da cabeça, com a mão direita no cabo",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.write",
+   "category": "action",
+   "label": "Escrever num caderno",
+   "prompt": "writing in an open notebook with a pen in the right hand while the left hand holds the page flat",
+   "prompt_pt": "escrevendo num caderno aberto com uma caneta na mão direita enquanto a mão esquerda segura a página",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "down",
+    "support_any_of": [],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.flowers",
+   "category": "action",
+   "label": "Segurar flores",
+   "prompt": "holding a bouquet of fresh flowers in both hands at chest height",
+   "prompt_pt": "segurando um buquê de flores frescas com as duas mãos na altura do peito",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.stretch",
+   "category": "action",
+   "label": "Alongar os braços",
+   "prompt": "stretching both arms straight overhead with the fingers interlaced and the palms facing up",
+   "prompt_pt": "alongando os dois braços esticados acima da cabeça com os dedos entrelaçados e as palmas para cima",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": "half"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.laptop",
+   "category": "action",
+   "label": "Usar o notebook",
+   "prompt": "typing on an open laptop with both hands, eyes on the screen",
+   "prompt_pt": "digitando num notebook aberto com as duas mãos, olhos na tela",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "down",
+    "support_any_of": [
+     "table",
+     "seat"
+    ],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.coat",
+   "category": "action",
+   "label": "Vestir o casaco",
+   "prompt": "pulling a coat over the shoulders, one arm already in its sleeve and the other hand holding the collar",
+   "prompt_pt": "vestindo um casaco pelos ombros, um braço já na manga e a outra mão segurando a gola",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": "half"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.wind_hair",
+   "category": "action",
+   "label": "Cabelo ao vento",
+   "prompt": "hair blown sideways by the wind, one hand rising to hold strands away from the face",
+   "prompt_pt": "cabelo soprado para o lado pelo vento, uma mão subindo para afastar os fios do rosto",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 1,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.high_five",
+   "category": "action",
+   "label": "Toca aqui (dois adultos)",
+   "prompt": "two adults giving each other a high five, their right palms meeting above shoulder height, both smiling",
+   "prompt_pt": "dois adultos batendo as mãos no alto, as palmas direitas se encontrando acima da altura dos ombros, os dois sorrindo",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": "half"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.walk_together",
+   "category": "action",
+   "label": "Caminhar juntos (dois adultos)",
+   "prompt": "two adults walking side by side in step, their arms linked at the elbows",
+   "prompt_pt": "dois adultos caminhando lado a lado no mesmo passo, de braços dados",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "walking",
+    "gaze": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "action.toast",
+   "category": "action",
+   "label": "Brindar (dois adultos)",
+   "prompt": "two adults raising glasses toward each other until the rims touch at eye level",
+   "prompt_pt": "dois adultos erguendo as taças um para o outro até as bordas se tocarem na altura dos olhos",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "any",
+    "gaze": "any",
+    "support_any_of": [],
+    "minimum_framing": "half"
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "lighting.rembrandt",
+   "category": "lighting",
+   "label": "Rembrandt",
+   "prompt": "Rembrandt lighting: a single key light high and to one side, leaving a small triangle of light on the shadowed cheek",
+   "prompt_pt": "luz Rembrandt: uma única luz principal alta e lateral, deixando um pequeno triângulo de luz na bochecha sombreada",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "lighting.butterfly",
+   "category": "lighting",
+   "label": "Borboleta · glamour",
+   "prompt": "butterfly lighting from directly in front of and above the face, with a small shadow under the nose and bright cheekbones",
+   "prompt_pt": "luz borboleta vinda de frente e de cima do rosto, com uma pequena sombra sob o nariz e maçãs do rosto iluminadas",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "lighting.rim",
+   "category": "lighting",
+   "label": "Contraluz com recorte",
+   "prompt": "strong backlight outlining the hair and shoulders with a bright rim, and soft fill light on the face",
+   "prompt_pt": "contraluz forte contornando o cabelo e os ombros com uma borda brilhante, e luz de preenchimento suave no rosto",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "lighting.window",
+   "category": "lighting",
+   "label": "Luz de janela",
+   "prompt": "soft directional daylight from a large side window, falling off gradually into shadow on the far side",
+   "prompt_pt": "luz do dia suave e direcional vinda de uma grande janela lateral, diminuindo aos poucos até a sombra do outro lado",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "lighting.overcast",
+   "category": "lighting",
+   "label": "Dia nublado",
+   "prompt": "even overcast daylight with no hard shadows and muted, true-to-life colors",
+   "prompt_pt": "luz uniforme de dia nublado, sem sombras duras e com cores suaves e fiéis",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "lighting.neon",
+   "category": "lighting",
+   "label": "Neon colorido",
+   "prompt": "magenta and cyan neon light from opposite sides, with colored reflections on skin and surfaces",
+   "prompt_pt": "luz neon magenta e ciano vinda de lados opostos, com reflexos coloridos na pele e nas superfícies",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "lighting.candle",
+   "category": "lighting",
+   "label": "Luz de velas",
+   "prompt": "warm candlelight from below and to one side, deep amber tones and softly dark surroundings",
+   "prompt_pt": "luz de velas quente vinda de baixo e de um lado, tons âmbar profundos e arredores suavemente escuros",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "lighting.blue_hour",
+   "category": "lighting",
+   "label": "Hora azul",
+   "prompt": "deep blue twilight from the sky, with warm artificial lights glowing in the background",
+   "prompt_pt": "crepúsculo azul profundo vindo do céu, com luzes artificiais quentes brilhando ao fundo",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "lighting.noon",
+   "category": "lighting",
+   "label": "Sol do meio-dia",
+   "prompt": "hard midday sunlight from above, with crisp short shadows and high contrast",
+   "prompt_pt": "sol forte do meio-dia vindo de cima, com sombras curtas e nítidas e alto contraste",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "lighting.split",
+   "category": "lighting",
+   "label": "Luz dividida",
+   "prompt": "split lighting with one half of the face fully lit and the other half in shadow",
+   "prompt_pt": "luz dividida, com metade do rosto totalmente iluminada e a outra metade na sombra",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "lighting.haze_beams",
+   "category": "lighting",
+   "label": "Neblina com feixes",
+   "prompt": "a hazy atmosphere with visible beams of light cutting through the mist",
+   "prompt_pt": "atmosfera enevoada com feixes de luz visíveis atravessando a névoa",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "face.oval",
+   "category": "face",
+   "label": "Rosto oval suave",
+   "prompt": "an oval face with soft cheekbones, a gently rounded chin and balanced proportions",
+   "prompt_pt": "rosto oval com maçãs suaves, queixo levemente arredondado e proporções equilibradas",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "face.angular",
+   "category": "face",
+   "label": "Traços angulosos",
+   "prompt": "an angular face with high cheekbones, a defined jawline and a straight nose",
+   "prompt_pt": "rosto anguloso com maçãs altas, mandíbula definida e nariz reto",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "face.round",
+   "category": "face",
+   "label": "Rosto redondo",
+   "prompt": "a round face with full cheeks, a soft jaw and a small rounded chin",
+   "prompt_pt": "rosto redondo com bochechas cheias, mandíbula suave e queixo pequeno e arredondado",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "face.freckles",
+   "category": "face",
+   "label": "Sardas",
+   "prompt": "a light scattering of natural freckles across the nose and cheeks",
+   "prompt_pt": "sardas naturais espalhadas de leve pelo nariz e pelas bochechas",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "face.bold_brows",
+   "category": "face",
+   "label": "Sobrancelhas marcantes",
+   "prompt": "thick, softly shaped dark eyebrows framing deep-set eyes",
+   "prompt_pt": "sobrancelhas escuras e grossas, de formato suave, emoldurando olhos profundos",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "face.short_beard",
+   "category": "face",
+   "label": "Barba curta",
+   "prompt": "a short, neatly trimmed full beard with a clean cheek line",
+   "prompt_pt": "barba cheia curta e bem aparada, com a linha da bochecha definida",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "face.mustache",
+   "category": "face",
+   "label": "Bigode",
+   "prompt": "a well-groomed mustache with a clean-shaven chin and cheeks",
+   "prompt_pt": "bigode bem cuidado, com queixo e bochechas barbeados",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "face.natural_makeup",
+   "category": "face",
+   "label": "Maquiagem natural",
+   "prompt": "subtle natural makeup: even skin, a soft blush, defined lashes and tinted lips",
+   "prompt_pt": "maquiagem natural discreta: pele uniforme, blush suave, cílios definidos e lábios levemente coloridos",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "face.bold_makeup",
+   "category": "face",
+   "label": "Maquiagem marcante",
+   "prompt": "bold makeup with sharp winged eyeliner and deep red lipstick",
+   "prompt_pt": "maquiagem marcante com delineado gatinho bem definido e batom vermelho intenso",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "face.dimples",
+   "category": "face",
+   "label": "Covinhas",
+   "prompt": "deep dimples in both cheeks",
+   "prompt_pt": "covinhas marcadas nas duas bochechas",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "skin.natural_texture",
+   "category": "skin",
+   "label": "Textura natural",
+   "prompt": "natural skin texture with visible pores, fine lines and subtle variation in tone, without airbrushing",
+   "prompt_pt": "textura de pele natural com poros visíveis, linhas finas e leve variação de tom, sem retoque",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "skin.fair",
+   "category": "skin",
+   "label": "Pele clara",
+   "prompt": "fair skin with cool undertones and a light rosy flush on the cheeks",
+   "prompt_pt": "pele clara com subtom frio e um leve rosado nas bochechas",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "skin.olive",
+   "category": "skin",
+   "label": "Pele oliva",
+   "prompt": "medium olive skin with warm golden undertones",
+   "prompt_pt": "pele oliva média com subtom dourado e quente",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "skin.brown",
+   "category": "skin",
+   "label": "Pele morena",
+   "prompt": "warm medium-brown skin with an even, healthy tone",
+   "prompt_pt": "pele morena média e quente, de tom uniforme e saudável",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "skin.deep",
+   "category": "skin",
+   "label": "Pele negra",
+   "prompt": "deep dark-brown skin with rich warm undertones and a natural sheen",
+   "prompt_pt": "pele negra retinta com subtom quente e rico e brilho natural",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "skin.sunkissed",
+   "category": "skin",
+   "label": "Bronzeada",
+   "prompt": "sun-kissed tanned skin with a warm glow",
+   "prompt_pt": "pele bronzeada pelo sol, com brilho quente",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "skin.dewy",
+   "category": "skin",
+   "label": "Pele luminosa",
+   "prompt": "a dewy, softly luminous skin finish with gentle highlights on the cheekbones",
+   "prompt_pt": "acabamento de pele luminoso e viçoso, com brilho suave nas maçãs do rosto",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "skin.matte",
+   "category": "skin",
+   "label": "Pele matte",
+   "prompt": "a matte skin finish with minimal shine and an even texture",
+   "prompt_pt": "acabamento de pele matte, com pouco brilho e textura uniforme",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "skin.mature",
+   "category": "skin",
+   "label": "Pele madura",
+   "prompt": "mature skin with natural wrinkles around the eyes and mouth and fine texture",
+   "prompt_pt": "pele madura com rugas naturais ao redor dos olhos e da boca e textura fina",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "skin.vitiligo",
+   "category": "skin",
+   "label": "Vitiligo",
+   "prompt": "skin with natural vitiligo patches of lighter pigmentation",
+   "prompt_pt": "pele com manchas naturais de vitiligo, de pigmentação mais clara",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "camera.lens_50",
+   "category": "camera",
+   "label": "Nível dos olhos · 50 mm",
+   "prompt": "eye-level camera with a natural 50 mm lens perspective",
+   "prompt_pt": "câmera na altura dos olhos com perspectiva natural de lente 50 mm",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "camera.lens_85",
+   "category": "camera",
+   "label": "Retrato · 85 mm",
+   "prompt": "85 mm portrait lens perspective with gentle background compression and a shallow depth of field",
+   "prompt_pt": "perspectiva de lente de retrato 85 mm, com leve compressão do fundo e pouca profundidade de campo",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "camera.lens_24",
+   "category": "camera",
+   "label": "Grande angular · 24 mm",
+   "prompt": "24 mm wide-angle perspective that shows more of the surroundings, with slight stretching at the edges",
+   "prompt_pt": "perspectiva grande angular de 24 mm que mostra mais do ambiente, com leve esticamento nas bordas",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "camera.top_down",
+   "category": "camera",
+   "label": "Vista de cima",
+   "prompt": "camera directly overhead, looking straight down",
+   "prompt_pt": "câmera bem acima, olhando direto para baixo",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "camera.dutch",
+   "category": "camera",
+   "label": "Ângulo holandês",
+   "prompt": "dutch angle, with the camera tilted about fifteen degrees",
+   "prompt_pt": "ângulo holandês, com a câmera inclinada cerca de quinze graus",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "camera.worm",
+   "category": "camera",
+   "label": "Contra-plongée extremo",
+   "prompt": "extreme low angle from near the ground, looking up",
+   "prompt_pt": "ângulo extremamente baixo, perto do chão, olhando para cima",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "camera.over_shoulder",
+   "category": "camera",
+   "label": "Sobre o ombro",
+   "prompt": "camera behind and slightly above one shoulder of the person, showing what they are looking at",
+   "prompt_pt": "câmera atrás e um pouco acima de um ombro da pessoa, mostrando o que ela está olhando",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "camera.macro",
+   "category": "camera",
+   "label": "Close de detalhe",
+   "prompt": "very close macro perspective with an extremely shallow depth of field",
+   "prompt_pt": "perspectiva macro bem próxima, com profundidade de campo extremamente rasa",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "camera.candid",
+   "category": "camera",
+   "label": "Fotojornalismo espontâneo",
+   "prompt": "candid handheld documentary perspective with a slightly off-center composition",
+   "prompt_pt": "perspectiva documental espontânea, de câmera na mão, com composição levemente descentralizada",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "body.slim",
+   "category": "body",
+   "label": "Corpo esguio",
+   "prompt": "a slim, slender build with narrow shoulders and long limbs",
+   "prompt_pt": "corpo esguio e magro, com ombros estreitos e membros longos",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "body.average",
+   "category": "body",
+   "label": "Corpo médio",
+   "prompt": "an average build with balanced proportions",
+   "prompt_pt": "corpo médio, de proporções equilibradas",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "body.athletic",
+   "category": "body",
+   "label": "Atlético",
+   "prompt": "an athletic build with defined shoulders, toned arms and a strong core",
+   "prompt_pt": "corpo atlético, com ombros definidos, braços tonificados e abdômen firme",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "body.muscular",
+   "category": "body",
+   "label": "Musculoso",
+   "prompt": "a muscular build with broad shoulders, thick arms and a powerful chest",
+   "prompt_pt": "corpo musculoso, com ombros largos, braços grossos e peitoral forte",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "body.curvy",
+   "category": "body",
+   "label": "Curvilíneo",
+   "prompt": "a curvy build with full hips and a defined waist",
+   "prompt_pt": "corpo curvilíneo, com quadris largos e cintura definida",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "body.plus",
+   "category": "body",
+   "label": "Plus size",
+   "prompt": "a plus-size build with soft, full proportions",
+   "prompt_pt": "corpo plus size, de proporções cheias e macias",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "body.tall",
+   "category": "body",
+   "label": "Alto e longilíneo",
+   "prompt": "a tall, long-limbed build with an elongated silhouette",
+   "prompt_pt": "corpo alto e longilíneo, de silhueta alongada",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "body.petite",
+   "category": "body",
+   "label": "Baixo e compacto",
+   "prompt": "a petite, compact build with short stature",
+   "prompt_pt": "corpo baixo e compacto, de estatura pequena",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "body.mature",
+   "category": "body",
+   "label": "Corpo maduro",
+   "prompt": "an older adult build with natural softness and a relaxed posture",
+   "prompt_pt": "corpo de adulto mais velho, com maciez natural e postura relaxada",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "hair.long_waves",
+   "category": "hair",
+   "label": "Longo ondulado",
+   "prompt": "long, loose wavy hair falling past the shoulders",
+   "prompt_pt": "cabelo longo, solto e ondulado, caindo abaixo dos ombros",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "hair.bob",
+   "category": "hair",
+   "label": "Chanel liso",
+   "prompt": "a sleek straight bob cut at chin length with a blunt edge",
+   "prompt_pt": "corte chanel liso na altura do queixo, com pontas retas",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "hair.pixie",
+   "category": "hair",
+   "label": "Pixie",
+   "prompt": "a short textured pixie cut with tapered sides",
+   "prompt_pt": "corte pixie curto e texturizado, com laterais afinadas",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "hair.curls",
+   "category": "hair",
+   "label": "Cacheado volumoso",
+   "prompt": "voluminous natural curls with defined ringlets",
+   "prompt_pt": "cachos naturais volumosos e bem definidos",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "hair.afro",
+   "category": "hair",
+   "label": "Crespo afro",
+   "prompt": "a full, rounded afro of tightly coiled natural hair",
+   "prompt_pt": "black power cheio e arredondado, de cabelo crespo natural",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "hair.box_braids",
+   "category": "hair",
+   "label": "Tranças box braids",
+   "prompt": "long box braids gathered behind the shoulders",
+   "prompt_pt": "tranças box braids longas, reunidas atrás dos ombros",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "hair.high_bun",
+   "category": "hair",
+   "label": "Coque alto",
+   "prompt": "hair pulled up into a neat high bun, with a few loose strands framing the face",
+   "prompt_pt": "cabelo preso num coque alto e arrumado, com alguns fios soltos emoldurando o rosto",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "hair.ponytail",
+   "category": "hair",
+   "label": "Rabo de cavalo",
+   "prompt": "hair tied back in a smooth high ponytail",
+   "prompt_pt": "cabelo preso num rabo de cavalo alto e liso",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "hair.buzz",
+   "category": "hair",
+   "label": "Raspado",
+   "prompt": "a very short, even buzz cut",
+   "prompt_pt": "cabelo raspado bem curto e uniforme",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "hair.undercut",
+   "category": "hair",
+   "label": "Undercut",
+   "prompt": "an undercut with shaved sides and longer hair swept back on top",
+   "prompt_pt": "undercut com laterais raspadas e cabelo mais longo penteado para trás no topo",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "hair.silver",
+   "category": "hair",
+   "label": "Grisalho",
+   "prompt": "naturally silver-grey hair",
+   "prompt_pt": "cabelo grisalho natural",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "hair.copper",
+   "category": "hair",
+   "label": "Ruivo acobreado",
+   "prompt": "vivid copper-red hair",
+   "prompt_pt": "cabelo ruivo acobreado intenso",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "hair.platinum",
+   "category": "hair",
+   "label": "Loiro platinado",
+   "prompt": "platinum blonde hair with a cool tone",
+   "prompt_pt": "cabelo loiro platinado de tom frio",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
+    "minimum_framing": null
+   },
+   "provides": {
+    "supports": null,
+    "framing": null
+   }
+  },
+  {
+   "id": "hair.jet_black",
+   "category": "hair",
+   "label": "Preto brilhante",
+   "prompt": "glossy jet-black hair",
+   "prompt_pt": "cabelo preto intenso e brilhante",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": null,
+    "posture": null,
+    "gaze": null,
+    "support_any_of": null,
     "minimum_framing": null
    },
    "provides": {

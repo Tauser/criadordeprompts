@@ -39,7 +39,7 @@ def tick(client, times=12):
 
 def test_catalog_import_is_valid_and_complete(client):
     items = client.get('/api/library').json()['items']
-    assert len(items) == 183
+    assert len(items) == 303
     common = [i for i in items if i['category'] in ('pose', 'action') and not i['adult']]
     assert all(i['requirements']['participants'] for i in common)
 
@@ -76,9 +76,9 @@ def test_cross_origin_writes_are_rejected(client):
 
 def test_library_save_conflict_and_validation(client):
     snapshot = client.get('/api/library').json()
-    item = {'id': 'lighting.candle', 'category': 'lighting', 'label': 'Velas', 'prompt': 'warm candlelight'}
+    item = {'id': 'lighting.user_candles', 'category': 'lighting', 'label': 'Velas', 'prompt': 'warm candlelight'}
     saved = client.put('/api/library', json={'revision': snapshot['revision'], 'items': [item]}).json()
-    assert saved['origins']['lighting.candle'] == 'user'
+    assert saved['origins']['lighting.user_candles'] == 'user'
     stale = client.put('/api/library', json={'revision': snapshot['revision'], 'items': []})
     assert stale.status_code == 409
     duplicate = {**item, 'id': 'lighting.other', 'label': 'Suave e natural'}
@@ -158,3 +158,20 @@ def test_repeat_run_with_new_or_same_seed(client):
     assert new['id'] == again['id'] and new['id'] != first['id']
     tick(client)
     assert client.get(f'/api/runs/{same["id"]}').json()['status'] == 'completed'
+
+
+def test_every_category_offers_common_options_with_complete_metadata(client):
+    from prisma_studio.domain.vocabulary import CATEGORIES
+    items = client.get('/api/library').json()['items']
+    for category in CATEGORIES:
+        assert any(i['category'] == category and not i['adult'] for i in items) or category == 'wardrobe', category
+    for item in items:
+        if item['adult']:
+            continue
+        r, p = item['requirements'], item['provides']
+        if item['category'] in ('pose', 'action'):
+            assert None not in (r['participants'], r['posture'], r['gaze'], r['support_any_of']), item['id']
+        if item['category'] == 'expression':
+            assert r['gaze'], item['id']
+        if item['category'] == 'environment':
+            assert p['supports'] is not None, item['id']

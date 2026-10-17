@@ -264,6 +264,70 @@
     "expression.look_back": {
       "prompt": "the head turned to look back over one shoulder, with the eyes following the head",
       "prompt_pt": "a cabeça virada olhando por cima de um ombro, com os olhos acompanhando a cabeça"
+    },
+    "environment.loft": {
+      "prompt": "a contemporary apartment with white walls, light oak floors, a low linen sofa, a floor lamp and large windows with sheer curtains",
+      "prompt_pt": "um apartamento contemporâneo com paredes brancas, piso de carvalho claro, sofá baixo de linho, luminária de chão e janelas amplas com cortinas leves"
+    },
+    "environment.studio": {
+      "prompt": "a minimal photography studio with a seamless light-grey backdrop, a large softbox and a wooden stool",
+      "prompt_pt": "um estúdio fotográfico minimalista com fundo infinito cinza-claro, um softbox grande e uma banqueta de madeira"
+    },
+    "environment.bedroom": {
+      "prompt": "an elegant bedroom with a linen-covered bed, an upholstered headboard, brass bedside lamps and soft neutral decor",
+      "prompt_pt": "um quarto elegante com cama de roupa de linho, cabeceira estofada, abajures de latão e decoração neutra e suave"
+    },
+    "environment.street": {
+      "prompt": "a city street with brick buildings, shop windows, parked bicycles and a sidewalk receding into the distance",
+      "prompt_pt": "uma rua da cidade com prédios de tijolo, vitrines, bicicletas estacionadas e a calçada se afastando ao fundo"
+    },
+    "environment.garden": {
+      "prompt": "a lush garden with flowering shrubs, a stone path, a wooden bench and dappled sunlight through the leaves",
+      "prompt_pt": "um jardim exuberante com arbustos floridos, caminho de pedra, banco de madeira e luz do sol filtrada pelas folhas"
+    },
+    "environment.neutral": {
+      "prompt": "a seamless warm-grey backdrop with a soft curve from floor to wall",
+      "prompt_pt": "um fundo infinito cinza quente com curva suave do chão para a parede"
+    },
+    "lighting.soft": {
+      "prompt": "soft diffused daylight from a large source, with gentle shadows and true-to-life skin tones",
+      "prompt_pt": "luz do dia difusa e suave vinda de uma fonte grande, com sombras delicadas e tons de pele fiéis"
+    },
+    "lighting.studio": {
+      "prompt": "professional three-point studio lighting: a large soft key light, gentle fill and a subtle hair light, with clear catchlights in the eyes",
+      "prompt_pt": "iluminação de estúdio profissional em três pontos: luz principal grande e suave, preenchimento delicado e luz de cabelo sutil, com brilho nítido nos olhos"
+    },
+    "lighting.golden": {
+      "prompt": "low golden-hour sunlight from one side, with long warm shadows and a warm glow on skin and hair",
+      "prompt_pt": "sol baixo da hora dourada vindo de um lado, com sombras longas e quentes e um brilho dourado na pele e no cabelo"
+    },
+    "lighting.moody": {
+      "prompt": "low-key cinematic lighting with a single hard key light, deep shadows and controlled contrast",
+      "prompt_pt": "iluminação cinematográfica de tom baixo com uma única luz principal dura, sombras profundas e contraste controlado"
+    },
+    "lighting.night": {
+      "prompt": "a nighttime scene lit by street lamps, shop windows and passing car lights, with colored reflections",
+      "prompt_pt": "cena noturna iluminada por postes, vitrines e faróis de carros, com reflexos coloridos"
+    },
+    "camera.front": {
+      "prompt": "camera at eye level directly in front of the person, the lens pointing straight at the face",
+      "prompt_pt": "câmera na altura dos olhos bem à frente da pessoa, com a lente apontada direto para o rosto"
+    },
+    "camera.threequarter": {
+      "prompt": "camera at eye level about forty-five degrees to one side, showing three quarters of the face",
+      "prompt_pt": "câmera na altura dos olhos, cerca de quarenta e cinco graus para um lado, mostrando três quartos do rosto"
+    },
+    "camera.side": {
+      "prompt": "camera at eye level at ninety degrees to the person, showing a clean side profile",
+      "prompt_pt": "câmera na altura dos olhos a noventa graus da pessoa, mostrando o perfil lateral limpo"
+    },
+    "camera.low": {
+      "prompt": "camera slightly below chest height, angled about fifteen degrees upward",
+      "prompt_pt": "câmera um pouco abaixo da altura do peito, inclinada cerca de quinze graus para cima"
+    },
+    "camera.high": {
+      "prompt": "camera slightly above head height, angled about fifteen degrees downward",
+      "prompt_pt": "câmera um pouco acima da altura da cabeça, inclinada cerca de quinze graus para baixo"
     }
   }
 }

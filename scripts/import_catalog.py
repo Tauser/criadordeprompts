@@ -45,6 +45,12 @@ def convert(legacy: dict, review: dict) -> Library:
         items.append(Item(id=item_id, category=category, label=old['label'], prompt=prompt,
                           prompt_pt=prompt_pt, adult=bool(old.get('adult_only')),
                           enabled=bool(old.get('enabled', True)), requirements=requirements, provides=provides))
+    additions = json.loads((ROOT / 'catalog' / 'additions-v1.json').read_text(encoding='utf-8'))
+    for data in additions['items']:
+        if data['id'] in seen:
+            raise SystemExit(f'Identificador repetido nas adições: {data["id"]}')
+        seen.add(data['id'])
+        items.append(Item.model_validate(data))
     library = Library(items=items)
     merge(library, Library())
     return library
