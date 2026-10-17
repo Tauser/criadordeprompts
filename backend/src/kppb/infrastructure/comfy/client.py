@@ -69,8 +69,9 @@ class ComfyClient:
         data = response.json()
         error = data.get('execution_error')
         message = error.get('exception_message') if isinstance(error, dict) else None
-        return JobState(data.get('status', 'missing'), data.get('execution_start_time'),
-                        data.get('execution_end_time'), message)
+        ms = lambda v: v / 1000 if isinstance(v, (int, float)) else None   # ComfyUI timestamps are milliseconds
+        return JobState(data.get('status', 'missing'), ms(data.get('execution_start_time')),
+                        ms(data.get('execution_end_time')), message)
 
     def outputs(self, prompt_id: str) -> dict:
         return self._json('GET', f'/history/{prompt_id}').get(prompt_id, {}).get('outputs', {})

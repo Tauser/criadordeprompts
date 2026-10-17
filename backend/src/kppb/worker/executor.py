@@ -244,7 +244,7 @@ class Executor:
         if state.status == 'pending':
             return task
         if state.status == 'in_progress':
-            return self.repository.task_transition(task['id'], 'running', started_at=state.start_time)
+            return self.repository.task_transition(task['id'], 'running', started_at=state.start_time or task['started_at'] or now())
         timings = self._timings(task)
         if state.status == 'completed':
             outputs = self.comfy.outputs(task['comfy_prompt_id'])
@@ -253,7 +253,7 @@ class Executor:
                 return self.repository.task_transition(task['id'], 'failed', error='O workflow terminou sem imagem.',
                                                        timings_json=timings)
             return self.repository.task_transition(task['id'], 'completed', result_json=result, timings_json=timings,
-                                                   started_at=state.start_time, ended_at=state.end_time)
+                                                   started_at=state.start_time or task['started_at'], ended_at=state.end_time or now())
         if state.status == 'cancelled':
             return self.repository.task_transition(task['id'], 'cancelled', timings_json=timings)
         return self.repository.task_transition(task['id'], 'failed', error=f'Falha no ComfyUI: {state.error or "veja o log"}',
