@@ -16,6 +16,7 @@ class Operation:
     category: str
     text: str
     participants: int | None = None      # declared by the catalog item; None when unknown
+    is_instruction: bool = False         # a full edit instruction supplied explicitly by catalog metadata
 
     @property
     def id(self) -> str:
@@ -30,6 +31,13 @@ class Transfer:
     @property
     def id(self) -> str:
         return f'transfer.{self.slot}'
+
+
+@dataclass(frozen=True)
+class WardrobeScope:
+    target: str
+    total: int
+    id: str = 'scope.wardrobe'
 
 
 @dataclass(frozen=True)
@@ -86,4 +94,5 @@ class Manual:
     id: str = 'manual'
 
 
-Block = Header | Operation | Transfer | Character | Keep | Participants | MinimumFraming | Guidance | Details | Manual
+Block = (Header | Operation | WardrobeScope | Transfer | Character | Keep | Participants | MinimumFraming
+         | Guidance | Details | Manual)

@@ -1,6 +1,6 @@
 {
   "source": "criadordeprompts/kppb-image-studio/studio/catalogs/defaults.json",
-  "notes": "Revisão explícita dos dados importados. Nenhuma regra por nome existe no código; estas correções são dados. Os textos de pose e ação comuns foram reescritos parte por parte do corpo (lado direito/esquerdo do ponto de vista da pessoa).",
+  "notes": "Revisão explícita dos dados importados. Nenhuma regra por nome existe no código; estas correções são dados. Os textos de pose e ação comuns foram reescritos parte por parte do corpo (lado direito/esquerdo do ponto de vista da pessoa). drop_adult: as opções adultas (adult_only) não fazem parte do catálogo padrão; quem quiser pode criá-las na Biblioteca.",
   "drop": {
     "action.eye": "Duplicava a expressão 'Olhar para a câmera'.",
     "action.confidence": "Duplicava a expressão 'Confiante'."
@@ -329,5 +329,6 @@
       "prompt": "camera slightly above head height, angled about fifteen degrees downward",
       "prompt_pt": "câmera um pouco acima da altura da cabeça, inclinada cerca de quinze graus para baixo"
     }
-  }
+  },
+  "drop_adult": true
 }

@@ -1,10 +1,18 @@
 import {describe, expect, it} from 'vitest';
-import {addReference, applyReference, initialWorkspace, removeReference, setAttribute, setTarget} from './workspace';
+import {addReference, applyReference, initialWorkspace, removeReference, requestForSubmit, setAttribute, setTarget} from './workspace';
 import {wordDiff} from '../lib/diff';
 
 const file = (name: string) => ({hash: name.padEnd(64, '0'), width: 10, height: 10, name});
 
 describe('workspace', () => {
+  it('clears group clothing scope when switching to keeping the original clothing', () => {
+    const ws = initialWorkspace('edit');
+    ws.request.wardrobe_scope = 'all';
+    const next = setAttribute(ws, 'wardrobe', {intent: 'keep'});
+    expect(next.request.wardrobe_scope).toBe('primary');
+    expect(ws.request.wardrobe_scope).toBe('all');
+  });
+
   it('starts edits keeping every attribute and generations without unrequested choices', () => {
     expect(initialWorkspace('edit').request.attributes.face).toEqual({intent: 'keep'});
     expect(initialWorkspace('generate').request.attributes).toEqual({});
@@ -42,6 +50,34 @@ describe('workspace', () => {
     ws = setAttribute(ws, 'face', {intent: 'free'});
     ws = removeReference(ws, 'p');
     expect(ws.request.attributes.face).toEqual({intent: 'free'});
+  });
+});
+
+describe('workspace restoration chains', () => {
+  it('removing references in any order never brings back a removed one', () => {
+    let ws = addReference(addReference(addReference(initialWorkspace('edit'), 't', file('alvo')), 'a', file('a')), 'b', file('b'));
+    ws = applyReference(ws, 'a', 'face');
+    ws = applyReference(ws, 'b', 'face');
+    ws = removeReference(ws, 'a');
+    expect(ws.request.attributes.face).toEqual({intent: 'transfer', reference_id: 'b'});
+    ws = removeReference(ws, 'b');
+    expect(ws.request.attributes.face).toEqual({intent: 'keep'});
+  });
+
+  it('still restores the remaining reference when the newer one is removed', () => {
+    let ws = addReference(addReference(addReference(initialWorkspace('edit'), 't', file('alvo')), 'a', file('a')), 'b', file('b'));
+    ws = applyReference(ws, 'a', 'face');
+    ws = applyReference(ws, 'b', 'face');
+    ws = removeReference(ws, 'b');
+    expect(ws.request.attributes.face).toEqual({intent: 'transfer', reference_id: 'a'});
+  });
+
+  it('a masked edit is submitted without a custom size', () => {
+    let ws = addReference(initialWorkspace('edit'), 't', file('alvo'));
+    ws = {...ws, request: {...ws.request, mask: true, output: {...ws.request.output, width: 1024, height: 1024}}};
+    const request = requestForSubmit(ws);
+    expect(request.output.width).toBeNull();
+    expect(request.output.height).toBeNull();
   });
 });
 

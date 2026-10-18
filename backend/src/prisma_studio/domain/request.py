@@ -108,6 +108,7 @@ class Request(_Strict):
     prompt_mode: Literal['structured', 'manual'] = 'structured'
     manual_prompt: str | None = Field(default=None, max_length=12000)
     attributes: dict[Category, Attribute] = {}
+    wardrobe_scope: Literal['primary', 'all'] = 'primary'
     references: tuple[Reference, ...] = Field(default=(), max_length=10)
     target_id: str | None = Field(default=None, pattern=REF_ID)
     mask: bool = False

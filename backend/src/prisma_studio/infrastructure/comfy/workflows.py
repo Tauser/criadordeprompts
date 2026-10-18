@@ -18,6 +18,8 @@ PROFILES = {
 MAX_EDIT_PIXELS = 2048 * 2048
 IMAGE_OUTPUT_NODE = '60'
 TEXT_OUTPUT_NODE = '92'
+IMAGE_INPUT_NODES = 200            # LoadImage nodes of image graphs: 201, 202...
+TEXT_IMAGE_NODES = 300             # LoadImage nodes of text graphs: 300, 301...
 
 
 @dataclass(frozen=True)
@@ -91,8 +93,8 @@ def image_graph(job: ImageJob) -> dict:
             'resolution': job.resolution}},
     }
     for index, name in enumerate(job.images, 1):
-        g[str(20 + index)] = {'class_type': 'LoadImage', 'inputs': {'image': name}}
-        g['10']['inputs'][f'images.image_{index}'] = [str(20 + index), 0]
+        g[str(IMAGE_INPUT_NODES + index)] = {'class_type': 'LoadImage', 'inputs': {'image': name}}
+        g['10']['inputs'][f'images.image_{index}'] = [str(IMAGE_INPUT_NODES + index), 0]
     if job.mode == 'generate' and not job.width:
         raise ValueError('A geração exige largura e altura calculadas.')
     if job.width:
@@ -126,7 +128,7 @@ def image_graph(job: ImageJob) -> dict:
                                                             'top': job.mask_feather, 'right': job.mask_feather,
                                                             'bottom': job.mask_feather}}
         g['54'] = {'class_type': 'ImageCompositeMasked', 'inputs': {
-            'destination': ['21', 0], 'source': final, 'x': 0, 'y': 0, 'resize_source': False, 'mask': ['53', 0]}}
+            'destination': [str(IMAGE_INPUT_NODES + 1), 0], 'source': final, 'x': 0, 'y': 0, 'resize_source': False, 'mask': ['53', 0]}}
         final = ['54', 0]
     g[IMAGE_OUTPUT_NODE] = {'class_type': 'SaveImage', 'inputs': {'images': final, 'filename_prefix': job.prefix}}
     return g
@@ -149,8 +151,9 @@ def text_graph(job: TextJob) -> dict:
     if job.images:
         g['85'] = {'class_type': 'BatchImagesNode', 'inputs': {}}
         for index, name in enumerate(job.images):
-            g[str(70 + index)] = {'class_type': 'LoadImage', 'inputs': {'image': name}}
-            g['85']['inputs'][f'images.image{index}'] = [str(70 + index), 0]
+            node = str(TEXT_IMAGE_NODES + index)   # own range: never collides with the fixed nodes below 100
+            g[node] = {'class_type': 'LoadImage', 'inputs': {'image': name}}
+            g['85']['inputs'][f'images.image{index}'] = [node, 0]
         inputs['image'] = ['85', 0]
     g['90'] = {'class_type': 'TextGenerate', 'inputs': inputs}
     g[TEXT_OUTPUT_NODE] = {'class_type': 'PreviewAny', 'inputs': {'source': ['90', 0]}}

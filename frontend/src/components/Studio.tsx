@@ -4,6 +4,7 @@ import type {Attribute, Category, LibrarySnapshot, Prepared, Run, StudioRequest}
 import {ADVANCED, BASIC, RUN_STATUS, TERMINAL} from '../lib/labels';
 import {load, save} from '../lib/storage';
 import {useRun} from '../lib/useRun';
+import {uuid} from '../lib/uuid';
 import {addReference, enterManual, filesForSubmit, initialWorkspace, leaveManual, removeReference, requestForSubmit,
   setAttribute, setTarget, switchMode, type Workspace} from '../state/workspace';
 import {AttributeField} from './AttributeField';
@@ -11,6 +12,7 @@ import {History} from './History';
 import {PromptPreview} from './PromptPreview';
 import {References} from './References';
 import {RunPanel} from './RunPanel';
+import {TranslateButton} from './Translate';
 
 type Drafts = Record<'generate' | 'edit', Workspace>;
 const DRAFTS_KEY = 'prisma.drafts.v1', ACTIVE_KEY = 'prisma.active-run', PENDING_KEY = 'prisma.pending-request';
@@ -19,6 +21,15 @@ const LEGACY = {drafts: 'kppb.drafts.v1', active: 'kppb.active-run'};
 
 interface Props {library: LibrarySnapshot; comfyOnline: boolean; notify: (m: string, e?: boolean) => void}
 
+// A submission whose answer never arrived. The same logical attempt keeps its id, so sending it again
+// (or finding it later) can never create a second run on the server.
+interface PendingSubmit {id: string; fingerprint: string}
+const loadPending = (): PendingSubmit | null => {
+  const value = load<PendingSubmit | string | null>(PENDING_KEY, null);
+  return typeof value === 'string' ? {id: value, fingerprint: ''} : value;
+};
+const filesOf = (ws: Workspace) => [...Object.values(ws.files).map(f => f.hash), ...(ws.maskHash ? [ws.maskHash] : [])];
+
 export function Studio({library, comfyOnline, notify}: Props) {
   const stored = load<{mode: 'generate' | 'edit'; drafts: Drafts} | null>(DRAFTS_KEY, null)
     ?? load<{mode: 'generate' | 'edit'; drafts: Drafts} | null>(LEGACY.drafts, null);
@@ -26,9 +37,13 @@ export function Studio({library, comfyOnline, notify}: Props) {
   const [workspace, setWorkspace] = useState<Workspace>(stored ? stored.drafts[stored.mode] : initialWorkspace('generate'));
   const [tab, setTab] = useState<'basic' | 'advanced'>('basic');
   const [prepared, setPrepared] = useState<Prepared | null>(null);
+  const [preparedFor, setPreparedFor] = useState<Workspace | null>(null);
   const [prepareError, setPrepareError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [pendingSubmit, setPendingSubmit] = useState<PendingSubmit | null>(loadPending);
+  const [reconcile, setReconcile] = useState(0);
+  const inFlight = useRef(false);
   const [activeRun, setActiveRun] = useState<string | null>(load<string | null>(ACTIVE_KEY, null) ?? load<string | null>(LEGACY.active, null));
   const {run, connection} = useRun(activeRun);
   const epoch = useRef(0);
@@ -46,14 +61,28 @@ export function Studio({library, comfyOnline, notify}: Props) {
   useEffect(() => save(DRAFTS_KEY, {mode: request.mode, drafts: {...drafts, [request.mode]: workspace}}), [workspace, drafts, request.mode]);
   useEffect(() => save(ACTIVE_KEY, activeRun), [activeRun]);
 
-  // Recover a submission whose answer never arrived (network drop, closed tab).
+  const markPending = (marker: PendingSubmit | null) => {save(PENDING_KEY, marker); setPendingSubmit(marker);};
+
+  // Recover a submission whose answer never arrived (network drop, closed tab): keep asking the server
+  // until it says, one way or the other, whether the request arrived.
   useEffect(() => {
-    const pendingId = load<string | null>(PENDING_KEY, null);
-    if (!pendingId) return;
-    api.runByRequest(pendingId).then(found => {setActiveRun(found.id); notify('O pedido anterior chegou ao Studio e está sendo acompanhado.');})
-      .catch(error => {if (error instanceof ApiError && error.status === 404) save(PENDING_KEY, null);})
-      .finally(() => undefined);
-  }, [notify]);
+    if (!pendingSubmit || inFlight.current) return;
+    let stopped = false, timer: number | undefined;
+    const check = async () => {
+      try {
+        const found = await api.runByRequest(pendingSubmit.id);
+        if (stopped) return;
+        setActiveRun(found.id); markPending(null);
+        notify('O pedido anterior chegou ao Studio e está sendo acompanhado.');
+      } catch (error) {
+        if (stopped) return;
+        // A timed-out POST may still be committing when this GET returns 404. Keep its ID for retries.
+        timer = window.setTimeout(check, 3000);
+      }
+    };
+    check();
+    return () => {stopped = true; window.clearTimeout(timer);};
+  }, [pendingSubmit, reconcile, notify]);
 
   useEffect(() => {
     const token = ++epoch.current;
@@ -62,7 +91,7 @@ export function Studio({library, comfyOnline, notify}: Props) {
       try {
         const result = await api.prepare(requestForSubmit(workspace));
         if (token !== epoch.current) return;
-        setPrepared(result); setPrepareError(null);
+        setPrepared(result); setPreparedFor(workspace); setPrepareError(null);
       } catch (error) {
         if (token !== epoch.current) return;
         setPrepared(null);
@@ -92,37 +121,54 @@ export function Studio({library, comfyOnline, notify}: Props) {
     <AttributeField key={category} category={category} mode={request.mode} targetId={request.target_id}
       attribute={request.attributes[category] ?? {intent: 'free'}} items={itemsFor(category)} references={request.references}
       disabled={request.prompt_mode === 'manual'} issues={issuesByField[`attributes.${category}`] ?? []}
-      onChange={(attribute: Attribute) => update(ws => setAttribute(ws, category, attribute))} />
+      onChange={(attribute: Attribute) => update(ws => setAttribute(ws, category, attribute))}>
+      {category === 'wardrobe' && request.attributes.wardrobe?.intent === 'set' && <>
+        <label htmlFor="wardrobe-scope">Aplicar roupa a</label>
+        <select id="wardrobe-scope" value={request.wardrobe_scope ?? 'primary'} disabled={request.prompt_mode === 'manual'}
+                onChange={e => patch(r => {r.wardrobe_scope = e.target.value as 'primary' | 'all';})}>
+          <option value="primary">Pessoa principal</option><option value="all">Todas as pessoas da cena</option>
+        </select>
+        <p className="help">Para aplicar a todos, informe duas ou mais pessoas em Avançado → Cena ou adicione outro personagem.</p>
+      </>}
+    </AttributeField>
   );
 
-  const submit = async () => {
-    if (!prepared?.valid) {notify('Corrija os erros antes de gerar.', true); return;}
-    const requestId = crypto.randomUUID();
-    save(PENDING_KEY, requestId);
+  // Every way of sending (button, shortcut, repeat) goes through here: one request at a time, and the same
+  // logical attempt reuses its id until the server answers.
+  const send = async (fingerprint: string, call: (requestId: string) => Promise<Run>, done?: string) => {
+    if (inFlight.current) return;
+    inFlight.current = true;
+    const marker = {id: pendingSubmit?.fingerprint === fingerprint ? pendingSubmit.id : uuid(), fingerprint};
+    markPending(marker);
     setSubmitting(true);
     try {
-      const created: Run = await api.createRun({request_id: requestId, request: requestForSubmit(workspace),
-        files: filesForSubmit(workspace), mask: request.mask ? workspace.maskHash : null});
+      const created = await call(marker.id);
       setActiveRun(created.id);
-      save(PENDING_KEY, null);
+      markPending(null);
+      if (done) notify(done);
     } catch (error) {
-      if (error instanceof ApiError) {save(PENDING_KEY, null); notify(error.message, true);}
-      else notify('Sem resposta do Studio. Assim que ele responder, o pedido será localizado sem duplicar.', true);
-    } finally {setSubmitting(false);}
+      if (error instanceof ApiError && error.status < 500 && error.status !== 408) {
+        markPending(null); notify(error.message, true);
+      }
+      else {
+        notify('Sem resposta do Studio. Ele será consultado até responder; enviar de novo não duplica o pedido.', true);
+        inFlight.current = false;
+        setReconcile(n => n + 1);
+      }
+    } finally {inFlight.current = false; setSubmitting(false);}
+  };
+  const submit = async () => {
+    if (!prepared?.valid || pending || preparedFor !== workspace) {
+      notify(pending || preparedFor !== workspace ? 'Aguarde a prévia do prompt ser atualizada.' : 'Corrija os erros antes de gerar.', true);
+      return;
+    }
+    const body = {request: requestForSubmit(workspace), files: filesForSubmit(workspace), mask: request.mask ? workspace.maskHash : null};
+    await send(JSON.stringify(body), requestId => api.createRun({request_id: requestId, ...body}));
   };
   const repeat = async (sameSeed: boolean) => {
     if (!run) return;
-    const requestId = crypto.randomUUID();
-    save(PENDING_KEY, requestId);
-    try {
-      const created = await api.repeat(run.id, requestId, sameSeed);
-      setActiveRun(created.id);
-      save(PENDING_KEY, null);
-      notify(sameSeed ? 'Repetindo com a mesma seed.' : 'Gerando de novo com uma nova seed.');
-    } catch (error) {
-      if (error instanceof ApiError) {save(PENDING_KEY, null); notify(error.message, true);}
-      else notify('Sem resposta do Studio. Assim que ele responder, o pedido será localizado sem duplicar.', true);
-    }
+    await send(`repeat:${run.id}:${sameSeed}`, requestId => api.repeat(run.id, requestId, sameSeed),
+      sameSeed ? 'Repetindo com a mesma seed.' : 'Gerando de novo com uma nova seed.');
   };
   const stop = async () => {
     if (!activeRun) return;
@@ -132,7 +178,7 @@ export function Studio({library, comfyOnline, notify}: Props) {
     const base = request.mode === 'edit' ? workspace : drafts.edit;
     let next = base;
     if (next.request.target_id) next = removeReference(next, next.request.target_id);
-    const id = 'ref-' + crypto.randomUUID().slice(0, 8);
+    const id = 'ref-' + uuid().slice(0, 8);
     next = addReference(next, id, {hash, width: 0, height: 0, name: 'resultado.png'});
     next = setTarget(next, id);
     fetch(`/api/files/${hash}`).then(r => r.blob()).then(blob => createImageBitmap(blob)).then(bitmap =>
@@ -152,12 +198,13 @@ export function Studio({library, comfyOnline, notify}: Props) {
   };
 
   // Ctrl+Enter generates, Esc stops — the usual shortcuts of creative tools.
-  const shortcuts = useRef({submit, stop, busy, valid: !!prepared?.valid});
-  shortcuts.current = {submit, stop, busy, valid: !!prepared?.valid};
+  const ready = !!prepared?.valid && preparedFor === workspace && !pending && !submitting && !busy;
+  const shortcuts = useRef({submit, stop, busy, ready});
+  shortcuts.current = {submit, stop, busy, ready};
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       const s = shortcuts.current;
-      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter' && s.valid && !s.busy) {event.preventDefault(); s.submit();}
+      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {event.preventDefault(); if (s.ready) s.submit();}
       else if (event.key === 'Escape' && s.busy && !(event.target as HTMLElement)?.closest('.mask-editor')) s.stop();
     };
     window.addEventListener('keydown', onKey);
@@ -187,7 +234,9 @@ export function Studio({library, comfyOnline, notify}: Props) {
                   <textarea rows={3} value={request.details} maxLength={4000} disabled={request.prompt_mode === 'manual'}
                             placeholder="Ex.: a blue ceramic mug on the table" onChange={e => patch(r => {r.details = e.target.value;})} />
                 </label>
-                <p className="help">Enviados como estão, depois das instruções dos campos. Não alteram as outras instruções.</p>
+                <TranslateButton label="os detalhes adicionais" text={request.details} disabled={request.prompt_mode === 'manual'}
+                                 onTranslated={text => patch(r => {r.details = text;})} />
+                <p className="help">Enviados como estão, depois das instruções dos campos. O texto dos campos não muda, mas um detalhe que os contradiga ainda pode influenciar a imagem.</p>
                 <OutputBasics request={request} patch={patch} />
               </div>
             ) : (
@@ -205,7 +254,7 @@ export function Studio({library, comfyOnline, notify}: Props) {
             onManual={toggleManual} onManualText={text => patch(r => {r.manual_prompt = text;})} onFocusField={focusField} />
           <RunPanel run={run} connection={connection} onReuse={reuse} notify={notify} onRepeat={repeat} />
           <History activeRun={activeRun} onSelect={setActiveRun} notify={notify}
-            keepFiles={[...Object.values(workspace.files).map(f => f.hash), ...(workspace.maskHash ? [workspace.maskHash] : [])]} />
+            keepFiles={[...new Set([...filesOf(workspace), ...filesOf(drafts[request.mode === 'edit' ? 'generate' : 'edit'])])]} />
         </div>
       </div>
       <footer className="execution-bar" aria-label="Execução">
@@ -217,7 +266,7 @@ export function Studio({library, comfyOnline, notify}: Props) {
         </div>
         {busy && <button className="btn-stop" disabled={run?.cancel_requested} onClick={stop}>
           {run?.cancel_requested ? 'Parando…' : '■ Parar'}</button>}
-        <button className="btn-generate" disabled={submitting || busy || !prepared?.valid} onClick={submit} title="Gerar (Ctrl+Enter)">
+        <button className="btn-generate" disabled={!ready} onClick={submit} title="Gerar (Ctrl+Enter)">
           <span>{submitting ? 'Enviando…' : request.mode === 'edit' ? 'Gerar edição' : 'Gerar imagem'}</span><kbd aria-hidden="true">Ctrl ↵</kbd></button>
       </footer>
     </>
@@ -287,7 +336,7 @@ function SceneContext({request, patch}: {request: StudioRequest; patch: Patch}) 
 function Engine({request, patch}: {request: StudioRequest; patch: Patch}) {
   const turbo = request.output.profile === 'turbo';
   const num = (v: string) => v === '' ? null : Number(v);
-  const custom = request.output.width != null;
+  const custom = request.output.width != null && !request.mask;
   return (
     <fieldset><legend>Parâmetros</legend>
       <div className="fields three">
@@ -298,8 +347,10 @@ function Engine({request, patch}: {request: StudioRequest; patch: Patch}) {
         <label>CFG<input type="number" min={1} max={20} step={0.1} disabled={turbo} placeholder="1" value={request.engine.cfg ?? ''}
           onChange={e => patch(r => {r.engine.cfg = num(e.target.value);})} /></label>
       </div>
-      <label className="check"><input type="checkbox" checked={custom} onChange={e => patch(r => {
-        r.output.width = e.target.checked ? 1024 : null; r.output.height = e.target.checked ? 1024 : null;})} /> Tamanho personalizado</label>
+      <p className="help">Para comparar ajustes, fixe a seed, use uma variação e mude um campo por vez.
+        Mais passos ou CFG maior não garantem que a edição será atendida.</p>
+      <label className="check"><input type="checkbox" checked={custom} disabled={request.mask} onChange={e => patch(r => {
+        r.output.width = e.target.checked ? 1024 : null; r.output.height = e.target.checked ? 1024 : null;})} /> Tamanho personalizado{request.mask ? ' (indisponível com máscara: a foto mantém seu tamanho)' : ''}</label>
       {custom && <div className="fields three">
         <label>Largura<input type="number" min={256} max={2048} step={32} value={request.output.width ?? ''} onChange={e => patch(r => {r.output.width = num(e.target.value);})} /></label>
         <label>Altura<input type="number" min={256} max={2048} step={32} value={request.output.height ?? ''} onChange={e => patch(r => {r.output.height = num(e.target.value);})} /></label>
@@ -307,6 +358,8 @@ function Engine({request, patch}: {request: StudioRequest; patch: Patch}) {
       <label className="block">Prompt negativo (só tem efeito com CFG acima de 1)
         <textarea rows={2} value={request.engine.negative_prompt} disabled={(request.engine.cfg ?? 1) <= 1}
           onChange={e => patch(r => {r.engine.negative_prompt = e.target.value;})} /></label>
+      <TranslateButton label="o prompt negativo" text={request.engine.negative_prompt} disabled={(request.engine.cfg ?? 1) <= 1}
+                       onTranslated={text => patch(r => {r.engine.negative_prompt = text;})} />
     </fieldset>
   );
 }

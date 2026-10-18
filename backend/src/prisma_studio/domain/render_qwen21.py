@@ -39,7 +39,12 @@ POSTURES = {
     'standing': 'The posture is clearly standing, with weight resting naturally on the feet.',
     'seated': 'The posture is clearly seated, with the hips supported.',
     'kneeling': 'The posture is clearly kneeling, with the knees supported.',
+    'all_fours': 'The body is on all fours, with the knees on the surface and the hips above them.',
+    'squatting': 'The body is in a deep squat, with the knees bent and the weight on the feet.',
     'lying': 'The body is lying down, supported along its length.',
+    'supine': 'The body is lying on its back, with the back resting on the surface.',
+    'prone': 'The body is lying face down, with the front of the torso resting on the surface.',
+    'side_lying': 'The body is lying on its side, resting on one hip and shoulder.',
     'walking': 'The body is in a natural walking stride.',
     'running': 'The body is in a balanced running stride.',
 }
@@ -47,6 +52,12 @@ GAZES = {
     'camera': 'The eyes look at the camera.', 'away': 'The eyes look away from the camera.',
     'down': 'The eyes look downwards.', 'up': 'The eyes look upwards.',
     'back': 'The head turns to look back over the shoulder.', 'closed': 'The eyes are closed.',
+}
+ORIENTATIONS = {
+    'front': 'The front of the body faces the camera.',
+    'back': 'The body is seen from behind, with the back toward the camera.',
+    'side': 'The body is seen in profile, side-on to the camera.',
+    'three_quarter': 'The body is turned three-quarters toward the camera.',
 }
 SUPPORTS = {'floor': 'the floor', 'seat': 'a seat', 'bed': 'a bed', 'wall': 'a wall', 'table': 'a table'}
 FRAMINGS = {
@@ -92,6 +103,13 @@ def render(blocks) -> list[tuple[str, str]]:
             out.append((block.id, f'Edit {image(1)}.' if edit else 'Create an image.'))
         elif isinstance(block, ir.Operation):
             out.append((block.id, _operation(block, edit, blocks)))
+        elif isinstance(block, ir.WardrobeScope):
+            target = ('both people in the scene' if block.total == 2 else f'all {block.total} people in the scene') \
+                if block.target == 'all' else 'the first person only'
+            text = f'Apply the clothing instruction to {target}.'
+            if block.target == 'all':
+                text += ' This includes any characters added from reference images.'
+            out.append((block.id, text))
         elif isinstance(block, ir.Transfer):
             aspects = _join(ASPECT_NAMES[a] for a in block.aspects)
             if edit:
@@ -118,6 +136,9 @@ def render(blocks) -> list[tuple[str, str]]:
             else:
                 text = f'Keep the {_join(names)} from {target} unchanged.'
             out.append((block.id, text))
+        elif isinstance(block, ir.Participants) and block.total == 1:
+            out.append((block.id, 'The result shows exactly one person.' if block.edit
+                        else 'The scene contains exactly one person.'))
         elif isinstance(block, ir.Participants):
             if block.edit:
                 text = (f'The scene contains at least {block.total} distinct people: keep the people already present '
@@ -147,6 +168,8 @@ BODY_EMPHASIS = {
 
 def _operation(block: ir.Operation, edit: bool, blocks) -> str:
     text = block.text.rstrip('. ')
+    if edit and block.is_instruction:
+        return _sentence(text)
     has_pose = any(isinstance(b, ir.Operation) and b.category == 'pose' for b in blocks)
     if block.category == 'action':
         group = (block.participants or 1) > 1
@@ -178,6 +201,8 @@ def _guidance(block: ir.Guidance) -> str:
         return POSTURES[block.value]
     if block.key == 'gaze':
         return GAZES[block.value]
+    if block.key == 'orientation':
+        return ORIENTATIONS[block.value]
     if block.key == 'new_supports':
         return 'Add only the support surfaces the pose or action needs.'
     options = [SUPPORTS[s] for s in block.value.split('|')]

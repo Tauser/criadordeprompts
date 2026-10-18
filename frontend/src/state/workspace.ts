@@ -27,7 +27,8 @@ export function initialRequest(mode: 'generate' | 'edit'): StudioRequest {
   if (mode === 'edit') for (const category of CATEGORIES) attributes[category] = {intent: 'keep'};
   return {
     schema_version: 1, mode, content_mode: 'standard', prompt_mode: 'structured', manual_prompt: null, attributes,
-    references: [], target_id: null, mask: false, characters: [], participants: {requested: null, existing: null},
+    references: [], target_id: null, mask: false, characters: [], wardrobe_scope: 'primary',
+    participants: {requested: null, existing: null},
     context: {supports: null, allow_new_supports: false, allow_reframing: true, original_framing: null},
     details: '', confirmations: [],
     output: {profile: 'qwen21', resolution: mode === 'edit' ? 0 : 1024, aspect: '3:4', width: null, height: null,
@@ -45,6 +46,7 @@ const clone = <T>(value: T): T => structuredClone(value);
 export function setAttribute(ws: Workspace, category: Category, attribute: Attribute): Workspace {
   const next = clone(ws);
   next.request.attributes[category] = attribute;
+  if (category === 'wardrobe' && attribute.intent !== 'set') next.request.wardrobe_scope = 'primary';
   for (const restore of Object.values(next.restore)) delete restore[category];   // an explicit choice wins
   return next;
 }
@@ -76,13 +78,25 @@ export function applyReference(ws: Workspace, id: string, role: keyof typeof ROL
 
 function release(next: Workspace, id: string) {
   const restore = next.restore[id] ?? {};
+  // A saved choice is only worth restoring if it does not point at this or any other missing reference.
+  const exists = (ref: string) => ref !== id && next.request.references.some(r => r.id === ref);
+  const usable = (attribute: Attribute | null | undefined) =>
+    attribute && !(attribute.intent === 'transfer' && !exists(attribute.reference_id ?? '')) ? attribute : null;
   for (const category of CATEGORIES) {
     const attribute = next.request.attributes[category];
     if (attribute?.intent === 'transfer' && attribute.reference_id === id) {
-      const previous = restore[category];
+      const previous = usable(restore[category]);
       if (previous) next.request.attributes[category] = previous;
       else if (next.request.mode === 'edit') next.request.attributes[category] = {intent: 'keep'};
       else delete next.request.attributes[category];
+    }
+  }
+  // Other references remember what to bring back when they are released; that must never be this one.
+  for (const [other, chain] of Object.entries(next.restore)) {
+    if (other === id) continue;
+    for (const category of Object.keys(chain) as Category[]) {
+      const saved = chain[category];
+      if (saved?.intent === 'transfer' && saved.reference_id === id) chain[category] = usable(restore[category]);
     }
   }
   delete next.restore[id];
@@ -176,7 +190,9 @@ export function requestForSubmit(ws: Workspace): StudioRequest {
   request.characters = (request.characters ?? []).map(c => ({...c, description: c.description.trim()}));
   if (!request.characters.length) delete request.characters;   // older Studio servers do not know this field
   if (request.prompt_mode === 'structured') request.manual_prompt = null;
+  if (request.attributes.wardrobe?.intent !== 'set') request.wardrobe_scope = 'primary';
   if (request.mode === 'generate') {request.target_id = null; request.mask = false;}
+  if (request.mask) {request.output.width = null; request.output.height = null;}   // a mask keeps the photo's size
   return request;
 }
 

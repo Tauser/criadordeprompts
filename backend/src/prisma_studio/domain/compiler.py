@@ -6,9 +6,9 @@ from dataclasses import dataclass
 from . import ir
 from .request import CatalogValue, Request
 from .rules import Assessment
-from .vocabulary import CATEGORIES, FRAMING_ORDER
+from .vocabulary import CATEGORIES, FRAMING_ORDER, agreed
 
-COMPILER_VERSION = '1.2.0'
+COMPILER_VERSION = '1.5.0'
 
 # Operation order: scene first, then person changes; style leads in generation.
 EDIT_ORDER = ('environment', 'lighting', 'style', 'camera', 'framing', 'subject', 'face', 'body', 'skin', 'hair',
@@ -42,12 +42,17 @@ def build_ir(request: Request, assessment: Assessment) -> list:
         if attribute.intent != 'set':
             continue
         participants = None
+        is_instruction = False
         if isinstance(attribute.value, CatalogValue):
             item = assessment.resolved[category]
             text, participants = item.prompt, item.requirements.participants
+            if edit and item.edit_prompt is not None:
+                text, is_instruction = item.edit_prompt, True
         else:
             text = attribute.value.text
-        blocks.append(ir.Operation(category, text.strip(), participants))
+        blocks.append(ir.Operation(category, text.strip(), participants, is_instruction=is_instruction))
+        if category == 'wardrobe' and (assessment.participants_total or 0) > 1:
+            blocks.append(ir.WardrobeScope(request.wardrobe_scope, assessment.participants_total))
 
     by_slot: dict[int, list[str]] = {}
     for category in CATEGORIES:
@@ -66,18 +71,19 @@ def build_ir(request: Request, assessment: Assessment) -> list:
             blocks.append(ir.Keep(kept, everything_else=not free,
                                   allow_action_movement=request.attribute('action').intent in ('set', 'transfer')))
 
-    if assessment.participants_total and assessment.participants_total > 1:
-        blocks.append(ir.Participants(assessment.participants_total, edit))
+    total = assessment.participants_total
+    if total and (total > 1 or request.participants.requested == 1):   # an explicit "one person" is an instruction too
+        blocks.append(ir.Participants(total, edit))
 
     minimums = [r.minimum_framing for r in assessment.requirements if r.minimum_framing]
     if (minimums and request.attribute('framing').intent == 'free'
             and (not edit or request.context.allow_reframing)):
         blocks.append(ir.MinimumFraming(max(minimums, key=FRAMING_ORDER.__getitem__)))
 
-    for key in ('posture', 'gaze'):
-        values = {getattr(r, key) for r in assessment.requirements} - {None, 'any'}
-        if len(values) == 1:
-            blocks.append(ir.Guidance(key, values.pop()))
+    for key in ('posture', 'orientation', 'gaze'):
+        value = agreed({getattr(r, key) for r in assessment.requirements} - {None, 'any'})
+        if value:
+            blocks.append(ir.Guidance(key, value))
     supports = sorted({tuple(sorted(r.support_any_of)) for r in assessment.requirements if r.support_any_of})
     for option in supports:
         blocks.append(ir.Guidance('support:' + '|'.join(option), '|'.join(option)))

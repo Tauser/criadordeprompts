@@ -52,6 +52,12 @@ class TranslationService:
         return {'id': job_id, **job}
 
     def cancel(self, job_id: str) -> dict:
+        with self.lock:
+            job = self.jobs.get(job_id)
+            if job is None:
+                raise KeyError(job_id)
+            if job['status'] in ('completed', 'failed', 'cancelled'):
+                return {'id': job_id, **job}
         self.comfy.cancel(job_id)
         with self.lock:
             if job_id in self.jobs and self.jobs[job_id]['status'] in ('queued', 'running'):

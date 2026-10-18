@@ -27,8 +27,12 @@ export const VERDICT: Record<string, string> = {met: 'atendido', partial: 'parci
 export const TERMINAL = new Set(['completed', 'failed', 'cancelled', 'lost']);
 
 export const POSTURE_LABELS: Record<string, string> = {
-  any: 'qualquer', standing: 'em pé', seated: 'sentado', kneeling: 'ajoelhado', lying: 'deitado',
-  walking: 'caminhando', running: 'correndo',
+  any: 'qualquer', standing: 'em pé', seated: 'sentado', kneeling: 'ajoelhado', all_fours: 'de quatro',
+  squatting: 'agachado', lying: 'deitado (qualquer lado)', supine: 'deitado de costas', prone: 'deitado de bruços',
+  side_lying: 'deitado de lado', walking: 'caminhando', running: 'correndo',
+};
+export const ORIENTATION_LABELS: Record<string, string> = {
+  any: 'qualquer', front: 'de frente', back: 'de costas', side: 'de perfil', three_quarter: 'três quartos',
 };
 export const GAZE_LABELS: Record<string, string> = {
   any: 'qualquer', camera: 'para a câmera', away: 'desviado da câmera', down: 'para baixo', up: 'para cima',

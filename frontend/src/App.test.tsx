@@ -38,12 +38,53 @@ const run = () => ({id: 'run1', request_id: 'r', status: runStatus, mode: 'gener
 beforeEach(() => {
   calls = []; runStatus = 'generating';
   localStorage.clear();
+  // Match studio.local over HTTP, where randomUUID is absent.
+  vi.stubGlobal('crypto', {getRandomValues: crypto.getRandomValues.bind(crypto)});
   vi.stubGlobal('fetch', vi.fn((path: string, init?: RequestInit) => respond(path, init)));
   vi.stubGlobal('EventSource', undefined);
 });
 afterEach(() => {cleanup(); vi.unstubAllGlobals();});
 
 describe('Studio', () => {
+  it('sends an explicit clothing scope for both people', async () => {
+    render(<App />);
+    fireEvent.change(await screen.findByLabelText('Roupa'), {target: {value: 'text'}});
+    fireEvent.change(screen.getByLabelText('Descrição de Roupa em inglês'), {target: {value: 'blue coats'}});
+    fireEvent.change(screen.getByLabelText('Aplicar roupa a'), {target: {value: 'all'}});
+    fireEvent.click(screen.getByRole('tab', {name: 'Avançado'}));
+    fireEvent.change(screen.getByLabelText('Pessoas pedidas'), {target: {value: '2'}});
+    const generate = screen.getByRole('button', {name: 'Gerar imagem'});
+    await waitFor(() => expect((generate as HTMLButtonElement).disabled).toBe(false));
+    await act(async () => {fireEvent.click(generate);});
+    const body = calls.find(c => c.path === '/api/runs' && c.body)?.body;
+    expect(body.request.wardrobe_scope).toBe('all');
+    expect(body.request.participants.requested).toBe(2);
+  });
+
+  it.each([500, 200])('keeps the same submission ID after an ambiguous HTTP %s answer and a 404 lookup', async status => {
+    let attempts = 0;
+    vi.stubGlobal('fetch', vi.fn((path: string, init?: RequestInit) => {
+      if (path === '/api/runs' && init?.method === 'POST') {
+        calls.push({path, body: JSON.parse(init.body as string)});
+        attempts++;
+        return Promise.resolve(attempts === 1
+          ? new Response(status === 500 ? '{"error":"internal error"}' : '<html>invalid answer</html>', {status})
+          : new Response(JSON.stringify(run()), {status: 200}));
+      }
+      return respond(path, init);
+    }));
+    render(<App />);
+    const generate = await screen.findByRole('button', {name: 'Gerar imagem'});
+    await waitFor(() => expect((generate as HTMLButtonElement).disabled).toBe(false));
+    await act(async () => {fireEvent.click(generate);});
+    await waitFor(() => expect(calls.some(c => c.path.startsWith('/api/runs/by-request/'))).toBe(true));
+    await waitFor(() => expect((generate as HTMLButtonElement).disabled).toBe(false));
+    await act(async () => {fireEvent.click(generate);});
+    const posts = calls.filter(c => c.path === '/api/runs' && c.body);
+    expect(posts).toHaveLength(2);
+    expect(posts[0].body.request_id).toBe(posts[1].body.request_id);
+  });
+
   it('composes from the fields, submits once and follows the run with phases', async () => {
     render(<App />);
     const environment = await screen.findByLabelText('Cenário');

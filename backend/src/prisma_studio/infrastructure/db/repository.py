@@ -1,6 +1,8 @@
 """Runs, tasks, events and the user's library. Every state change is validated and logged."""
 from __future__ import annotations
 
+import logging
+
 from .database import Database, dumps, loads, new_id, now
 
 TERMINAL = {'completed', 'failed', 'cancelled', 'lost'}
@@ -15,15 +17,19 @@ RUN_TRANSITIONS = {
 }
 TASK_TRANSITIONS = {
     'created': {'submitting'},
-    'submitting': {'queued', 'uncertain', 'failed'},
+    'submitting': {'queued', 'uncertain', 'failed', 'created'},   # created: the request provably never left
     'queued': {'running', 'completed', 'failed', 'cancelled', 'lost'},
     'running': {'completed', 'failed', 'cancelled', 'lost'},
-    'uncertain': {'queued', 'lost'},
+    'uncertain': {'queued', 'lost', 'created'},                     # created: resubmission the user confirmed
 }
 
 
 class InvalidTransition(ValueError):
     pass
+
+
+class MissingFile(KeyError):
+    """A run referenced a file the Studio no longer has."""
 
 
 def _allowed(table: dict, current: str, target: str) -> bool:
@@ -41,15 +47,24 @@ class RunRepository:
         self.db = db
 
     # runs -----------------------------------------------------------------
-    def create(self, request_id: str, mode: str, request: dict, files: dict, settings: dict) -> tuple[dict, bool]:
+    def create(self, request_id: str, mode: str, request: dict, files: dict, settings: dict, *, prompt: str,
+               effective_prompt: str | None = None, compiled: dict | None = None) -> tuple[dict, bool]:
+        """Insert a complete run (request, files, settings and prompt) in one transaction."""
+        if not prompt:
+            raise ValueError('Um pedido precisa de prompt.')
         with self.db.transaction() as tx:
             existing = tx.execute('SELECT id FROM runs WHERE request_id=?', (request_id,)).fetchone()
             if existing:
                 return self.get(existing['id']), False
+            for file_hash in _hashes(files):
+                if tx.execute('SELECT 1 FROM files WHERE hash=?', (file_hash,)).fetchone() is None:
+                    raise MissingFile(file_hash)
             run_id, at = new_id(), now()
             tx.execute('INSERT INTO runs(id, request_id, status, mode, request_json, files_json, settings_json, '
-                       'created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?)',
-                       (run_id, request_id, 'created', mode, dumps(request), dumps(files), dumps(settings), at, at))
+                       'prompt, effective_prompt, compiled_json, created_at, updated_at) '
+                       'VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
+                       (run_id, request_id, 'created', mode, dumps(request), dumps(files), dumps(settings),
+                        prompt, effective_prompt or prompt, dumps(compiled) if compiled is not None else None, at, at))
             tx.execute('INSERT INTO events(run_id, at, type, data_json) VALUES (?,?,?,?)',
                        (run_id, at, 'status', dumps({'status': 'created'})))
         return self.get(run_id), True
@@ -105,29 +120,61 @@ class RunRepository:
         rows = self.db.query('SELECT * FROM events WHERE run_id=? AND id>? ORDER BY id', (run_id, after))
         return [{'id': r['id'], 'at': r['at'], 'type': r['type'], **loads(r['data_json'])} for r in rows]
 
-    def delete(self, run_id: str) -> list[str]:
+    def delete(self, run_id: str, connection=None) -> list[str]:
         """Remove a finished run with its tasks and events; returns the file hashes it referenced."""
-        with self.db.transaction() as tx:
-            row = tx.execute('SELECT status, files_json, settings_json FROM runs WHERE id=?', (run_id,)).fetchone()
-            if row is None:
-                raise KeyError(run_id)
-            if row['status'] not in TERMINAL:
-                raise InvalidTransition('Pare o pedido antes de apagá-lo.')
-            hashes = set(_hashes(loads(row['files_json'])))
-            for task in tx.execute('SELECT result_json FROM tasks WHERE run_id=?', (run_id,)).fetchall():
-                hashes |= set((loads(task['result_json']) or {}).get('files', []))
-            tx.execute('DELETE FROM events WHERE run_id=?', (run_id,))
-            tx.execute('DELETE FROM tasks WHERE run_id=?', (run_id,))
-            tx.execute('DELETE FROM runs WHERE id=?', (run_id,))
+        if connection is None:
+            with self.db.transaction() as tx:
+                return self.delete(run_id, tx)
+        tx = connection
+        row = tx.execute('SELECT status, files_json, settings_json FROM runs WHERE id=?', (run_id,)).fetchone()
+        if row is None:
+            raise KeyError(run_id)
+        if row['status'] not in TERMINAL:
+            raise InvalidTransition('Pare o pedido antes de apagá-lo.')
+        hashes = set(_hashes(loads(row['files_json'])))
+        for task in tx.execute('SELECT result_json FROM tasks WHERE run_id=?', (run_id,)).fetchall():
+            hashes |= set((loads(task['result_json']) or {}).get('files', []))
+        tx.execute('DELETE FROM events WHERE run_id=?', (run_id,))
+        tx.execute('DELETE FROM tasks WHERE run_id=?', (run_id,))
+        tx.execute('DELETE FROM runs WHERE id=?', (run_id,))
         return sorted(hashes)
 
-    def referenced_files(self) -> set[str]:
+    def referenced_files(self, connection=None) -> set[str]:
+        connection = connection or self.db.connection()
         hashes: set[str] = set()
-        for row in self.db.query('SELECT files_json FROM runs'):
+        for row in connection.execute('SELECT files_json FROM runs').fetchall():
             hashes |= set(_hashes(loads(row['files_json'])))
-        for row in self.db.query('SELECT result_json FROM tasks WHERE result_json IS NOT NULL'):
+        for row in connection.execute('SELECT result_json FROM tasks WHERE result_json IS NOT NULL').fetchall():
             hashes |= set((loads(row['result_json']) or {}).get('files', []))
         return hashes
+
+    def delete_with_files(self, run_id: str, keep: set[str], remove) -> int:
+        return self.delete_many_with_files([run_id], keep, remove)
+
+    def delete_many_with_files(self, run_ids: list[str], keep: set[str], remove) -> int:
+        """Commit the history deletion before removing unreferenced bytes.
+
+        Disk deletion cannot be rolled back by SQLite. A failure must leave an orphan file, never restore
+        a history entry whose images were already deleted. Hold the write lock through cleanup so new
+        runs and uploads cannot claim a candidate in between the reference check and its removal.
+        """
+        removed = 0
+        with self.db.write_lock:
+            with self.db.transaction() as tx:
+                hashes = set()
+                for run_id in dict.fromkeys(run_ids):
+                    hashes.update(self.delete(run_id, tx))
+                candidates = hashes - self.referenced_files(tx) - set(keep)
+            for file_hash in sorted(candidates):
+                try:
+                    remove(file_hash)
+                except OSError:
+                    logging.getLogger(__name__).warning('Arquivo órfão mantido após falha na limpeza: %s', file_hash,
+                                                        exc_info=True)
+                    continue
+                self.forget_file(file_hash)
+                removed += 1
+        return removed
 
     def forget_file(self, file_hash: str) -> None:
         with self.db.transaction() as tx:
@@ -135,11 +182,24 @@ class RunRepository:
 
     # tasks ----------------------------------------------------------------
     def add_task(self, run_id: str, kind: str, position: int = 0, seed: int | None = None) -> dict:
-        task_id = new_id()
+        """Idempotent: a second call for the same (run, kind, position) returns the existing task."""
+        return self.add_tasks(run_id, kind, [(position, seed)])[0]
+
+    def add_tasks(self, run_id: str, kind: str, slots: list[tuple[int, int | None]]) -> list[dict]:
+        """Create every missing (position, seed) of a batch in one transaction; existing ones are kept."""
+        ids = []
         with self.db.transaction() as tx:
-            tx.execute('INSERT INTO tasks(id, run_id, kind, position, status, seed, created_at) VALUES (?,?,?,?,?,?,?)',
-                       (task_id, run_id, kind, position, 'created', seed, now()))
-        return self.task(task_id)
+            for position, seed in slots:
+                row = tx.execute('SELECT id FROM tasks WHERE run_id=? AND kind=? AND position=?',
+                                 (run_id, kind, position)).fetchone()
+                if row is None:
+                    task_id = new_id()
+                    tx.execute('INSERT INTO tasks(id, run_id, kind, position, status, seed, created_at) '
+                               'VALUES (?,?,?,?,?,?,?)', (task_id, run_id, kind, position, 'created', seed, now()))
+                    ids.append(task_id)
+                else:
+                    ids.append(row['id'])
+        return [self.task(task_id) for task_id in ids]
 
     def task(self, task_id: str) -> dict | None:
         row = self.db.one('SELECT * FROM tasks WHERE id=?', (task_id,))

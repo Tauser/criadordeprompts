@@ -2,9 +2,11 @@ import {useState} from 'react';
 import {api, fileUrl} from '../api/client';
 import {CATEGORY_LABELS} from '../lib/labels';
 import {sortBy} from '../lib/sort';
+import {uuid} from '../lib/uuid';
 import {MAX_CHARACTERS, ROLES, addCharacter, addReference, applyReference, characterNumber, describeCharacter, referenceRoles,
   removeCharacter, removeReference, setTarget, type Workspace} from '../state/workspace';
 import {MaskEditor} from './MaskEditor';
+import {TranslateButton} from './Translate';
 
 interface Props {
   workspace: Workspace;
@@ -23,11 +25,12 @@ export function References({workspace, slots, disabled, update, notify}: Props) 
 
   const add = async (files: FileList | null) => {
     if (!files?.length) return;
+    if (files.length > 10 - request.references.length) {notify('Use até dez imagens.', true); return;}
     setBusy(true);
     try {
       for (const file of Array.from(files)) {
         const stored = await api.upload(file, file.name);
-        const id = 'ref-' + crypto.randomUUID().slice(0, 8);
+        const id = 'ref-' + uuid().slice(0, 8);
         update(ws => addReference(ws, id, {hash: stored.hash, width: stored.width, height: stored.height, name: file.name}));
       }
     } catch (error) {
@@ -82,6 +85,8 @@ export function References({workspace, slots, disabled, update, notify}: Props) 
                          placeholder="Opcional, em inglês: where this person is and what they do"
                          aria-label={`Descrição do personagem ${person} em inglês`}
                          onChange={e => update(ws => describeCharacter(ws, ref.id, e.target.value))} />
+                  <TranslateButton label={`a descrição do personagem ${person}`} text={character.description} disabled={disabled}
+                                   onTranslated={text => update(ws => describeCharacter(ws, ref.id, text))} />
                 </>}
                 <div className="row">
                   {!isTarget && (

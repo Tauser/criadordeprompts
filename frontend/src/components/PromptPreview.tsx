@@ -1,5 +1,6 @@
 import type {Prepared, StudioRequest} from '../api/types';
 import {CATEGORY_LABELS} from '../lib/labels';
+import {TranslateButton} from './Translate';
 
 interface Props {
   request: StudioRequest;
@@ -36,10 +37,11 @@ export function PromptPreview({request, prepared, pending, error, onManual, onMa
       <label className="check">
         <input type="checkbox" checked={manual} onChange={e => onManual(e.target.checked)} /> Editar o prompt manualmente
       </label>
-      {manual ? (
+      {manual ? (<>
         <textarea className="prompt-text" rows={14} value={request.manual_prompt ?? ''} spellCheck={false}
                   aria-label="Prompt manual" onChange={e => onManualText(e.target.value)} />
-      ) : (
+        <TranslateButton label="o prompt manual" text={request.manual_prompt ?? ''} onTranslated={onManualText} />
+      </>) : (
         <div className="segments" aria-live="polite">
           {prepared?.segments.map(segment => (
             <p key={segment.block} className="segment"><span className="tag">{BLOCK_LABEL(segment.block)}</span>{segment.text}</p>

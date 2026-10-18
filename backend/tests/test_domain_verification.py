@@ -1,5 +1,9 @@
+import json
+
+import pytest
+
 from helpers import cat, edit_request, keep, ref, run
-from prisma_studio.domain.verification import checklist, judge_prompt, parse_verdicts, score
+from prisma_studio.domain.verification import Check, checklist, judge_prompt, parse_verdicts, score
 
 
 def test_checklist_and_parsing(library):
@@ -16,3 +20,32 @@ def test_checklist_and_parsing(library):
     assert [verdicts[i]['verdict'] for i in ids] == ['met', 'partial', 'unknown']
     assert score(verdicts) == 0.5
     assert all(v['verdict'] == 'unknown' for v in parse_verdicts('I refuse', checks).values())
+
+
+def test_complete_numbered_results_are_mapped_by_id_not_response_order():
+    checks = [Check('op.environment', 'A blue background'), Check('op.wardrobe', 'A blue shirt')]
+    answer = json.dumps({'results': [{'id': '2', 'verdict': 'met'}, {'id': 1, 'verdict': 'unmet'}]})
+    verdicts = parse_verdicts(answer, checks)
+    assert verdicts['op.environment']['verdict'] == 'unmet'
+    assert verdicts['op.wardrobe']['verdict'] == 'met'
+    assert score(verdicts) == 0.5
+
+
+@pytest.mark.parametrize('ids', [['1'], ['1', '1'], ['1', '3'], ['0', '1']])
+def test_ambiguous_numbered_results_remain_unknown(ids):
+    checks = [Check('op.environment', 'A blue background'), Check('op.wardrobe', 'A blue shirt')]
+    answer = json.dumps({'results': [{'id': key, 'verdict': 'met'} for key in ids]})
+    assert all(v['verdict'] == 'unknown' for v in parse_verdicts(answer, checks).values())
+
+
+def test_mixed_numbered_and_named_results_do_not_guess_the_missing_id():
+    checks = [Check('op.environment', 'A blue background'), Check('op.wardrobe', 'A blue shirt')]
+    answer = json.dumps({'results': [{'id': 'op.environment', 'verdict': 'met'}, {'id': '2', 'verdict': 'met'}]})
+    verdicts = parse_verdicts(answer, checks)
+    assert verdicts['op.environment']['verdict'] == 'met'
+    assert verdicts['op.wardrobe']['verdict'] == 'unknown'
+
+
+def test_judge_prompt_has_only_named_ids_without_competing_ordinals():
+    prompt = judge_prompt([Check('op.environment', 'A blue background')])
+    assert prompt == 'Checklist:\n[op.environment] A blue background'

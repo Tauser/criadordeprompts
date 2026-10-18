@@ -7,15 +7,18 @@ import uuid
 
 from ..application.enhancer import check, clean_output, system_prompt
 from ..domain.verification import JUDGE_SYSTEM, Check, judge_prompt, parse_verdicts, score
-from ..infrastructure.comfy.client import ComfyRejected, ComfyUnavailable
+from ..infrastructure.comfy.client import ComfyNotSent, ComfyRejected, ComfyUnavailable
 from ..infrastructure.comfy.validation import validate_graph
 from ..infrastructure.comfy.workflows import (MAX_EDIT_PIXELS, ImageJob, TextJob, image_graph, image_outputs,
                                               text_graph, text_output)
 from ..infrastructure.db.database import now
-from ..infrastructure.storage.files import fit_multiple_of_32, normalized_png
+from ..infrastructure.storage.files import (MAX_RESULT_BYTES, composite_on_original, fit_multiple_of_32,
+                                            normalized_png, oriented_size)
 
 log = logging.getLogger('prisma.executor')
 TASK_DONE = {'completed', 'failed', 'cancelled', 'lost'}
+MAX_UNEXPECTED_ERRORS = 3
+MASK_FEATHER = 12                         # pixels of soft transition, always inside the drawn area
 PHASES = {'UNETLoader': 'loading_models', 'CLIPLoader': 'loading_models', 'VAELoader': 'loading_models',
           'QwenImage21Cache': 'loading_models', 'LoadImage': 'loading_images', 'LoadImageMask': 'loading_images',
           'TextEncodeQwenImage21': 'encoding', 'KSampler': 'sampling', 'SamplerCustom': 'sampling',
@@ -32,6 +35,7 @@ class Executor:
         self._thread: threading.Thread | None = None
         self._object_info: dict | None = None
         self._missing: dict[str, int] = {}
+        self._errors: dict[str, int] = {}
         self.reachable: bool | None = None
 
     # lifecycle --------------------------------------------------------------
@@ -43,6 +47,8 @@ class Executor:
     def stop(self) -> None:
         self._stop.set()
         self._wake.set()
+        if self._thread is not None and self._thread is not threading.current_thread():
+            self._thread.join()                       # the instance lock must outlive any in-flight work
 
     def wake(self) -> None:
         self._wake.set()
@@ -60,8 +66,10 @@ class Executor:
     def tick(self) -> None:
         active_found = False
         for run in self.repository.open_runs():
+            if self._stop.is_set():
+                break
             if run['cancel_requested']:
-                self._cancel(run)
+                self._step(run)
                 continue
             if run['status'] == 'review':
                 continue
@@ -71,9 +79,28 @@ class Executor:
             self._step(run)
 
     def _step(self, run: dict) -> None:
+        try:
+            if run['cancel_requested']:
+                self._cancel(run)
+            else:
+                self._advance(run)
+            self._errors.pop(run['id'], None)
+        except Exception as error:  # noqa: BLE001 - one broken run must not stop the queue
+            count = self._errors.get(run['id'], 0) + 1
+            self._errors[run['id']] = count
+            log.exception('Erro inesperado no pedido %s (%s/%s)', run['id'], count, MAX_UNEXPECTED_ERRORS)
+            if count >= MAX_UNEXPECTED_ERRORS:
+                self._errors.pop(run['id'], None)
+                self.repository.transition(run['id'], 'failed', error=f'Erro interno do Studio: {error}'[:2000])
+
+    def _advance(self, run: dict) -> None:
         status = run['status']
         try:
             if status == 'created':
+                if not run['prompt'] or not run['effective_prompt'] or not run['settings'].get('variations'):
+                    self.repository.transition(run['id'], 'failed', error='Pedido incompleto no banco: '
+                                               'sem prompt ou configurações. Envie-o novamente.')
+                    return
                 self.repository.transition(run['id'], 'preparing')
                 self._prepare(self.repository.get(run['id']))
             elif status == 'preparing':
@@ -107,8 +134,7 @@ class Executor:
         for index, file_hash in enumerate(settings['images']):
             data = self.store.read(file_hash)
             if index == 0 and run['mode'] == 'edit' and (settings['mask'] or settings['resolution'] == 0):
-                record = self.repository.file(file_hash)
-                size = fit_multiple_of_32(record['width'], record['height'], MAX_EDIT_PIXELS)
+                size = fit_multiple_of_32(*oriented_size(data), MAX_EDIT_PIXELS)
                 data = normalized_png(data, size)
                 names.append(self.comfy.upload(data, f'prisma_{file_hash[:24]}_{size[0]}x{size[1]}.png', 'image/png'))
             else:
@@ -122,11 +148,12 @@ class Executor:
         return {'images': names, 'mask': mask, 'target_size': size}
 
     def _create_image_tasks(self, run: dict) -> None:
+        """Idempotent: creates whichever of the requested variations are still missing, in one transaction."""
         settings = run['settings']
-        if self.repository.tasks(run['id'], 'image'):
-            return
-        for position in range(settings['variations']):
-            self.repository.add_task(run['id'], 'image', position, seed=(settings['seed'] + position) % 2**53)
+        existing = {t['position'] for t in self.repository.tasks(run['id'], 'image')}
+        missing = [(p, (settings['seed'] + p) % 2**53) for p in range(settings['variations']) if p not in existing]
+        if missing:
+            self.repository.add_tasks(run['id'], 'image', missing)
 
     def _refining(self, run: dict) -> None:
         task = self.repository.tasks(run['id'], 'refine')[0]
@@ -149,6 +176,8 @@ class Executor:
         engine = settings['engine']
         tasks = self.repository.tasks(run['id'], 'image')
         for task in tasks:
+            if self._stop.is_set():
+                return
             def build(task=task):
                 return image_graph(ImageJob(
                     mode=run['mode'], prompt=run['effective_prompt'], profile=settings['profile'], seed=task['seed'],
@@ -163,7 +192,7 @@ class Executor:
             return
         done = [t for t in tasks if t['status'] == 'completed']
         for task in done:
-            self._store_outputs(task)
+            self._store_outputs(task, run)
         if not done:
             self.repository.transition(run['id'], 'failed', error=next((t['error'] for t in tasks if t['error']),
                                                                        'Nenhuma imagem foi gerada.'))
@@ -206,6 +235,8 @@ class Executor:
 
     # task driver ------------------------------------------------------------
     def _drive(self, task: dict, build) -> dict:
+        """Advance one task. A submission is sent at most once automatically: when its outcome is unknown the
+        task becomes `uncertain` and only a sighting in ComfyUI or an explicit user decision moves it on."""
         status = task['status']
         if status == 'created':
             graph = build()
@@ -213,23 +244,34 @@ class Executor:
             prompt_id = str(uuid.uuid4())
             task = self.repository.task_transition(task['id'], 'submitting', comfy_prompt_id=prompt_id,
                                                    graph_json=graph)
-            status = 'submitting'
-        if status == 'submitting':
             try:
                 self.comfy.submit(task['graph'], task['comfy_prompt_id'])
+            except ComfyNotSent:                    # no connection was made: nothing can have arrived
+                self.reachable = False
+                return self.repository.task_transition(task['id'], 'created', comfy_prompt_id=None)
             except ComfyUnavailable:
-                return self.repository.task_transition(task['id'], 'uncertain')
+                self.reachable = False
+                return self._uncertain(task, 'A resposta do ComfyUI ao envio se perdeu.')
             except ComfyRejected as error:
                 return self.repository.task_transition(task['id'], 'failed', error=str(error)[:2000])
-            return self.repository.task_transition(task['id'], 'queued', submitted_at=now())
-        if status == 'uncertain':
+            return self.repository.task_transition(task['id'], 'queued', submitted_at=now(), error=None)
+        if status in ('submitting', 'uncertain'):
+            # Found after a restart (or still unconfirmed): the request may or may not have arrived.
             state = self.comfy.job(task['comfy_prompt_id'])
-            if state.status == 'missing':          # never accepted: resubmitting cannot duplicate it
-                self.comfy.submit(task['graph'], task['comfy_prompt_id'])
-            return self.repository.task_transition(task['id'], 'queued')
+            if state.status != 'missing':
+                self.repository.event(task['run_id'], 'submission_confirmed', {'task': task['id']})
+                return self.repository.task_transition(task['id'], 'queued', submitted_at=task['submitted_at'] or now(),
+                                                   error=None)
+            if status == 'submitting':
+                return self._uncertain(task, 'O Studio parou durante o envio e o ComfyUI não mostra o trabalho.')
+            return task                             # keep waiting: a sighting or the user's decision resolves it
         if status in ('queued', 'running'):
             return self._observe(task)
         return task
+
+    def _uncertain(self, task: dict, reason: str) -> dict:
+        self.repository.event(task['run_id'], 'submission_uncertain', {'task': task['id'], 'reason': reason})
+        return self.repository.task_transition(task['id'], 'uncertain', error=reason)
 
     def _observe(self, task: dict) -> dict:
         state = self.comfy.job(task['comfy_prompt_id'])
@@ -272,13 +314,22 @@ class Executor:
             phases[phase] = round(phases.get(phase, 0) + seconds, 3)
         return {'phases': phases, 'nodes': snapshot['timings'], 'cached': snapshot['cached']}
 
-    def _store_outputs(self, task: dict) -> None:
+    def _store_outputs(self, task: dict, run: dict | None = None) -> None:
         if task['result'].get('files'):
             return
+        run = run or self.repository.get(task['run_id'])
+        settings = run['settings']
+        masked = run['mode'] == 'edit' and settings.get('mask') and settings.get('images')
         files = []
         for image in task['result']['images']:
-            stored = self.store.put(self.comfy.view(image['filename'], image.get('subfolder', ''), image['type']))
-            self.repository.record_file(stored)
+            data = self.comfy.view(image['filename'], image.get('subfolder', ''), image['type'])
+            if masked:
+                # Recompose on the untouched original: outside the drawn mask every pixel is the original's.
+                data = composite_on_original(self.store.read(settings['images'][0]), data,
+                                             self.store.read(settings['mask']), MASK_FEATHER)
+            with self.repository.db.write_lock:
+                stored = self.store.put(data, MAX_RESULT_BYTES)
+                self.repository.record_file(stored)
             files.append(stored.hash)
         self.repository.task_transition(task['id'], 'completed', result_json={**task['result'], 'files': files})
 
@@ -323,5 +374,5 @@ class Executor:
         if all(t['status'] in TASK_DONE for t in tasks):
             for task in tasks:
                 if task['kind'] == 'image' and task['status'] == 'completed':
-                    self._store_outputs(self.repository.task(task['id']))
+                    self._store_outputs(self.repository.task(task['id']), run)
             self.repository.transition(run['id'], 'cancelled')

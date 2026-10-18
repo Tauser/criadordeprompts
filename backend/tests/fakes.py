@@ -3,7 +3,7 @@ import json
 
 from PIL import Image
 
-from prisma_studio.infrastructure.comfy.client import ComfyRejected, ComfyUnavailable, JobState
+from prisma_studio.infrastructure.comfy.client import ComfyNotSent, ComfyRejected, ComfyUnavailable, JobState
 from prisma_studio.infrastructure.comfy.workflows import IMAGE_OUTPUT_NODE, TEXT_OUTPUT_NODE
 
 
@@ -23,13 +23,14 @@ class FakeComfy:
         self.cancels: list[str] = []
         self.offline = False
         self.fail_submit_once = False
+        self.lose_submit_once = False      # the answer is lost and the request never arrived
         self.text_answer = text_answer
         self.object_info_data = object_info
         self.script = ['pending', 'in_progress', 'completed']
 
     def _check(self):
         if self.offline:
-            raise ComfyUnavailable('offline')
+            raise ComfyNotSent('connection refused')
 
     def object_info(self):
         self._check()
@@ -44,6 +45,9 @@ class FakeComfy:
             self.jobs[prompt_id] = {'graph': graph, 'step': 0, 'status': None}   # accepted, but the answer is lost
             self.submits.append(prompt_id)
             raise ComfyUnavailable('connection reset')
+        if self.lose_submit_once:
+            self.lose_submit_once = False
+            raise ComfyUnavailable('read timeout')
         if prompt_id in self.jobs:
             raise ComfyRejected('duplicate prompt id')
         self.jobs[prompt_id] = {'graph': graph, 'step': 0, 'status': None}

@@ -5,7 +5,9 @@ export type Category = typeof CATEGORIES[number];
 export type Intent = 'keep' | 'set' | 'transfer' | 'free';
 export type Support = 'floor' | 'seat' | 'bed' | 'wall' | 'table';
 export type Framing = 'portrait' | 'half' | 'full' | 'wide';
-export type Posture = 'standing' | 'seated' | 'kneeling' | 'lying' | 'walking' | 'running' | 'any';
+export type Posture = 'standing' | 'seated' | 'kneeling' | 'all_fours' | 'squatting' | 'lying' | 'supine' | 'prone'
+  | 'side_lying' | 'walking' | 'running' | 'any';
+export type Orientation = 'front' | 'back' | 'side' | 'three_quarter' | 'any';
 export type Gaze = 'camera' | 'away' | 'down' | 'up' | 'back' | 'closed' | 'any';
 
 export type Value = {kind: 'catalog'; item_id: string} | {kind: 'text'; text: string};
@@ -37,6 +39,7 @@ export interface StudioRequest {
   prompt_mode: 'structured' | 'manual';
   manual_prompt?: string | null;
   attributes: Partial<Record<Category, Attribute>>;
+  wardrobe_scope?: 'primary' | 'all';
   references: Reference[];
   target_id?: string | null;
   mask: boolean;
@@ -50,11 +53,11 @@ export interface StudioRequest {
 }
 
 export interface Requirements {
-  participants?: number | null; posture?: Posture | null; gaze?: Gaze | null;
+  participants?: number | null; posture?: Posture | null; gaze?: Gaze | null; orientation?: Orientation | null;
   support_any_of?: Support[] | null; minimum_framing?: Framing | null;
 }
 export interface Item {
-  id: string; category: Category; label: string; prompt: string; prompt_pt?: string | null;
+  id: string; category: Category; label: string; prompt: string; prompt_pt?: string | null; edit_prompt?: string | null;
   adult: boolean; enabled: boolean; requirements: Requirements;
   provides: {supports?: Support[] | null; framing?: Framing | null};
 }
@@ -84,4 +87,5 @@ export interface Run {
   tasks?: Task[]; events?: RunEvent[];
 }
 export interface Health {studio_version: string; data_dir: string; comfy_url: string;
-  comfy: {available: boolean; version?: string; devices?: string[]}; progress_live: boolean; lan_token: boolean}
+  comfy: {available: boolean; version?: string; devices?: string[]}; progress_live: boolean; lan_token: boolean;
+  network_access?: {mode: 'local' | 'lan' | 'token'; allowed_networks: string[]; urls: string[]}}

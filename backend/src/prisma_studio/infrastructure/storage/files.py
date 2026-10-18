@@ -8,9 +8,10 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
-from PIL import Image, UnidentifiedImageError
+from PIL import Image, ImageChops, ImageFilter, ImageOps, UnidentifiedImageError
 
 MAX_BYTES = 25 * 1024 * 1024
+MAX_RESULT_BYTES = 256 * 1024 * 1024
 FORMATS = {'PNG': 'image/png', 'JPEG': 'image/jpeg', 'WEBP': 'image/webp'}
 
 
@@ -33,14 +34,16 @@ class FileStore:
             raise ValueError('Identificador de arquivo inválido.')
         return self.root / file_hash[:2] / file_hash
 
-    def put(self, data: bytes) -> StoredFile:
-        if not data or len(data) > MAX_BYTES:
-            raise ValueError('Use imagens de até 25 MB.')
+    def put(self, data: bytes, limit: int = MAX_BYTES) -> StoredFile:
+        """`limit` applies to uploads; results the Studio produces itself (a full-size PNG) may pass a larger one."""
+        if not data or len(data) > limit:
+            raise ValueError(f'Use imagens de até {limit // (1024 * 1024)} MB.')
         try:
             with Image.open(io.BytesIO(data)) as image:
                 image.verify()
             with Image.open(io.BytesIO(data)) as image:
-                fmt, width, height = image.format, image.width, image.height
+                fmt = image.format
+                width, height = _oriented(image)
         except (UnidentifiedImageError, OSError, SyntaxError) as error:
             raise ValueError('O arquivo não é uma imagem válida.') from error
         if fmt not in FORMATS:
@@ -62,6 +65,23 @@ class FileStore:
         return self.path(file_hash).read_bytes()
 
 
+SWAPPED_ORIENTATIONS = {5, 6, 7, 8}       # EXIF orientations that turn the picture 90 degrees
+
+
+def _oriented(image: Image.Image) -> tuple[int, int]:
+    """Width and height as displayed, honouring the EXIF orientation like browsers and ComfyUI do."""
+    try:
+        orientation = image.getexif().get(0x0112, 1)
+    except Exception:  # noqa: BLE001 - a broken EXIF block must not reject the image
+        orientation = 1
+    return (image.height, image.width) if orientation in SWAPPED_ORIENTATIONS else (image.width, image.height)
+
+
+def oriented_size(data: bytes) -> tuple[int, int]:
+    with Image.open(io.BytesIO(data)) as image:
+        return _oriented(image)
+
+
 def fit_multiple_of_32(width: int, height: int, max_pixels: int) -> tuple[int, int]:
     scale = min(1.0, (max_pixels / (width * height)) ** 0.5)
     w = max(32, int(width * scale) // 32 * 32)
@@ -69,15 +89,42 @@ def fit_multiple_of_32(width: int, height: int, max_pixels: int) -> tuple[int, i
     return w, h
 
 
+def _binary_mask(image: Image.Image, size: tuple[int, int]) -> Image.Image:
+    """White (255) where the user painted, black elsewhere, at `size`."""
+    source = image.getchannel('A') if 'A' in image.getbands() and image.getextrema()[-1][0] < 255 \
+        else image.convert('L')
+    return source.resize(size, Image.Resampling.NEAREST).point(lambda v: 255 if v >= 128 else 0)
+
+
 def normalized_png(data: bytes, size: tuple[int, int], mask: bool = False) -> bytes:
     """Resize to an exact size and return PNG bytes; masks become single-channel white-on-black."""
     with Image.open(io.BytesIO(data)) as image:
         if mask:
-            source = image.getchannel('A') if 'A' in image.getbands() and image.getextrema()[-1][0] < 255 \
-                else image.convert('L')
-            out = source.resize(size, Image.Resampling.NEAREST).point(lambda v: 255 if v >= 128 else 0)
+            out = _binary_mask(image, size)
         else:
-            out = image.convert('RGB').resize(size, Image.Resampling.LANCZOS)
+            out = ImageOps.exif_transpose(image).convert('RGB').resize(size, Image.Resampling.LANCZOS)
         buffer = io.BytesIO()
         out.save(buffer, format='PNG')
         return buffer.getvalue()
+
+
+def composite_on_original(original: bytes, generated: bytes, mask: bytes, feather: int = 0) -> bytes:
+    """Put the generated picture back into the original photo through the drawn mask.
+
+    The result has the original's size and orientation. Outside the drawn area the weight is exactly zero, so
+    those pixels are the original's, byte for byte once decoded; the soft transition lies inside the area."""
+    with Image.open(io.BytesIO(original)) as image:
+        base = ImageOps.exif_transpose(image).convert('RGB')
+    with Image.open(io.BytesIO(generated)) as image:
+        new = image.convert('RGB')
+        if new.size != base.size:
+            new = new.resize(base.size, Image.Resampling.LANCZOS)
+    with Image.open(io.BytesIO(mask)) as image:
+        weight = _binary_mask(image, base.size)
+    if feather > 0:
+        soft = weight.filter(ImageFilter.GaussianBlur(feather / 2))
+        weight = ImageChops.darker(soft, weight)          # never above the drawn mask: zero stays zero
+    out = Image.composite(new, base, weight)
+    buffer = io.BytesIO()
+    out.save(buffer, format='PNG')
+    return buffer.getvalue()

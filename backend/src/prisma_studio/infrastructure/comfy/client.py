@@ -11,6 +11,10 @@ class ComfyUnavailable(RuntimeError):
     """Network-level failure: the outcome of the call is unknown."""
 
 
+class ComfyNotSent(ComfyUnavailable):
+    """The connection was never established, so ComfyUI cannot have received the request."""
+
+
 class ComfyRejected(ValueError):
     """ComfyUI answered and refused the request."""
 
@@ -38,15 +42,29 @@ class ComfyClient:
     def _call(self, method: str, path: str, **kwargs) -> httpx.Response:
         try:
             response = self.http.request(method, self.base_url + path, **kwargs)
+        except (httpx.ConnectError, httpx.ConnectTimeout) as error:
+            raise ComfyNotSent(f'ComfyUI indisponível: {error.__class__.__name__}') from error
         except httpx.HTTPError as error:
             raise ComfyUnavailable(f'ComfyUI indisponível: {error.__class__.__name__}') from error
+        if response.status_code >= 500 or response.status_code == 408:
+            raise ComfyUnavailable(f'ComfyUI temporariamente indisponível: HTTP {response.status_code}.')
         return response
+
+    @staticmethod
+    def _decode(response: httpx.Response) -> dict:
+        try:
+            data = response.json() if response.content.strip() else {}
+        except ValueError as error:
+            raise ComfyUnavailable('O ComfyUI devolveu uma resposta JSON inválida.') from error
+        if not isinstance(data, dict):
+            raise ComfyUnavailable('O ComfyUI devolveu uma resposta fora do formato esperado.')
+        return data
 
     def _json(self, method: str, path: str, **kwargs):
         response = self._call(method, path, **kwargs)
         if response.status_code >= 400:
             raise ComfyRejected(f'ComfyUI recusou {path}: {response.text[:1500]}')
-        return response.json() if response.content.strip() else {}
+        return self._decode(response)
 
     def system_stats(self) -> dict:
         return self._json('GET', '/system_stats')
@@ -56,13 +74,19 @@ class ComfyClient:
 
     def submit(self, graph: dict, prompt_id: str) -> str:
         """Queue a graph under a client-chosen UUID, so an unconfirmed submission can be looked up."""
-        data = self._json('POST', '/prompt', json={'prompt': graph, 'client_id': self.client_id,
-                                                   'prompt_id': prompt_id})
+        response = self._call('POST', '/prompt', json={'prompt': graph, 'client_id': self.client_id,
+                                                      'prompt_id': prompt_id})
+        # A server/proxy error or an invalid answer does not prove that the graph was refused.
+        # Preserve the chosen ID and reconcile it instead of failing the run or resending it.
+        if 400 <= response.status_code < 500:
+            raise ComfyRejected(f'ComfyUI recusou /prompt: {response.text[:1500]}')
+        data = self._decode(response)
+        if not data.get('prompt_id'):
+            raise ComfyUnavailable('O ComfyUI não confirmou o identificador do trabalho enviado.')
         if data.get('node_errors'):
             raise ComfyRejected(f'Workflow inválido: {data["node_errors"]}')
-        prompt_id = data.get('prompt_id')
-        if not prompt_id:
-            raise ComfyRejected('O ComfyUI não devolveu o identificador do trabalho.')
+        if data['prompt_id'] != prompt_id:
+            raise ComfyUnavailable('O ComfyUI respondeu com um identificador diferente do enviado.')
         return prompt_id
 
     def job(self, prompt_id: str) -> JobState:
@@ -71,7 +95,7 @@ class ComfyClient:
             return JobState('missing')
         if response.status_code >= 400:
             raise ComfyRejected(f'Consulta recusada: {response.text[:500]}')
-        data = response.json()
+        data = self._decode(response)
         error = data.get('execution_error')
         message = error.get('exception_message') if isinstance(error, dict) else None
         return JobState(data.get('status', 'missing'), _seconds(data.get('execution_start_time')),

@@ -10,6 +10,25 @@ from prisma_studio.config import Config
 CATALOG = Path(__file__).resolve().parents[2] / 'catalog' / 'defaults.json'
 
 
+def test_unknown_translation_cancel_is_not_forwarded_to_comfy(client):
+    assert client.post('/api/translations/unrelated-job/cancel').status_code == 404
+    assert client.container.comfy.cancels == []
+
+
+def test_group_clothing_scope_survives_prepare_and_persistence(client):
+    request = {'mode': 'generate', 'wardrobe_scope': 'all', 'participants': {'requested': 2},
+               'attributes': {'wardrobe': {'intent': 'set', 'value': {'kind': 'text', 'text': 'blue coats'}}}}
+    preview = client.post('/api/prepare', json=request).json()
+    assert preview['valid'] and 'both people in the scene' in preview['prompt']
+    created = client.post('/api/runs', json={'request_id': 'wardrobe-scope-0001', 'request': request})
+    assert created.status_code == 200
+    run = created.json()
+    assert run['request']['wardrobe_scope'] == 'all'
+    assert run['settings']['compiler_version'] == '1.5.0'
+    assert [c['id'] for c in run['settings']['checks'] if c['id'].startswith('op.wardrobe')] == [
+        'op.wardrobe.person.1', 'op.wardrobe.person.2']
+
+
 class NoProgress:
     def snapshot(self, _):
         return None
@@ -39,7 +58,7 @@ def tick(client, times=12):
 
 def test_catalog_import_is_valid_and_complete(client):
     items = client.get('/api/library').json()['items']
-    assert len(items) == 303
+    assert len(items) == 204
     common = [i for i in items if i['category'] in ('pose', 'action') and not i['adult']]
     assert all(i['requirements']['participants'] for i in common)
 

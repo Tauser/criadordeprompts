@@ -1,16 +1,20 @@
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {api} from '../api/client';
 import {CATEGORIES, type Category, type Item, type LibrarySnapshot} from '../api/types';
-import {CATEGORY_LABELS, FRAMING_LABELS, GAZE_LABELS, POSTURE_LABELS} from '../lib/labels';
+import {CATEGORY_LABELS, FRAMING_LABELS, GAZE_LABELS, ORIENTATION_LABELS, POSTURE_LABELS} from '../lib/labels';
 import {metadataLabel, missingMetadata} from '../lib/metadata';
 import {compareText, sortBy} from '../lib/sort';
+import {uuid} from '../lib/uuid';
+import {TranslateButton} from './Translate';
 
 const SORTED_CATEGORIES = sortBy(CATEGORIES, c => CATEGORY_LABELS[c]);
 
 interface Props {snapshot: LibrarySnapshot; onSaved: (s: LibrarySnapshot) => void; notify: (m: string, e?: boolean) => void;
   setDirty: (dirty: boolean) => void}
 
-const POSTURES = ['', 'any', 'standing', 'seated', 'kneeling', 'lying', 'walking', 'running'];
+const POSTURES = ['', 'any', 'standing', 'seated', 'kneeling', 'all_fours', 'squatting', 'lying', 'supine', 'prone',
+  'side_lying', 'walking', 'running'];
+const ORIENTATIONS = ['', 'any', 'front', 'back', 'side', 'three_quarter'];
 const GAZES = ['', 'any', 'camera', 'away', 'down', 'up', 'back', 'closed'];
 const FRAMINGS = ['', 'portrait', 'half', 'full', 'wide'];
 const SUPPORTS = ['floor', 'seat', 'bed', 'wall', 'table'] as const;
@@ -21,7 +25,7 @@ const sortedOptions = (values: string[], labels: Record<string, string>) =>
 const compareCategoryThenLabel = (a: Item, b: Item) =>
   SORTED_CATEGORIES.indexOf(a.category) - SORTED_CATEGORIES.indexOf(b.category) || compareText(a.label, b.label);
 
-const blank = (category: Category): Item => ({id: `user.${category}.${crypto.randomUUID().slice(0, 8)}`, category,
+const blank = (category: Category): Item => ({id: `user.${category}.${uuid().slice(0, 8)}`, category,
   label: '', prompt: '', prompt_pt: '', adult: false, enabled: true, requirements: {}, provides: {}});
 
 export function Library({snapshot, onSaved, notify, setDirty}: Props) {
@@ -32,6 +36,20 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
   const [original, setOriginal] = useState<string>('');
   const [saving, setSaving] = useState(false);
   const [translating, setTranslating] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const lastClicked = useRef<number | null>(null);
+  const shiftHeld = useRef(false);                 // Shift+clique seleciona um intervalo
+  // The translation belongs to the item that asked for it: opening another item or leaving the page drops it.
+  const openId = useRef<string | null>(null);
+  openId.current = draft?.id ?? null;
+  const draftRef = useRef(draft);
+  draftRef.current = draft;
+  const translationJob = useRef<{item: string; job?: string} | null>(null);
+  useEffect(() => () => {
+    const job = translationJob.current?.job;
+    translationJob.current = null;
+    if (job) api.cancelTranslation(job).catch(() => undefined);
+  }, []);
   const dirty = draft !== null && JSON.stringify(draft) !== original;
   useEffect(() => setDirty(dirty), [dirty, setDirty]);
 
@@ -39,10 +57,39 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
     && (!incomplete || missingMetadata(item).length > 0)
     && (!query || (item.label + ' ' + item.prompt).toLowerCase().includes(query.toLowerCase())))
     .sort((a, b) => compareCategoryThenLabel(a, b)), [snapshot, category, query, incomplete]);
+  // Selection survives filtering; ids that no longer exist are dropped.
+  useEffect(() => {
+    const ids = new Set(snapshot.items.map(i => i.id));
+    setSelected(current => [...current].every(id => ids.has(id)) ? current : new Set([...current].filter(id => ids.has(id))));
+  }, [snapshot]);
+  const visibleSelected = items.filter(i => selected.has(i.id)).length;
+  const allVisible = items.length > 0 && visibleSelected === items.length;
+  const toggleOne = (index: number, shift: boolean) => {
+    const anchor = lastClicked.current;
+    const range = shift && anchor !== null ? items.slice(Math.min(anchor, index), Math.max(anchor, index) + 1) : [items[index]];
+    const on = !selected.has(items[index].id);
+    setSelected(current => {
+      const next = new Set(current);
+      for (const item of range) {if (on) next.add(item.id); else next.delete(item.id);}
+      return next;
+    });
+    lastClicked.current = index;
+  };
+  const toggleVisible = (on: boolean) => setSelected(current => {
+    const next = new Set(current);
+    for (const item of items) {if (on) next.add(item.id); else next.delete(item.id);}
+    return next;
+  });
   const incompleteCount = useMemo(() => snapshot.items.filter(i => missingMetadata(i).length).length, [snapshot]);
 
   const open = (item: Item | null) => {
     if (dirty && !confirm('Descartar as alterações não salvas?')) return;
+    const pendingJob = translationJob.current;
+    if (pendingJob && pendingJob.item !== item?.id) {
+      translationJob.current = null;
+      setTranslating(false);
+      if (pendingJob.job) api.cancelTranslation(pendingJob.job).catch(() => undefined);
+    }
     setDraft(item ? structuredClone(item) : null);
     setOriginal(item ? JSON.stringify(item) : '');
   };
@@ -62,34 +109,95 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
     if (!draft) return;
     if (!draft.label.trim() || !draft.prompt.trim()) {notify('Preencha o nome e a descrição em inglês.', true); return;}
     const others = userItems().filter(i => i.id !== draft.id);
-    const cleaned = {...draft, prompt_pt: draft.prompt_pt || null};
-    if (await persist([...others, cleaned])) {setOriginal(JSON.stringify(draft)); notify('Opção salva.');}
+    const cleaned = {...draft, prompt_pt: draft.prompt_pt || null, edit_prompt: draft.edit_prompt?.trim() || null};
+    if (await persist([...others, cleaned])) {
+      if (openId.current === draft.id) setOriginal(JSON.stringify(draft));
+      notify('Opção salva.');
+    }
   };
   const remove = async () => {
     if (!draft) return;
     const origin = snapshot.origins[draft.id];
     const message = origin === 'custom' ? 'Restaurar a versão padrão desta opção?' : 'Remover esta opção da biblioteca?';
     if (!confirm(message)) return;
-    if (await persist(userItems().filter(i => i.id !== draft.id))) {setDraft(null); setOriginal(''); notify('Biblioteca atualizada.');}
+    if (await persist(userItems().filter(i => i.id !== draft.id))) {
+      if (openId.current === draft.id) {setDraft(null); setOriginal('');}
+      notify('Biblioteca atualizada.');
+    }
   };
   const translate = async () => {
-    if (!draft?.prompt_pt?.trim()) return;
+    if (!draft?.prompt_pt?.trim() || translationJob.current) return;
+    const item = draft.id, label = draft.label || 'opção', source = draft.prompt_pt;
+    const mine = {item} as {item: string; job?: string};
+    translationJob.current = mine;
+    const current = () => translationJob.current === mine;
     setTranslating(true);
     try {
-      const job = await api.translate(draft.prompt_pt);
-      for (let i = 0; i < 180; i++) {
+      const job = await api.translate(source);
+      mine.job = job.id;
+      if (!current()) {api.cancelTranslation(job.id).catch(() => undefined); return;}
+      for (let i = 0; i < 180 && current(); i++) {
         await new Promise(r => setTimeout(r, 1500));
+        if (!current()) return;
         const state = await api.translation(job.id);
         if (state.status === 'completed' && state.text) {
-          if (!draft.prompt || confirm(`Substituir a descrição em inglês por:\n\n${state.text}`))
-            setDraft(d => d && {...d, prompt: state.text!});
+          if (!current()) return;
+          if (openId.current !== item || draftRef.current?.prompt_pt !== source) {
+            notify(`O texto de “${label}” mudou durante a tradução. Nada foi alterado.`); return;
+          }
+          const text = state.text, open = draftRef.current;
+          if (open?.prompt && !confirm(`Substituir a descrição em inglês por:\n\n${text}`)) return;
+          setDraft(d => d && d.id === item ? {...d, prompt: text} : d);
           return;
         }
         if (['failed', 'cancelled'].includes(state.status)) throw new Error(state.error || 'A tradução falhou.');
       }
-      throw new Error('A tradução demorou demais.');
-    } catch (error) {notify((error as Error).message, true);} finally {setTranslating(false);}
+      if (current()) throw new Error('A tradução demorou demais.');
+    } catch (error) {if (current()) notify((error as Error).message, true);} finally {
+      if (current()) {translationJob.current = null; setTranslating(false);}
+    }
   };
+  // Bulk actions. Built-in options cannot be deleted (they come from the catalog); they can be deactivated,
+  // which hides them from the composer. Removing an edited built-in restores its default text.
+  const chosen = () => snapshot.items.filter(i => selected.has(i.id));
+  const releaseDraft = (ids: Set<string>) => {
+    if (draft && ids.has(draft.id)) {setDraft(null); setOriginal('');}
+  };
+  const draftBlocks = (ids: Set<string>) => !!draft && ids.has(draft.id) && dirty
+    && !confirm('A opção aberta tem alterações não salvas, que serão descartadas. Continuar?');
+  const removeSelected = async () => {
+    const list = chosen();
+    const own = list.filter(i => snapshot.origins[i.id] === 'user');
+    const custom = list.filter(i => snapshot.origins[i.id] === 'custom');
+    const builtin = list.length - own.length - custom.length;
+    if (!own.length && !custom.length) {
+      notify('As opções padrão não podem ser apagadas. Use "Desativar" para escondê-las do compositor.', true);
+      return;
+    }
+    const parts = [own.length && `${own.length} ${own.length === 1 ? 'opção sua será apagada' : 'opções suas serão apagadas'}`,
+      custom.length && `${custom.length} ${custom.length === 1 ? 'opção padrão editada volta' : 'opções padrão editadas voltam'} ao texto original`,
+      builtin && `${builtin} ${builtin === 1 ? 'opção padrão fica' : 'opções padrão ficam'} como ${builtin === 1 ? 'está' : 'estão'} (use "Desativar")`]
+      .filter(Boolean).join('; ');
+    const ids = new Set([...own, ...custom].map(i => i.id));
+    if (!confirm(`Remover da biblioteca: ${parts}. Continuar?`) || draftBlocks(ids)) return;
+    if (await persist(userItems().filter(i => !ids.has(i.id)))) {
+      releaseDraft(ids);
+      setSelected(current => new Set([...current].filter(id => !ids.has(id) || snapshot.origins[id] === 'custom')));
+      notify(`${ids.size} ${ids.size === 1 ? 'opção removida' : 'opções removidas'}.`);
+    }
+  };
+  const setEnabledSelected = async (enabled: boolean) => {
+    const list = chosen().filter(i => i.enabled !== enabled);
+    if (!list.length) {notify(enabled ? 'As selecionadas já estão ativas.' : 'As selecionadas já estão desativadas.'); return;}
+    const ids = new Set(list.map(i => i.id));
+    if (draftBlocks(ids)) return;
+    const changed = list.map(i => ({...i, enabled}));
+    if (await persist([...userItems().filter(i => !ids.has(i.id)), ...changed])) {
+      releaseDraft(ids);
+      notify(`${list.length} ${list.length === 1 ? 'opção' : 'opções'} ${enabled ? 'ativada' : 'desativada'}${list.length === 1 ? '' : 's'}.`);
+    }
+  };
+
   const req = (key: string, value: unknown) => setDraft(d => d && {...d, requirements: {...d.requirements, [key]: value === '' ? null : value}});
 
   return (
@@ -112,12 +220,29 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
           Só metadados incompletos ({incompleteCount})</label>
         <span className="muted small library-count">{items.length} opções</span>
       </div>
+      <div className="bulk-bar" role="toolbar" aria-label="Seleção">
+        <label className="check"><input type="checkbox" checked={allVisible} disabled={!items.length}
+          ref={el => {if (el) el.indeterminate = visibleSelected > 0 && !allVisible;}}
+          onChange={e => toggleVisible(e.target.checked)} /> Selecionar todas as {items.length} visíveis</label>
+        {selected.size > 0 && <>
+          <span className="muted small">{selected.size} {selected.size === 1 ? 'selecionada' : 'selecionadas'}
+            {selected.size !== visibleSelected ? ` (${selected.size - visibleSelected} fora do filtro)` : ''}</span>
+          <span className="spacer" />
+          <button className="quiet" disabled={saving} onClick={() => setEnabledSelected(false)}>Desativar</button>
+          <button className="quiet" disabled={saving} onClick={() => setEnabledSelected(true)}>Ativar</button>
+          <button className="quiet stop" disabled={saving} onClick={removeSelected}>Remover</button>
+          <button className="quiet" onClick={() => setSelected(new Set())}>Limpar seleção</button>
+        </>}
+      </div>
       {incomplete && <p className="help">Sem esses dados, as regras não verificam conflitos e o compilador não acrescenta as orientações de postura, olhar e apoio.</p>}
     <div className="library">
       <section className="card list-card">
         <ul className="item-list">
-          {items.map(item => (
-            <li key={item.id}>
+          {items.map((item, index) => (
+            <li key={item.id} className={'item-row' + (selected.has(item.id) ? ' checked' : '')}>
+              <input type="checkbox" checked={selected.has(item.id)} aria-label={`Selecionar ${item.label}`}
+                     onMouseDown={e => {shiftHeld.current = e.shiftKey;}}
+                     onChange={() => {toggleOne(index, shiftHeld.current); shiftHeld.current = false;}} />
               <button className={'item' + (draft?.id === item.id ? ' selected' : '')} onClick={() => open(item)}>
                 <strong>{item.label}</strong>
                 <span className="muted small">{CATEGORY_LABELS[item.category]}{item.adult ? ' · +18' : ''}{!item.enabled ? ' · desativada' : ''}
@@ -147,6 +272,15 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
               {translating ? 'Traduzindo no modelo local…' : 'Traduzir para inglês'}</button>
             <label>Descrição em inglês (é o texto enviado ao modelo)
               <textarea rows={4} value={draft.prompt} onChange={e => setDraft({...draft, prompt: e.target.value})} /></label>
+            <TranslateButton key={`prompt-${draft.id}`} label="a descrição em inglês" text={draft.prompt}
+                             onTranslated={text => setDraft(d => d && d.id === draft.id ? {...d, prompt: text} : d)} />
+            <label>Instrução completa para edição (opcional, em inglês)
+              <textarea rows={3} maxLength={2000} value={draft.edit_prompt ?? ''}
+                        onChange={e => setDraft({...draft, edit_prompt: e.target.value})} /></label>
+            <TranslateButton key={`edit-${draft.id}`} label="a instrução de edição" text={draft.edit_prompt ?? ''}
+                             onTranslated={text => setDraft(d => d && d.id === draft.id ? {...d, edit_prompt: text} : d)} />
+            <p className="help">Na edição, substitui a frase deste campo por uma instrução completa.
+              Na criação de imagem nova, continua valendo a descrição acima. Os outros campos continuam sendo aplicados.</p>
             <label className="check"><input type="checkbox" checked={draft.adult} onChange={e => setDraft({...draft, adult: e.target.checked})} /> Conteúdo adulto (+18)</label>
             <label className="check"><input type="checkbox" checked={draft.enabled} onChange={e => setDraft({...draft, enabled: e.target.checked})} /> Ativa</label>
           </div>
@@ -158,6 +292,8 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
                 onChange={e => req('participants', e.target.value === '' ? '' : Number(e.target.value))} /></label>}
               {['pose', 'action'].includes(draft.category) && <label>Postura<select value={draft.requirements.posture ?? ''}
                 onChange={e => req('posture', e.target.value)}>{sortedOptions(POSTURES, POSTURE_LABELS).map(p => <option key={p} value={p}>{p ? POSTURE_LABELS[p] : 'não informada'}</option>)}</select></label>}
+              {['pose', 'action'].includes(draft.category) && <label>Orientação para a câmera<select value={draft.requirements.orientation ?? ''}
+                onChange={e => req('orientation', e.target.value)}>{sortedOptions(ORIENTATIONS, ORIENTATION_LABELS).map(p => <option key={p} value={p}>{p ? ORIENTATION_LABELS[p] : 'não informada'}</option>)}</select></label>}
               {draft.category !== 'subject' && <label>Olhar<select value={draft.requirements.gaze ?? ''}
                 onChange={e => req('gaze', e.target.value)}>{sortedOptions(GAZES, GAZE_LABELS).map(p => <option key={p} value={p}>{p ? GAZE_LABELS[p] : 'não informado'}</option>)}</select></label>}
               {['pose', 'action'].includes(draft.category) && <>

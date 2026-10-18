@@ -24,6 +24,8 @@ def convert(legacy: dict, review: dict) -> Library:
         item_id = new_id(old)
         if item_id in review['drop']:
             continue
+        if review.get('drop_adult') and old.get('adult_only'):
+            continue
         requirements = {k: v for k, v in old.get('requirements', {}).items() if k != 'confirmations' and v is not None}
         provides = {k: v for k, v in old.get('provides', {}).items() if v is not None}
         category = old['category']

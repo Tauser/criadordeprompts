@@ -1,6 +1,8 @@
+import type {ReactNode} from 'react';
 import type {Attribute, Category, Item, Reference} from '../api/types';
 import {CATEGORY_LABELS} from '../lib/labels';
 import {sortBy} from '../lib/sort';
+import {TranslateButton} from './Translate';
 
 interface Props {
   category: Category;
@@ -12,12 +14,13 @@ interface Props {
   disabled?: boolean;
   issues: string[];
   onChange: (attribute: Attribute) => void;
+  children?: ReactNode;
 }
 
 const keyOf = (a: Attribute) => a.intent === 'set' ? (a.value?.kind === 'catalog' ? `catalog:${a.value.item_id}` : 'text')
   : a.intent === 'transfer' ? `ref:${a.reference_id}` : a.intent;
 
-export function AttributeField({category, attribute, items, references, targetId, mode, disabled, issues, onChange}: Props) {
+export function AttributeField({category, attribute, items, references, targetId, mode, disabled, issues, onChange, children}: Props) {
   const key = keyOf(attribute);
   const id = `field-${category}`;
   const sources = sortBy(references.filter(r => r.id !== targetId), r => r.label);
@@ -46,14 +49,19 @@ export function AttributeField({category, attribute, items, references, targetId
         {!known.has(key) && <option value={key}>Seleção indisponível · revise</option>}
       </select>
       {attribute.intent === 'set' && attribute.value?.kind === 'text' && (
-        <textarea rows={2} value={attribute.value.text} disabled={disabled} placeholder="Descreva em inglês"
+        <textarea rows={2} value={attribute.value.text} disabled={disabled} placeholder="Descreva em inglês (ou em português e traduza)"
                   aria-label={`Descrição de ${CATEGORY_LABELS[category]} em inglês`}
                   onChange={e => onChange({intent: 'set', value: {kind: 'text', text: e.target.value}})} />
+      )}
+      {attribute.intent === 'set' && attribute.value?.kind === 'text' && (
+        <TranslateButton label={CATEGORY_LABELS[category].toLowerCase()} text={attribute.value.text} disabled={disabled}
+                         onTranslated={text => onChange({intent: 'set', value: {kind: 'text', text}})} />
       )}
       {attribute.intent === 'set' && attribute.value?.kind === 'catalog' && (() => {
         const item = items.find(i => i.id === (attribute.value as {item_id: string}).item_id);
         return item?.prompt_pt ? <p className="field-pt">{item.prompt_pt}</p> : null;
       })()}
+      {children}
       {issues.length > 0 && <ul id={`${id}-issues`} className="field-issues">{issues.map(m => <li key={m}>{m}</li>)}</ul>}
     </div>
   );

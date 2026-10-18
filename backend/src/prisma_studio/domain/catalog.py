@@ -3,9 +3,9 @@ from __future__ import annotations
 
 import unicodedata
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from .vocabulary import Category, Framing, Gaze, Posture, Support
+from .vocabulary import Category, Framing, Gaze, Orientation, Posture, Support
 
 ITEM_ID = r'^[a-z0-9][a-z0-9._-]{2,79}$'
 
@@ -15,6 +15,7 @@ class Requirements(BaseModel):
     participants: int | None = Field(default=None, ge=1, le=10)
     posture: Posture | None = None
     gaze: Gaze | None = None
+    orientation: Orientation | None = None
     support_any_of: tuple[Support, ...] | None = None
     minimum_framing: Framing | None = None
 
@@ -31,11 +32,20 @@ class Item(BaseModel):
     category: Category
     label: str = Field(min_length=1, max_length=80)
     prompt: str = Field(min_length=1, max_length=2000, description='English text sent to the model')
+    edit_prompt: str | None = Field(default=None, min_length=1, max_length=2000,
+                                   description='Optional complete edit instruction; generation still uses prompt')
     prompt_pt: str | None = Field(default=None, max_length=2000)
     adult: bool = False
     enabled: bool = True
     requirements: Requirements = Requirements()
     provides: Provides = Provides()
+
+    @field_validator('edit_prompt')
+    @classmethod
+    def _edit_instruction(cls, value):
+        if value is not None and not value.strip():
+            raise ValueError('A instrução de edição não pode ficar vazia.')
+        return value.strip() if value is not None else None
 
 
 class Library(BaseModel):

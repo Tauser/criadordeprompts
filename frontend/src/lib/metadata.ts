@@ -2,7 +2,7 @@ import type {Item} from '../api/types';
 
 // Metadata the compiler and the rules use. Missing values make the rules report "unknown" and skip guidance.
 const LABELS: Record<string, string> = {
-  participants: 'pessoas', posture: 'postura', gaze: 'olhar', support_any_of: 'apoios', supports: 'apoios do cenário',
+  participants: 'pessoas', posture: 'postura', orientation: 'orientação', gaze: 'olhar', support_any_of: 'apoios', supports: 'apoios do cenário',
   framing: 'área visível',
 };
 

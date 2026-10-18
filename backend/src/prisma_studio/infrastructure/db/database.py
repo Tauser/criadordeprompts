@@ -71,6 +71,12 @@ MIGRATIONS = [
     CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
     INSERT INTO meta(key, value) VALUES ('library_revision', '0');
     """,
+    # 2: one task per (run, kind, position). Untouched duplicates left by an interrupted batch are dropped first.
+    """
+    DELETE FROM tasks WHERE status='created' AND rowid NOT IN (
+        SELECT MIN(rowid) FROM tasks GROUP BY run_id, kind, position);
+    CREATE UNIQUE INDEX IF NOT EXISTS tasks_slot ON tasks(run_id, kind, position);
+    """,
 ]
 
 
@@ -109,10 +115,18 @@ class Database:
         connection = self.connection()
         version = connection.execute('PRAGMA user_version').fetchone()[0]
         for index in range(version, len(MIGRATIONS)):
-            with self.transaction() as tx:
-                for statement in [s.strip() for s in MIGRATIONS[index].split(';') if s.strip()]:
-                    tx.execute(statement)
-                tx.execute(f'PRAGMA user_version = {index + 1}')
+            try:
+                with self.transaction() as tx:
+                    for statement in [s.strip() for s in MIGRATIONS[index].split(';') if s.strip()]:
+                        tx.execute(statement)
+                    tx.execute(f'PRAGMA user_version = {index + 1}')
+            except sqlite3.IntegrityError:
+                if index == 0:
+                    raise
+                # Old data still breaks the new constraint; the code enforces it anyway, so carry on
+                # without the index rather than refuse to open the user's history.
+                with self.transaction() as tx:
+                    tx.execute(f'PRAGMA user_version = {index + 1}')
 
     def query(self, sql: str, params=()) -> list[sqlite3.Row]:
         return self.connection().execute(sql, params).fetchall()

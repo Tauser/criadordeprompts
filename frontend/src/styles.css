@@ -84,6 +84,9 @@ label.check { display: flex; align-items: center; gap: 8px; }
 .btn-done { background: var(--ink); color: var(--inverse); height: 34px; }
 .btn-link { color: var(--muted); font-size: 12px; font-weight: 500; }
 .btn-link:hover { color: var(--ink); text-decoration: underline; }
+.btn-link:disabled { opacity: .45; cursor: default; text-decoration: none; }
+.translate { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-top: 4px; min-height: 20px; }
+.translate-error { color: var(--bad); font-size: 12px; flex-basis: 100%; }
 .wide { width: 100%; }
 
 .segmented { display: inline-flex; padding: 3px; gap: 2px; background: var(--sunken); border-radius: 12px; }
@@ -364,6 +367,12 @@ select { height: 38px; }
 .page .card.editor { position: sticky; top: 0; }
 .editor-empty { display: grid; gap: 6px; place-content: center; text-align: center; min-height: 300px; }
 .spacer { flex: 1; }
+.bulk-bar { display: flex; align-items: center; gap: 8px 10px; flex-wrap: wrap; min-height: 38px; margin-top: 10px; }
+.bulk-bar .spacer { flex: 1; }
+.item-row { display: flex; align-items: flex-start; gap: 4px; border-radius: 12px; }
+.item-row > input[type=checkbox] { flex: none; margin: 13px 0 0 8px; width: 16px; height: 16px; accent-color: var(--ink); }
+.item-row > .item { flex: 1; min-width: 0; }
+.item-row.checked { background: color-mix(in srgb, var(--ink) 5%, transparent); }
 .item-list { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 4px; max-height: calc(100vh - 290px); overflow: auto; }
 .item { width: 100%; text-align: left; display: grid; gap: 2px; padding: 10px 12px; border-radius: 12px; }
 .item:hover { background: var(--surface-2); }

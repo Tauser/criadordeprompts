@@ -49,6 +49,19 @@ export function RunPanel({run, connection, onReuse, notify, onRepeat}: Props) {
       </div>
       {!collapsed && <div id="run-body">
       {run.error && <p className="issue error">{run.error}</p>}
+      {(run.tasks ?? []).filter(t => t.status === 'uncertain').map(task => (
+        <div key={task.id} className="issue warning" role="alert">
+          <p>O Studio não conseguiu confirmar se o ComfyUI recebeu a etapa “{KIND[task.kind] ?? task.kind}”.
+            {task.error ? ` ${task.error}` : ''} Ele continua procurando o trabalho e segue sozinho se o encontrar.</p>
+          <p className="small">Reenviar agora pode fazer o ComfyUI executar a etapa duas vezes, se o primeiro envio tiver chegado.</p>
+          <div className="row">
+            <button className="secondary" onClick={async () => {
+              if (!confirm('Reenviar esta etapa? Se o primeiro envio chegou ao ComfyUI, ela será executada duas vezes.')) return;
+              try {await api.resubmit(run.id, task.id);} catch (error) {notify((error as Error).message, true);}
+            }}>Reenviar etapa</button>
+          </div>
+        </div>
+      ))}
       {!active && (
         <div className="row repeat">
           <button className="secondary" disabled={repeating} title="Mesmo pedido, nova seed"

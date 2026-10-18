@@ -14,8 +14,14 @@ async function call<T>(method: string, path: string, body?: unknown, timeoutMs =
     init.headers = {'Content-Type': 'application/json'};
   }
   const response = await fetch(path, init);
-  const data = await response.json().catch(() => ({error: 'Resposta inválida do servidor.'}));
-  if (!response.ok) throw new ApiError(response.status, data);
+  const data = await response.json().catch(() => {
+    if (response.ok) throw new Error('Resposta inválida do servidor. Não foi possível confirmar a operação.');
+    return {error: 'Resposta inválida do servidor.'};
+  });
+  if (!response.ok) throw new ApiError(response.status,
+    data && typeof data === 'object' && !Array.isArray(data) ? data : {error: 'Resposta inválida do servidor.'});
+  if (!data || typeof data !== 'object' || Array.isArray(data))
+    throw new Error('Resposta inválida do servidor. Não foi possível confirmar a operação.');
   return data as T;
 }
 
@@ -39,8 +45,10 @@ export const api = {
   repeat: (id: string, requestId: string, sameSeed: boolean) =>
     call<Run>('POST', `/api/runs/${id}/repeat`, {request_id: requestId, same_seed: sameSeed}, 60000),
   cancel: (id: string) => call<Run>('POST', `/api/runs/${id}/cancel`),
+  resubmit: (id: string, taskId: string) => call<Run>('POST', `/api/runs/${id}/tasks/${taskId}/resubmit`),
   review: (id: string, choice: 'refined' | 'original') => call<Run>('POST', `/api/runs/${id}/review`, {choice}),
   translate: (text: string) => call<{id: string; status: string}>('POST', '/api/translations', {text}),
+  cancelTranslation: (id: string) => call<unknown>('POST', `/api/translations/${id}/cancel`),
   translation: (id: string) => call<{id: string; status: string; text?: string; error?: string}>('GET', `/api/translations/${id}`),
 };
 

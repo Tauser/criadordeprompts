@@ -7,6 +7,7 @@ import json
 import re
 import secrets
 from contextlib import asynccontextmanager
+from urllib.parse import urlsplit
 
 from fastapi import FastAPI, File, HTTPException, Request as HttpRequest, UploadFile
 from fastapi.responses import JSONResponse, Response, StreamingResponse
@@ -25,8 +26,21 @@ from ..infrastructure.comfy.progress import ProgressTracker
 from ..infrastructure.comfy.workflows import PROFILES, generation_size
 from ..infrastructure.db.database import Database
 from ..infrastructure.db.repository import InvalidTransition, LibraryRepository, RunRepository
+from ..infrastructure.discovery import LocalDiscovery
+from ..infrastructure.instance_lock import InstanceLock
 from ..infrastructure.storage.files import FileStore
 from ..worker.executor import PHASES, Executor
+
+class Frontend(StaticFiles):
+    """The built interface. index.html is always revalidated so a new build shows up on the next reload;
+    files under assets/ carry a content hash in their name and can be cached for good."""
+
+    async def get_response(self, path, scope):
+        response = await super().get_response(path, scope)
+        immutable = path.startswith('assets/') and response.status_code == 200
+        response.headers['Cache-Control'] = 'public, max-age=31536000, immutable' if immutable else 'no-cache'
+        return response
+
 
 REQUEST_ID = re.compile(r'^[A-Za-z0-9-]{16,64}$')
 
@@ -41,7 +55,7 @@ class RunCreate(BaseModel):
 
 class RunDelete(BaseModel):
     ids: list[str] = Field(min_length=1, max_length=200)
-    keep_files: list[str] = Field(default=[], max_length=50)
+    keep_files: list[str] = Field(default=[], max_length=100)
 
 
 class RunRepeat(BaseModel):
@@ -79,35 +93,68 @@ class Container:
 def create_app(config: Config | None = None, container: Container | None = None) -> FastAPI:
     config = config or Config()
     c = container or Container(config)
+    discovery = LocalDiscovery(config)
 
     @asynccontextmanager
     async def lifespan(_app):
-        if config.start_workers:
-            c.progress.start()
-            c.executor.start()
-        yield
-        c.executor.stop()
-        c.progress.stop()
+        lock = InstanceLock(config.data_dir)
+        try:
+            if config.start_workers:
+                lock.acquire()                    # refuse to start a second executor over the same database
+                c.progress.start()
+                c.executor.start()
+            await discovery.start()
+            yield
+        finally:
+            try:
+                await discovery.close()
+            finally:
+                try:
+                    await asyncio.to_thread(c.executor.stop)
+                finally:
+                    c.progress.stop()
+                    lock.release()
 
     app = FastAPI(title='Prisma Studio', version=__version__, lifespan=lifespan)
     app.state.container = c
+    allowed_networks = tuple(ipaddress.ip_network(value) for value in config.allowed_networks)
+    allowed_hosts = {'127.0.0.1', 'localhost', '::1', *config.lan_hosts}
+    if config.lan_alias:
+        allowed_hosts.add(config.lan_alias)
 
     @app.middleware('http')
     async def guard(request: HttpRequest, call_next):
         host = request.client.host if request.client else '127.0.0.1'
+        address = None
         try:
-            local = ipaddress.ip_address(host).is_loopback
+            address = ipaddress.ip_address(host)
+            if isinstance(address, ipaddress.IPv6Address) and address.ipv4_mapped:
+                address = address.ipv4_mapped
+            local = address.is_loopback
         except ValueError:
             local = host in ('testclient', 'localhost')
-        if not local:
+        lan = address is not None and any(address in network for network in allowed_networks)
+        if allowed_networks:
+            try:
+                request_host = urlsplit('//' + request.headers.get('host', '')).hostname
+            except ValueError:
+                request_host = None
+            if request_host not in allowed_hosts:
+                return JSONResponse({'error': 'Endereço do Studio não permitido.'}, status_code=400)
+        if not local and not lan:
             token = request.headers.get('x-studio-token') or request.cookies.get('prisma_token')
             if not config.token or not token or not secrets.compare_digest(token, config.token):
                 return JSONResponse({'error': 'Acesso pela rede exige o token do Studio.'}, status_code=401)
         if request.method in ('POST', 'PUT', 'DELETE'):
             origin = request.headers.get('origin')
-            origin_host = origin.split('://', 1)[-1].split(':', 1)[0] if origin else None
-            same = origin and origin.split('://', 1)[-1] == request.headers.get('host')
-            if origin and not same and not (local and origin_host in ('127.0.0.1', 'localhost')):
+            try:
+                parsed = urlsplit(origin or '')
+                valid_origin = parsed.scheme in ('http', 'https') and parsed.username is None
+                same = valid_origin and parsed.netloc.lower() == request.headers.get('host', '').lower()
+                local_dev = valid_origin and local and parsed.hostname in ('127.0.0.1', 'localhost', '::1')
+            except ValueError:
+                same = local_dev = False
+            if origin and not same and not local_dev:
                 return JSONResponse({'error': 'Origem não permitida.'}, status_code=403)
         return await call_next(request)
 
@@ -142,7 +189,7 @@ def create_app(config: Config | None = None, container: Container | None = None)
 
     # diagnostics ---------------------------------------------------------------
     @app.get('/api/health')
-    def health():
+    def health(request: HttpRequest):
         try:
             stats = c.comfy.system_stats()
             comfy = {'available': True, 'version': stats.get('system', {}).get('comfyui_version'),
@@ -151,7 +198,14 @@ def create_app(config: Config | None = None, container: Container | None = None)
             comfy = {'available': False}
         return {'studio_version': __version__, 'data_dir': str(config.data_dir), 'comfy_url': config.comfy_url,
                 'comfy': comfy, 'progress_live': c.progress.connected.is_set() if hasattr(c.progress, 'connected')
-                else False, 'lan_token': bool(config.token)}
+                else False, 'lan_token': bool(config.token),
+                'network_access': {'mode': 'lan' if allowed_networks else 'token' if config.token else 'local',
+                                   'allowed_networks': list(config.allowed_networks),
+                                   'urls': [f'http://{host if ":" not in host else "[" + host + "]"}'
+                                            f':{config.http_port}/' for host in
+                                            (*config.lan_hosts, *((config.lan_alias,) if config.lan_alias else ()))],
+                                   'mdns': {'name': config.lan_alias, 'status': discovery.status,
+                                            'error': discovery.error}}}
 
     @app.get('/api/contract')
     def contract():
@@ -173,8 +227,9 @@ def create_app(config: Config | None = None, container: Container | None = None)
     @app.post('/api/files')
     async def upload(file: UploadFile = File(...)):
         data = await file.read(26 * 1024 * 1024)
-        stored = c.store.put(data)
-        c.runs.record_file(stored)
+        with c.db.write_lock:
+            stored = c.store.put(data)
+            c.runs.record_file(stored)
         return {'hash': stored.hash, 'mime': stored.mime, 'width': stored.width, 'height': stored.height}
 
     @app.get('/api/files/{file_hash}')
@@ -215,8 +270,7 @@ def create_app(config: Config | None = None, container: Container | None = None)
 
     @app.post('/api/runs/delete')
     def delete_runs(body: RunDelete):
-        results = [c.service.delete(run_id, set(body.keep_files)) for run_id in body.ids]
-        return {'deleted': [r['deleted'] for r in results], 'files_removed': sum(r['files_removed'] for r in results)}
+        return c.service.delete_many(body.ids, set(body.keep_files))
 
     @app.post('/api/runs/{run_id}/cancel')
     def cancel_run(run_id: str):
@@ -225,6 +279,10 @@ def create_app(config: Config | None = None, container: Container | None = None)
     @app.post('/api/runs/{run_id}/repeat')
     def repeat_run(run_id: str, body: RunRepeat):
         return run_view(c.service.repeat(run_id, body.request_id, body.same_seed))
+
+    @app.post('/api/runs/{run_id}/tasks/{task_id}/resubmit')
+    def resubmit_task(run_id: str, task_id: str):
+        return run_view(c.service.resubmit(run_id, task_id))
 
     @app.post('/api/runs/{run_id}/review')
     def review(run_id: str, body: Review):
@@ -297,5 +355,5 @@ def create_app(config: Config | None = None, container: Container | None = None)
         return view
 
     if config.frontend_dir.exists():
-        app.mount('/', StaticFiles(directory=config.frontend_dir, html=True), name='frontend')
+        app.mount('/', Frontend(directory=config.frontend_dir, html=True), name='frontend')
     return app

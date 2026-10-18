@@ -6,7 +6,7 @@ from typing import Literal
 
 from .catalog import Item, Library
 from .request import CatalogValue, Request
-from .vocabulary import CATEGORIES, FRAMING_ORDER
+from .vocabulary import CATEGORIES, FRAMING_ORDER, agreed
 
 Level = Literal['error', 'warning', 'unknown']
 Kind = Literal['product', 'model', 'policy']
@@ -121,6 +121,13 @@ def assess(request: Request, library: Library) -> Assessment:
     _check_supports(request, resolved, report)
     _check_framing(request, resolved, report)
     total, existing = _participants(request, resolved, report)
+    if request.wardrobe_scope == 'all':
+        if request.attribute('wardrobe').intent != 'set':
+            report('wardrobe_scope_requires_set', 'attributes.wardrobe',
+                   'Para aplicar a roupa a todas as pessoas, escolha uma opção ou descrição de roupa.')
+        if total is None or total < 2:
+            report('wardrobe_scope_requires_people', 'attributes.wardrobe',
+                   'Informe ao menos duas pessoas em Cena ou adicione outro personagem para aplicar a roupa a todos.')
 
     if request.details.strip():
         report('details_not_analyzed', 'details', 'Os detalhes adicionais são enviados literalmente, sem análise.',
@@ -181,16 +188,24 @@ def _declared(request, resolved, key):
 
 
 def _check_conflicts(request, resolved, report) -> None:
-    for key, label in (('posture', 'postura'), ('gaze', 'olhar')):
+    if (request.mode == 'edit' and request.attribute('subject').intent in ('set', 'transfer')
+            and request.attribute('face').intent == 'keep'):
+        report('replace_person_keep_identity', 'attributes.subject',
+               'Trocar a pessoa e manter a identidade do rosto pode gerar instruções conflitantes. '
+               'Para editar a mesma pessoa, escolha "Manter da foto" no campo Pessoa.', 'warning')
+    for key, label in (('posture', 'posturas'), ('orientation', 'orientações'), ('gaze', 'olhares')):
         facts = _declared(request, resolved, key)
-        if len({value for _, value in facts}) > 1:
+        if facts and agreed({value for _, value in facts}) is None:
             for category, _ in facts:
-                report(f'conflicting_{key}', f'attributes.{category}', f'As opções pedem {label}s incompatíveis.')
+                report(f'conflicting_{key}', f'attributes.{category}', f'As opções pedem {label} incompatíveis.')
     kept_pose = request.attribute('pose').intent == 'keep'
     kept_expression = request.attribute('expression').intent == 'keep'
     if kept_pose and _declared(request, resolved, 'posture'):
         report('posture_vs_kept_pose', 'attributes.pose', 'A postura original não é conhecida; a ação pode exigir '
                'outra postura.', 'unknown')
+    if kept_pose and _declared(request, resolved, 'orientation'):
+        report('orientation_vs_kept_pose', 'attributes.pose', 'A orientação original do corpo não é conhecida; a ação '
+               'pode exigir outra orientação.', 'unknown')
     if kept_expression and _declared(request, resolved, 'gaze'):
         report('gaze_vs_kept_expression', 'attributes.expression', 'A direção original do olhar não é conhecida.',
                'unknown')

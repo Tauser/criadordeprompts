@@ -1,5 +1,9 @@
 
+import io
+import threading
+
 import pytest
+from PIL import Image
 
 from fakes import FakeComfy, judge_all, png
 from helpers import cat, keep
@@ -234,3 +238,218 @@ def test_missing_files_and_invalid_requests_are_rejected(env):
         env.service.create(Request(mode='edit', target_id='t', references=[{'id': 't', 'label': 'a'}]), 'req-y',
                            {'t': env.put(png())}, None)
     assert any(i['code'] == 'missing_change' for i in error.value.issues)
+
+
+# --- interruptions and recovery ------------------------------------------------------------------------------
+
+def test_lost_answer_for_a_job_that_never_arrived_waits_for_the_user(env):
+    env.comfy.lose_submit_once = True
+    run = env.service.create(generate(), 'req-lost-answer-1', {}, None)
+    for _ in range(6):
+        env.executor.tick()
+    task = env.repo.tasks(run['id'], 'image')[0]
+    assert task['status'] == 'uncertain' and env.comfy.submits == []      # never resubmitted on its own
+    first_id = task['comfy_prompt_id']
+    env.service.resubmit(run['id'], task['id'])
+    run = env.run_until(run['id'])
+    assert run['status'] == 'completed'
+    assert len(env.comfy.submits) == 1 and env.comfy.submits[0] != first_id
+    assert any(e['type'] == 'resubmit_confirmed' for e in env.repo.events(run['id']))
+
+
+def test_restart_while_submitting_does_not_resend_an_accepted_job(env):
+    run = env.service.create(generate(), 'req-crash-accepted', {}, None)
+    env.executor.tick()                                     # created -> preparing -> generating
+    env.executor.tick()                                     # task submitted and accepted
+    task = env.repo.tasks(run['id'], 'image')[0]
+    # simulate the crash window: ComfyUI accepted it but the process died before recording `queued`
+    env.db.connection().execute("UPDATE tasks SET status='submitting' WHERE id=?", (task['id'],))
+    fresh = Executor(env.repo, env.comfy, env.store, poll_seconds=0)
+    for _ in range(10):
+        fresh.tick()
+    assert env.repo.get(run['id'])['status'] == 'completed'
+    assert env.comfy.submits.count(task['comfy_prompt_id']) == 1
+
+
+def test_restart_while_submitting_with_nothing_in_comfy_becomes_uncertain(env):
+    run = env.service.create(generate(), 'req-crash-unknown', {}, None)
+    env.executor.tick()
+    env.executor.tick()
+    task = env.repo.tasks(run['id'], 'image')[0]
+    env.comfy.jobs.clear()
+    env.comfy.submits.clear()
+    env.db.connection().execute("UPDATE tasks SET status='submitting' WHERE id=?", (task['id'],))
+    for _ in range(5):
+        env.executor.tick()
+    assert env.repo.task(task['id'])['status'] == 'uncertain' and env.comfy.submits == []
+
+
+def test_run_without_prompt_fails_instead_of_running(env):
+    run = env.service.create(generate(), 'req-no-prompt', {}, None)
+    env.db.connection().execute('UPDATE runs SET prompt=NULL, effective_prompt=NULL WHERE id=?', (run['id'],))
+    env.executor.tick()
+    run = env.repo.get(run['id'])
+    assert run['status'] == 'failed' and env.comfy.submits == []
+
+
+def test_interrupted_task_batch_keeps_every_variation(env):
+    run = env.service.create(generate(variations=4), 'req-batch', {}, None)
+    env.repo.transition(run['id'], 'preparing')
+    env.repo.update(run['id'], settings_json={**run['settings'], 'uploaded': {'images': [], 'mask': None}})
+    env.repo.add_task(run['id'], 'image', 0, seed=run['settings']['seed'])
+    env.repo.transition(run['id'], 'generating')             # crash after the first of four inserts
+    run = env.run_until(run['id'])
+    assert run['status'] == 'completed'
+    assert sorted(t['position'] for t in env.repo.tasks(run['id'], 'image')) == [0, 1, 2, 3]
+
+
+def test_tasks_are_unique_per_slot(env):
+    run = env.service.create(generate(), 'req-unique', {}, None)
+    first = env.repo.add_task(run['id'], 'refine')
+    assert env.repo.add_task(run['id'], 'refine')['id'] == first['id']
+
+
+# --- masks -----------------------------------------------------------------------------------------------------
+
+def test_masked_edit_keeps_original_size_and_pixels_outside_the_mask(env):
+    original = Image.new('RGB', (1000, 700))
+    original.putdata([((x * 7) % 256, (y * 3) % 256, (x + y) % 256) for y in range(700) for x in range(1000)])
+    buffer = io.BytesIO()
+    original.save(buffer, format='PNG')
+    target = env.put(buffer.getvalue())
+    drawn = Image.new('L', (1000, 700), 0)
+    drawn.paste(255, (300, 200, 700, 500))
+    buffer = io.BytesIO()
+    drawn.save(buffer, format='PNG')
+    mask = env.put(buffer.getvalue())
+    run = env.run_until(env.service.create(edit(mask=True), 'req-mask-pixels', {'t': target}, mask)['id'])
+    assert run['status'] == 'completed'
+    result = Image.open(io.BytesIO(env.store.read(env.repo.tasks(run['id'], 'image')[0]['result']['files'][0])))
+    assert result.size == (1000, 700)
+    result, weights = result.convert('RGB'), drawn.load()
+    pixels, source = result.load(), original.load()
+    outside = [(x, y) for x in range(0, 1000, 7) for y in range(0, 700, 7) if weights[x, y] == 0]
+    assert outside and all(pixels[p] == source[p] for p in outside)
+    assert pixels[500, 350] != source[500, 350]
+
+
+def test_mask_with_custom_size_is_rejected(env):
+    target = env.put(png(1000, 700))
+    mask = env.put(png(1000, 700, color=255, mode='L'))
+    request = edit(mask=True, output={'width': 1024, 'height': 1024})
+    with pytest.raises(RequestRejected):
+        env.service.create(request, 'req-mask-size', {'t': target}, mask)
+
+
+# --- repetition and deletion --------------------------------------------------------------------------------
+
+def test_repeat_reuses_the_prompt_that_was_actually_used(env):
+    run = env.run_until(env.service.create(generate(), 'req-original', {}, None)['id'])
+    env.repo.update(run['id'], effective_prompt='Approved refined prompt.')
+    again = env.service.repeat(run['id'], 'req-repeat-frozen', same_seed=True)
+    assert again['effective_prompt'] == 'Approved refined prompt.'
+    assert again['settings']['seed'] == run['settings']['seed'] and again['settings']['refine'] is False
+    assert again['settings']['repeat_of'] == run['id']
+    again = env.run_until(again['id'])
+    graph = env.repo.tasks(again['id'], 'image')[0]['graph']
+    assert graph['10']['inputs']['prompt'] == 'Approved refined prompt.'
+    assert env.service.repeat(run['id'], 'req-repeat-frozen')['id'] == again['id']      # idempotent
+
+
+def test_delete_keeps_files_that_drafts_still_use(env):
+    target = env.put(png(320, 320))
+    run = env.service.create(edit(), 'req-delete-keep', {'t': target}, None)
+    env.repo.transition(run['id'], 'cancelled')
+    assert env.service.delete(run['id'], {target})['files_removed'] == 0
+    assert env.repo.file(target) is not None and env.store.read(target)
+
+
+def test_failed_cancel_does_not_block_the_other_runs(env, monkeypatch):
+    from prisma_studio.infrastructure.comfy.client import ComfyRejected
+
+    first = env.service.create(generate(), 'bad-cancel', {}, None)
+    env.executor.tick()
+    env.executor.tick()
+    env.service.cancel(first['id'])
+
+    def broken_cancel(_):
+        raise ComfyRejected('cancel endpoint refused')
+
+    monkeypatch.setattr(env.comfy, 'cancel', broken_cancel)
+    second = env.service.create(generate(), 'after-bad-cancel', {}, None)
+    assert env.run_until(second['id'])['status'] == 'completed'
+    assert env.repo.get(first['id'])['status'] == 'failed'
+
+
+def test_empty_refinement_cannot_be_approved(env):
+    env.comfy.text_answer = ''
+    run = env.run_until(env.service.create(generate(refine=True), 'empty-refined', {}, None)['id'])
+    assert run['status'] == 'review'
+    with pytest.raises(RequestRejected, match='texto aprimorado'):
+        env.service.approve(run['id'], 'refined')
+    assert env.repo.get(run['id'])['status'] == 'review'
+    env.service.approve(run['id'], 'original')
+    assert env.run_until(run['id'])['status'] == 'completed'
+
+
+def test_uncertain_task_cannot_be_resubmitted_after_cancellation_is_requested(env):
+    env.comfy.lose_submit_once = True
+    run = env.service.create(generate(), 'cancel-uncertain', {}, None)
+    env.executor.tick()
+    env.executor.tick()
+    task = env.repo.tasks(run['id'], 'image')[0]
+    assert task['status'] == 'uncertain'
+    env.service.cancel(run['id'])
+    with pytest.raises(RequestRejected, match='cancelado'):
+        env.service.resubmit(run['id'], task['id'])
+    assert env.repo.task(task['id'])['status'] == 'uncertain'
+
+
+def test_bulk_deletion_is_rolled_back_if_one_run_is_still_active(env):
+    finished = env.run_until(env.service.create(generate(), 'delete-finished', {}, None)['id'])
+    active = env.service.create(generate(), 'delete-still-active', {}, None)
+    image = env.repo.tasks(finished['id'], 'image')[0]['result']['files'][0]
+    with pytest.raises(ValueError, match='Pare o pedido'):
+        env.service.delete_many([finished['id'], active['id']])
+    assert env.repo.get(finished['id']) is not None
+    assert env.store.read(image) and env.repo.file(image) is not None
+
+
+def test_disk_cleanup_failure_does_not_restore_history_with_missing_images(env):
+    run = env.run_until(env.service.create(generate(variations=2), 'cleanup-error', {}, None)['id'])
+    hashes = sorted(t['result']['files'][0] for t in env.repo.tasks(run['id'], 'image'))
+
+    def remove(file_hash):
+        if file_hash == hashes[1]:
+            raise PermissionError('test: locked file')
+        env.store.delete(file_hash)
+
+    assert env.repo.delete_many_with_files([run['id']], set(), remove) == 1
+    assert env.repo.get(run['id']) is None
+    assert env.repo.file(hashes[0]) is None
+    assert env.repo.file(hashes[1]) is not None and env.store.read(hashes[1])
+
+
+def test_stop_waits_for_in_flight_work_before_the_instance_lock_can_be_released(env, monkeypatch):
+    entered, release, stopped = threading.Event(), threading.Event(), threading.Event()
+
+    def blocked_tick():
+        entered.set()
+        release.wait(3)
+
+    monkeypatch.setattr(env.executor, 'tick', blocked_tick)
+    env.executor.start()
+    assert entered.wait(1)
+
+    def stop():
+        env.executor.stop()
+        stopped.set()
+
+    stopper = threading.Thread(target=stop)
+    stopper.start()
+    try:
+        assert not stopped.wait(0.05)
+    finally:
+        release.set()
+        stopper.join(3)
+    assert stopped.is_set() and not env.executor._thread.is_alive()
