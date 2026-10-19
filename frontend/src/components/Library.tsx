@@ -1,7 +1,8 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {api} from '../api/client';
 import {CATEGORIES, type Category, type Item, type LibrarySnapshot} from '../api/types';
-import {CATEGORY_LABELS, FRAMING_LABELS, GAZE_LABELS, ORIENTATION_LABELS, POSTURE_LABELS} from '../lib/labels';
+import {CATEGORY_LABELS, FRAMING_LABELS, GAZE_LABELS, ORIENTATION_LABELS, PERIOD_LABELS, PLACE_LABELS,
+  POSTURE_LABELS} from '../lib/labels';
 import {metadataLabel, missingMetadata} from '../lib/metadata';
 import {compareText, sortBy} from '../lib/sort';
 import {uuid} from '../lib/uuid';
@@ -17,6 +18,8 @@ const POSTURES = ['', 'any', 'standing', 'seated', 'kneeling', 'all_fours', 'squ
 const ORIENTATIONS = ['', 'any', 'front', 'back', 'side', 'three_quarter'];
 const GAZES = ['', 'any', 'camera', 'away', 'down', 'up', 'back', 'closed'];
 const FRAMINGS = ['', 'portrait', 'half', 'full', 'wide'];
+const PERIODS = ['', 'any', 'day', 'golden', 'blue', 'night'];
+const PLACES = ['', 'any', 'indoor', 'outdoor'];
 const SUPPORTS = ['floor', 'seat', 'bed', 'wall', 'table'] as const;
 const SUPPORT_LABEL: Record<string, string> = {floor: 'chão', seat: 'assento', bed: 'cama', wall: 'parede', table: 'mesa'};
 
@@ -198,6 +201,7 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
     }
   };
 
+  const prov = (key: string, value: string) => setDraft(d => d && {...d, provides: {...d.provides, [key]: value || null}});
   const req = (key: string, value: unknown) => setDraft(d => d && {...d, requirements: {...d.requirements, [key]: value === '' ? null : value}});
 
   return (
@@ -320,6 +324,26 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
                     if (e.target.checked) now.add(s); else now.delete(s);
                     setDraft({...draft, provides: {...draft.provides, supports: now.size ? [...now] : null}});
                   }} /> {SUPPORT_LABEL[s]}</label>))}</div>
+            </fieldset>
+          )}
+          {['environment', 'lighting'].includes(draft.category) && (
+            <fieldset><legend>Horário e ambiente (comparados entre luz e cenário)</legend>
+              <div className="fields two">
+                <label>Horário<select value={draft.provides.period ?? ''} onChange={e => prov('period', e.target.value)}>
+                  {sortedOptions(PERIODS, PERIOD_LABELS).map(p => <option key={p} value={p}>{p ? PERIOD_LABELS[p] : 'não informado'}</option>)}</select></label>
+                <label>Ambiente<select value={draft.provides.place ?? ''} onChange={e => prov('place', e.target.value)}>
+                  {sortedOptions(PLACES, PLACE_LABELS).map(p => <option key={p} value={p}>{p ? PLACE_LABELS[p] : 'não informado'}</option>)}</select></label>
+              </div>
+            </fieldset>
+          )}
+          {draft.category === 'camera' && (
+            <fieldset><legend>Câmera (comparada com a pose e o enquadramento)</legend>
+              <div className="fields two">
+                <label>Lado do corpo visto<select value={draft.provides.view ?? ''} onChange={e => prov('view', e.target.value)}>
+                  {sortedOptions(ORIENTATIONS, ORIENTATION_LABELS).map(p => <option key={p} value={p}>{p ? ORIENTATION_LABELS[p] : 'não informado'}</option>)}</select></label>
+                <label>Recorte típico da lente<select value={draft.provides.framing ?? ''} onChange={e => prov('framing', e.target.value)}>
+                  {sortedOptions(FRAMINGS, FRAMING_LABELS).map(p => <option key={p} value={p}>{p ? FRAMING_LABELS[p] : 'não informado'}</option>)}</select></label>
+              </div>
             </fieldset>
           )}
           {draft.category === 'framing' && (

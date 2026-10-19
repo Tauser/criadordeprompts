@@ -5,10 +5,10 @@ from dataclasses import dataclass
 
 from . import ir
 from .request import CatalogValue, Request
-from .rules import Assessment
-from .vocabulary import CATEGORIES, FRAMING_ORDER, agreed
+from .rules import Assessment, available_supports, body_gaze, effective_orientation
+from .vocabulary import CATEGORIES, FRAMING_ORDER, SUPPORT_PRIORITY, agreed
 
-COMPILER_VERSION = '1.5.0'
+COMPILER_VERSION = '1.7.0'
 
 # Operation order: scene first, then person changes; style leads in generation.
 EDIT_ORDER = ('environment', 'lighting', 'style', 'camera', 'framing', 'subject', 'face', 'body', 'skin', 'hair',
@@ -80,19 +80,47 @@ def build_ir(request: Request, assessment: Assessment) -> list:
             and (not edit or request.context.allow_reframing)):
         blocks.append(ir.MinimumFraming(max(minimums, key=FRAMING_ORDER.__getitem__)))
 
-    for key in ('posture', 'orientation', 'gaze'):
-        value = agreed({getattr(r, key) for r in assessment.requirements} - {None, 'any'})
-        if value:
-            blocks.append(ir.Guidance(key, value))
-    supports = sorted({tuple(sorted(r.support_any_of)) for r in assessment.requirements if r.support_any_of})
-    for option in supports:
-        blocks.append(ir.Guidance('support:' + '|'.join(option), '|'.join(option)))
-    if edit and request.context.allow_new_supports and supports:
-        blocks.append(ir.Guidance('new_supports', 'allowed'))
+    # The body guidance follows the pose, action and expression it belongs to, always in the same order.
+    body: list = []
+    posture = agreed({r.posture for r in assessment.requirements} - {None, 'any'})
+    if posture:
+        body.append(ir.Guidance('posture', posture))
+    needs = [r.support_any_of for r in assessment.requirements if r.support_any_of]
+    for support, separate in _supports(needs, available_supports(request, assessment.resolved)):
+        body.append(ir.Guidance(f'support:{support}' if separate else 'support', support))
+    if edit and request.context.allow_new_supports and needs:
+        body.append(ir.Guidance('new_supports', 'allowed'))
+    orientation = effective_orientation(assessment.resolved)
+    if orientation:
+        body.append(ir.Guidance('orientation', orientation))
+    gaze = body_gaze(orientation, agreed({r.gaze for r in assessment.requirements} - {None, 'any'}))
+    if gaze:
+        body.append(ir.Guidance('gaze', gaze))
+    if posture or orientation:
+        body.append(ir.Guidance('head', 'natural'))
+    anchor = max((i for i, b in enumerate(blocks) if isinstance(b, ir.Operation)
+                  and b.category in ('pose', 'action', 'expression')), default=len(blocks) - 1)
+    blocks[anchor + 1:anchor + 1] = body
     if request.details.strip():
         blocks.append(ir.Details(request.details.strip()))
     _check_consistency(blocks)
     return blocks
+
+
+def _supports(needs, available) -> list[tuple[str, bool]]:
+    """One surface for the whole body: (support, separate) pairs. A single shared surface is preferred, taken from
+    the ones the scene offers when they are known; separate surfaces appear only when no single one fits all."""
+    if not needs:
+        return []
+    offered = set(available) if isinstance(available, tuple) else None
+    pick = lambda options: next(s for s in SUPPORT_PRIORITY if s in options)   # noqa: E731
+    common = set.intersection(*(set(n) for n in needs))
+    if offered is not None and common & offered:
+        return [(pick(common & offered), False)]
+    if common:
+        return [(pick(common), False)]
+    chosen = {pick(set(n) & offered if offered and set(n) & offered else set(n)) for n in needs}
+    return [(s, True) for s in sorted(chosen, key=SUPPORT_PRIORITY.index)]
 
 
 def _check_consistency(blocks) -> None:

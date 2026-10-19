@@ -1,4 +1,4 @@
-import type {Health, LibrarySnapshot, Prepared, Run, StudioRequest} from './types';
+import type {CoherenceJob, Health, LibrarySnapshot, Prepared, Run, StudioRequest} from './types';
 
 export class ApiError extends Error {
   constructor(public status: number, public body: {error?: string; issues?: unknown[]; details?: unknown[]}) {
@@ -49,6 +49,9 @@ export const api = {
   review: (id: string, choice: 'refined' | 'original') => call<Run>('POST', `/api/runs/${id}/review`, {choice}),
   translate: (text: string) => call<{id: string; status: string}>('POST', '/api/translations', {text}),
   cancelTranslation: (id: string) => call<unknown>('POST', `/api/translations/${id}/cancel`),
+  reviewCoherence: (request: StudioRequest) => call<CoherenceJob>('POST', '/api/coherence', request),
+  coherence: (id: string) => call<CoherenceJob>('GET', `/api/coherence/${id}`),
+  cancelCoherence: (id: string) => call<unknown>('POST', `/api/coherence/${id}/cancel`),
   translation: (id: string) => call<{id: string; status: string; text?: string; error?: string}>('GET', `/api/translations/${id}`),
 };
 

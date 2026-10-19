@@ -1,5 +1,6 @@
-import type {Prepared, StudioRequest} from '../api/types';
+import type {Issue, Prepared, StudioRequest} from '../api/types';
 import {CATEGORY_LABELS} from '../lib/labels';
+import {CoherenceReview} from './CoherenceReview';
 import {TranslateButton} from './Translate';
 
 interface Props {
@@ -16,23 +17,43 @@ const BLOCK_LABEL = (block: string) => {
   if (block.startsWith('op.')) return CATEGORY_LABELS[block.slice(3) as keyof typeof CATEGORY_LABELS] ?? block;
   if (block.startsWith('transfer.')) return 'Referência';
   if (block.startsWith('character.')) return `Personagem ${block.slice(10)}`;
-  if (block.startsWith('guide.')) return 'Orientação';
+  if (block.startsWith('guide.')) {
+    const key = block.slice(6).split(':')[0];
+    return ({posture: 'Postura', support: 'Apoio', new_supports: 'Apoio', orientation: 'Orientação', gaze: 'Olhar',
+             head: 'Pescoço'} as Record<string, string>)[key] ?? 'Orientação';
+  }
   return ({header: 'Início', keep: 'Manter', participants: 'Pessoas', framing: 'Enquadramento', details: 'Detalhes',
            closing: 'Coerência', manual: 'Manual'} as Record<string, string>)[block] ?? block;
 };
 
+const LEVEL_LABEL = {error: 'Erro', warning: 'Aviso', adjusted: 'Ajustado', unknown: 'Não verificado'} as const;
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+// A conflict between two fields is reported on each of them; the list and the verdict show it once.
+const distinct = (issues: Issue[]) => issues.filter((issue, i) =>
+  issues.findIndex(other => other.level === issue.level && other.message === issue.message) === i);
+
+// One verdict from the rules: blocked by errors, ready with points to review, or ready.
+function Verdict({prepared, pending}: {prepared: Prepared | null; pending: boolean}) {
+  if (pending || !prepared) return <span className="badge">{pending ? 'Atualizando…' : '—'}</span>;
+  const count = (level: string) => distinct(prepared.issues).filter(i => i.level === level).length;
+  const [errors, warnings, adjusted, unknown] = ['error', 'warning', 'adjusted', 'unknown'].map(count);
+  if (!prepared.valid) return <span className="badge incompatible">Incoerente · {plural(errors, 'erro', 'erros')}</span>;
+  const notes = [warnings && plural(warnings, 'aviso', 'avisos'), adjusted && plural(adjusted, 'ajuste', 'ajustes'),
+                 unknown && plural(unknown, 'não verificado', 'não verificados')].filter(Boolean);
+  return <span className={'badge ' + (warnings ? 'undetermined' : 'compatible')}
+               title="Resultado das regras de coerência entre os campos">
+    {notes.length ? `Apto · ${notes.join(' · ')}` : 'Apto para gerar'}</span>;
+}
+
 export function PromptPreview({request, prepared, pending, error, onManual, onManualText, onFocusField}: Props) {
   const manual = request.prompt_mode === 'manual';
-  const issues = prepared?.issues ?? [];
-  const order = {error: 0, warning: 1, unknown: 2};
+  const issues = distinct(prepared?.issues ?? []);
+  const order = {error: 0, warning: 1, adjusted: 2, unknown: 3};
   return (
     <section className="card preview" aria-labelledby="prompt-title">
       <div className="section-title">
         <h2 id="prompt-title">Prompt enviado</h2>
-        <span className={'badge ' + (prepared ? (prepared.valid ? prepared.status : 'incompatible') : '')}>
-          {pending ? 'Atualizando…' : !prepared ? '—' : !prepared.valid ? 'Corrija os erros' :
-            prepared.status === 'compatible' ? 'Pronto' : 'Pronto · revise os avisos'}
-        </span>
+        <Verdict prepared={prepared} pending={pending} />
       </div>
       <label className="check">
         <input type="checkbox" checked={manual} onChange={e => onManual(e.target.checked)} /> Editar o prompt manualmente
@@ -59,13 +80,14 @@ export function PromptPreview({request, prepared, pending, error, onManual, onMa
           {[...issues].sort((a, b) => order[a.level] - order[b.level]).map((issue, i) => (
             <li key={i} className={'issue ' + issue.level}>
               <button className="link" onClick={() => onFocusField(issue.field)}>
-                <span className="level">{issue.level === 'error' ? 'Erro' : issue.level === 'warning' ? 'Aviso' : 'Não verificado'}</span>
+                <span className="level">{LEVEL_LABEL[issue.level]}</span>
                 {issue.message}
               </button>
             </li>
           ))}
         </ul>
       )}
+      <CoherenceReview request={request} prompt={prepared?.prompt ?? null} ready={!!prepared?.valid && !pending} />
     </section>
   );
 }

@@ -6,7 +6,8 @@ import re
 from dataclasses import dataclass
 
 from . import ir
-from .render_qwen21 import ASPECT_NAMES, FRAMINGS, GAZES, ORIENTATIONS, POSTURES
+from .render_qwen21 import ASPECT_NAMES, FRAMINGS, GAZES, ORIENTATIONS, POSTURES, SUPPORTS
+from .rules import HIDDEN_FACE_GAZES
 
 VERDICTS = ('met', 'partial', 'unmet', 'unknown')
 SCORES = {'met': 1.0, 'partial': 0.5, 'unmet': 0.0, 'unknown': 0.0}
@@ -19,6 +20,7 @@ class Check:
 
 
 def checklist(blocks) -> list[Check]:
+    hidden_face = any(isinstance(b, ir.Guidance) and b.key == 'orientation' and b.value == 'back' for b in blocks)
     header = next((b for b in blocks if isinstance(b, ir.Header)), None)
     edit = header is not None and header.mode == 'edit'
     checks: list[Check] = []
@@ -48,9 +50,17 @@ def checklist(blocks) -> list[Check]:
             checks.append(Check(block.id, f'The image shows {"at least " if edit else ""}{block.total} distinct people'))
         elif isinstance(block, ir.MinimumFraming):
             checks.append(Check(block.id, FRAMINGS[block.framing]))
+        elif (isinstance(block, ir.Guidance) and block.key == 'gaze' and hidden_face
+              and block.value in HIDDEN_FACE_GAZES):
+            continue                                 # the face is out of view: the gaze cannot be judged
+        elif isinstance(block, ir.Guidance) and block.key == 'head':
+            checks.append(Check(block.id, 'The head and neck look anatomically natural, turned no further than over '
+                                          'the shoulder'))
         elif isinstance(block, ir.Guidance) and block.key in ('posture', 'orientation', 'gaze'):
             names = {'posture': POSTURES, 'orientation': ORIENTATIONS, 'gaze': GAZES}[block.key]
             checks.append(Check(block.id, names.get(block.value, block.value)))
+        elif isinstance(block, ir.Guidance) and block.key == 'support':
+            checks.append(Check(block.id, f'The body is supported by {SUPPORTS[block.value]}, not split between different surfaces'))
         elif isinstance(block, ir.Details):
             checks.append(Check(block.id, f'These details are present: {block.text}'))
     return checks

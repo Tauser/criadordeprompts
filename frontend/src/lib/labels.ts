@@ -31,6 +31,10 @@ export const POSTURE_LABELS: Record<string, string> = {
   squatting: 'agachado', lying: 'deitado (qualquer lado)', supine: 'deitado de costas', prone: 'deitado de bruços',
   side_lying: 'deitado de lado', walking: 'caminhando', running: 'correndo',
 };
+export const PERIOD_LABELS: Record<string, string> = {
+  any: 'qualquer', day: 'dia', golden: 'hora dourada', blue: 'hora azul', night: 'noite',
+};
+export const PLACE_LABELS: Record<string, string> = {any: 'qualquer', indoor: 'interno', outdoor: 'externo'};
 export const ORIENTATION_LABELS: Record<string, string> = {
   any: 'qualquer', front: 'de frente', back: 'de costas', side: 'de perfil', three_quarter: 'três quartos',
 };

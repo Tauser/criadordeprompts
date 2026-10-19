@@ -17,6 +17,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from .. import __version__
 from ..application.library import LibraryService
 from ..application.runs import RequestRejected, RunService, prepare
+from ..application.coherence import CoherenceService
 from ..application.translation import TranslationService
 from ..config import Config
 from ..domain.request import Request
@@ -88,6 +89,7 @@ class Container:
         self.executor = Executor(self.runs, self.comfy, self.store, self.progress)
         self.service = RunService(self.runs, self.library, self.store, self.executor)
         self.translation = TranslationService(self.comfy)
+        self.coherence = CoherenceService(self.comfy)
 
 
 def create_app(config: Config | None = None, container: Container | None = None) -> FastAPI:
@@ -322,6 +324,22 @@ def create_app(config: Config | None = None, container: Container | None = None)
     @app.post('/api/translations/{job_id}/cancel')
     def cancel_translation(job_id: str):
         return c.translation.cancel(job_id)
+
+    # coherence review (local text model, on demand) ------------------------------
+    @app.post('/api/coherence')
+    def review_coherence(body: dict):
+        prepared = prepare(Request.model_validate(body), c.library.library())
+        if not prepared['valid']:
+            raise RequestRejected('Corrija os erros do pedido antes de analisar a coerência.', prepared['issues'])
+        return c.coherence.review(prepared['prompt'])
+
+    @app.get('/api/coherence/{job_id}')
+    def coherence(job_id: str):
+        return c.coherence.status(job_id)
+
+    @app.post('/api/coherence/{job_id}/cancel')
+    def cancel_coherence(job_id: str):
+        return c.coherence.cancel(job_id)
 
     def run_view(run: dict, detail: bool = True) -> dict:
         view = {k: run[k] for k in ('id', 'request_id', 'status', 'mode', 'prompt', 'effective_prompt',

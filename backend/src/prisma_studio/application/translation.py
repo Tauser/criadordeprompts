@@ -10,6 +10,8 @@ from .enhancer import TRANSLATE_SYSTEM, clean_output
 
 
 class TranslationService:
+    system_prompt = TRANSLATE_SYSTEM
+
     def __init__(self, comfy):
         self.comfy = comfy
         self.jobs: dict[str, dict] = {}
@@ -19,11 +21,14 @@ class TranslationService:
         text = (text or '').strip()
         if not text or len(text) > 4000:
             raise ValueError('O texto deve ter de 1 a 4.000 caracteres.')
+        return self._submit(text, {'source': text})
+
+    def _submit(self, prompt: str, job: dict) -> dict:
         job_id = str(uuid.uuid4())
-        graph = text_graph(TextJob(prompt=text, system_prompt=TRANSLATE_SYSTEM, max_length=2048))
+        graph = text_graph(TextJob(prompt=prompt, system_prompt=self.system_prompt, max_length=2048))
         self.comfy.submit(graph, job_id)
         with self.lock:
-            self.jobs[job_id] = {'status': 'queued', 'source': text}
+            self.jobs[job_id] = {'status': 'queued', **job}
             while len(self.jobs) > 200:
                 self.jobs.pop(next(iter(self.jobs)))
         return {'id': job_id, 'status': 'queued'}
@@ -40,9 +45,7 @@ class TranslationService:
         except ComfyUnavailable:
             return {'id': job_id, **job, 'warning': 'ComfyUI indisponível no momento.'}
         if state.status == 'completed':
-            text = clean_output(text_output(self.comfy.outputs(job_id)))
-            job.update(status='completed' if text else 'failed', text=text or None,
-                       error=None if text else 'A tradução veio vazia. O texto original foi preservado.')
+            self._finish(job, clean_output(text_output(self.comfy.outputs(job_id))))
         elif state.status in ('failed', 'cancelled'):
             job.update(status=state.status, error=state.error)
         elif state.status == 'missing':
@@ -50,6 +53,10 @@ class TranslationService:
         else:
             job['status'] = 'running' if state.status == 'in_progress' else 'queued'
         return {'id': job_id, **job}
+
+    def _finish(self, job: dict, text: str) -> None:
+        job.update(status='completed' if text else 'failed', text=text or None,
+                   error=None if text else 'A tradução veio vazia. O texto original foi preservado.')
 
     def cancel(self, job_id: str) -> dict:
         with self.lock:

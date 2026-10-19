@@ -5,6 +5,7 @@ import pytest
 
 from helpers import cat, edit_request, generate_request, keep, run, text
 from prisma_studio.domain.catalog import Library
+from prisma_studio.domain.compiler import COMPILER_VERSION
 from prisma_studio.domain.request import Request
 from prisma_studio.domain.verification import checklist
 
@@ -72,7 +73,7 @@ def test_added_character_is_included_without_changing_identity_or_scene():
     assert 'includes any characters added from reference images' in compiled.text
     assert 'The second person has the facial identity, body shape, skin tone and hairstyle' in compiled.text
     assert 'facial identity and background and setting' in compiled.text
-    assert compiled.version == '1.5.0'
+    assert compiled.version == COMPILER_VERSION
     without_confirmations = request.model_copy(update={'confirmations': frozenset()})
     denied, result = run(without_confirmations, library)
     assert result is None and {'confirm_adults', 'confirm_consent'} <= {i.code for i in denied.issues}

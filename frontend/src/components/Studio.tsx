@@ -190,7 +190,10 @@ export function Studio({library, comfyOnline, notify}: Props) {
   const focusField = (path: string) => {
     const category = path.startsWith('attributes.') ? path.split('.')[1] as Category : null;
     if (category) setTab(ADVANCED.includes(category) ? 'advanced' : 'basic');
-    window.setTimeout(() => document.getElementById(category ? `field-${category}` : 'confirmations')?.focus(), 50);
+    else if (/^(engine|participants|context)/.test(path)) setTab('advanced');   // Cena and Parâmetros live there
+    else if (path.startsWith('output')) setTab('basic');
+    const target = category ? `field-${category}` : path === 'confirmations' ? 'confirmations' : null;
+    if (target) window.setTimeout(() => document.getElementById(target)?.focus(), 50);
   };
   const toggleManual = (enabled: boolean) => {
     if (enabled) update(ws => enterManual(ws, prepared?.prompt ?? ''));

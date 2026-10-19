@@ -410,3 +410,14 @@ code { font-size: 12.5px; padding: 1px 6px; border-radius: 6px; background: var(
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* Coherence: rule adjustments and the on-demand review by the local model */
+.issue.adjusted { background: color-mix(in srgb, var(--focus) 10%, transparent); }
+.issue.adjusted .level { color: var(--focus); }
+.issue.ok { padding: 9px 12px; color: var(--ok); background: color-mix(in srgb, var(--ok) 10%, transparent); }
+.coherence { display: grid; gap: 8px; margin-top: 10px; }
+.coherence .issue { padding: 9px 12px; }
+.coherence .issue.error .level { color: var(--bad); }
+.coherence .quote { display: block; margin-top: 4px; color: var(--muted); font-style: italic; }
+.coherence .suggestion { display: block; margin-top: 4px; }
+.coherence .raw pre { white-space: pre-wrap; font-size: 12px; max-height: 220px; overflow: auto; }

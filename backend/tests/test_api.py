@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 from fakes import FakeComfy, png
 from prisma_studio.api.app import Container, create_app
 from prisma_studio.config import Config
+from prisma_studio.domain.compiler import COMPILER_VERSION
 
 CATALOG = Path(__file__).resolve().parents[2] / 'catalog' / 'defaults.json'
 
@@ -24,7 +25,7 @@ def test_group_clothing_scope_survives_prepare_and_persistence(client):
     assert created.status_code == 200
     run = created.json()
     assert run['request']['wardrobe_scope'] == 'all'
-    assert run['settings']['compiler_version'] == '1.5.0'
+    assert run['settings']['compiler_version'] == COMPILER_VERSION
     assert [c['id'] for c in run['settings']['checks'] if c['id'].startswith('op.wardrobe')] == [
         'op.wardrobe.person.1', 'op.wardrobe.person.2']
 

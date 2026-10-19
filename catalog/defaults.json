@@ -79,7 +79,9 @@
       },
       "provides": {
         "supports": ["floor", "seat", "wall", "table"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "indoor"
       }
     },
     {
@@ -99,7 +101,9 @@
       },
       "provides": {
         "supports": ["floor", "seat", "wall"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "indoor"
       }
     },
     {
@@ -119,7 +123,9 @@
       },
       "provides": {
         "supports": ["floor", "seat", "bed", "wall", "table"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "indoor"
       }
     },
     {
@@ -139,7 +145,9 @@
       },
       "provides": {
         "supports": ["floor", "wall"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "outdoor"
       }
     },
     {
@@ -159,7 +167,9 @@
       },
       "provides": {
         "supports": ["floor", "seat"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "outdoor"
       }
     },
     {
@@ -179,7 +189,9 @@
       },
       "provides": {
         "supports": ["floor", "wall"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "indoor"
       }
     },
     {
@@ -199,7 +211,9 @@
       },
       "provides": {
         "supports": ["floor"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "outdoor"
       }
     },
     {
@@ -219,7 +233,9 @@
       },
       "provides": {
         "supports": ["floor", "seat", "wall", "table"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "outdoor"
       }
     },
     {
@@ -239,7 +255,9 @@
       },
       "provides": {
         "supports": ["floor", "seat"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "outdoor"
       }
     },
     {
@@ -259,7 +277,9 @@
       },
       "provides": {
         "supports": ["floor", "seat", "wall", "table"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "indoor"
       }
     },
     {
@@ -279,7 +299,9 @@
       },
       "provides": {
         "supports": ["floor", "seat", "wall", "table"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "indoor"
       }
     },
     {
@@ -299,7 +321,9 @@
       },
       "provides": {
         "supports": ["floor"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "outdoor"
       }
     },
     {
@@ -319,7 +343,9 @@
       },
       "provides": {
         "supports": ["floor", "seat", "bed", "wall", "table"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "indoor"
       }
     },
     {
@@ -339,7 +365,9 @@
       },
       "provides": {
         "supports": ["floor", "wall"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "outdoor"
       }
     },
     {
@@ -359,7 +387,9 @@
       },
       "provides": {
         "supports": ["floor", "seat", "wall"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "indoor"
       }
     },
     {
@@ -379,7 +409,9 @@
       },
       "provides": {
         "supports": ["floor", "seat", "wall", "table"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "indoor"
       }
     },
     {
@@ -879,7 +911,8 @@
       },
       "provides": {
         "supports": null,
-        "framing": null
+        "framing": null,
+        "view": "front"
       }
     },
     {
@@ -899,7 +932,8 @@
       },
       "provides": {
         "supports": null,
-        "framing": null
+        "framing": null,
+        "view": "three_quarter"
       }
     },
     {
@@ -919,7 +953,8 @@
       },
       "provides": {
         "supports": null,
-        "framing": null
+        "framing": null,
+        "view": "side"
       }
     },
     {
@@ -1059,7 +1094,9 @@
       },
       "provides": {
         "supports": null,
-        "framing": null
+        "framing": null,
+        "period": "day",
+        "place": "any"
       }
     },
     {
@@ -1079,7 +1116,9 @@
       },
       "provides": {
         "supports": null,
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "indoor"
       }
     },
     {
@@ -1099,7 +1138,9 @@
       },
       "provides": {
         "supports": null,
-        "framing": null
+        "framing": null,
+        "period": "golden",
+        "place": "any"
       }
     },
     {
@@ -1139,7 +1180,9 @@
       },
       "provides": {
         "supports": null,
-        "framing": null
+        "framing": null,
+        "period": "night",
+        "place": "outdoor"
       }
     },
     {
@@ -1859,7 +1902,9 @@
       },
       "provides": {
         "supports": ["floor", "seat", "wall", "table"],
-        "framing": null
+        "framing": null,
+        "period": "day",
+        "place": "indoor"
       }
     },
     {
@@ -1879,7 +1924,9 @@
       },
       "provides": {
         "supports": ["floor"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "outdoor"
       }
     },
     {
@@ -1899,7 +1946,9 @@
       },
       "provides": {
         "supports": ["floor"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "outdoor"
       }
     },
     {
@@ -1919,7 +1968,9 @@
       },
       "provides": {
         "supports": ["floor"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "outdoor"
       }
     },
     {
@@ -1939,7 +1990,9 @@
       },
       "provides": {
         "supports": ["floor", "seat", "wall"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "indoor"
       }
     },
     {
@@ -1959,7 +2012,9 @@
       },
       "provides": {
         "supports": ["floor", "seat", "wall"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "indoor"
       }
     },
     {
@@ -1979,7 +2034,9 @@
       },
       "provides": {
         "supports": ["floor", "seat", "wall", "table"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "outdoor"
       }
     },
     {
@@ -1999,7 +2056,9 @@
       },
       "provides": {
         "supports": ["floor", "seat", "table"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "indoor"
       }
     },
     {
@@ -2019,7 +2078,9 @@
       },
       "provides": {
         "supports": ["floor", "seat", "wall", "table"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "indoor"
       }
     },
     {
@@ -2039,7 +2100,9 @@
       },
       "provides": {
         "supports": ["floor", "wall"],
-        "framing": null
+        "framing": null,
+        "period": "night",
+        "place": "outdoor"
       }
     },
     {
@@ -2059,7 +2122,9 @@
       },
       "provides": {
         "supports": ["floor", "seat"],
-        "framing": null
+        "framing": null,
+        "period": "golden",
+        "place": "outdoor"
       }
     },
     {
@@ -2079,7 +2144,9 @@
       },
       "provides": {
         "supports": ["floor", "seat", "wall", "table"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "indoor"
       }
     },
     {
@@ -2099,7 +2166,9 @@
       },
       "provides": {
         "supports": ["floor", "seat", "wall"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "indoor"
       }
     },
     {
@@ -2119,7 +2188,9 @@
       },
       "provides": {
         "supports": ["floor", "seat", "wall", "table"],
-        "framing": null
+        "framing": null,
+        "period": "any",
+        "place": "indoor"
       }
     },
     {
@@ -2139,7 +2210,9 @@
       },
       "provides": {
         "supports": ["floor", "seat", "wall", "table"],
-        "framing": null
+        "framing": null,
+        "period": "night",
+        "place": "outdoor"
       }
     },
     {
@@ -2159,7 +2232,9 @@
       },
       "provides": {
         "supports": ["floor"],
-        "framing": null
+        "framing": null,
+        "period": "golden",
+        "place": "outdoor"
       }
     },
     {
@@ -2899,7 +2974,9 @@
       },
       "provides": {
         "supports": null,
-        "framing": null
+        "framing": null,
+        "period": "day",
+        "place": "indoor"
       }
     },
     {
@@ -2919,7 +2996,9 @@
       },
       "provides": {
         "supports": null,
-        "framing": null
+        "framing": null,
+        "period": "day",
+        "place": "outdoor"
       }
     },
     {
@@ -2979,7 +3058,9 @@
       },
       "provides": {
         "supports": null,
-        "framing": null
+        "framing": null,
+        "period": "blue",
+        "place": "any"
       }
     },
     {
@@ -2999,7 +3080,9 @@
       },
       "provides": {
         "supports": null,
-        "framing": null
+        "framing": null,
+        "period": "day",
+        "place": "outdoor"
       }
     },
     {
@@ -3479,7 +3562,7 @@
       },
       "provides": {
         "supports": null,
-        "framing": null
+        "framing": "half"
       }
     },
     {
@@ -3499,7 +3582,7 @@
       },
       "provides": {
         "supports": null,
-        "framing": null
+        "framing": "wide"
       }
     },
     {
@@ -3579,7 +3662,8 @@
       },
       "provides": {
         "supports": null,
-        "framing": null
+        "framing": null,
+        "view": "back"
       }
     },
     {
@@ -3599,7 +3683,7 @@
       },
       "provides": {
         "supports": null,
-        "framing": null
+        "framing": "portrait"
       }
     },
     {

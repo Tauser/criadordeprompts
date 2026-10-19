@@ -5,6 +5,8 @@ export type Category = typeof CATEGORIES[number];
 export type Intent = 'keep' | 'set' | 'transfer' | 'free';
 export type Support = 'floor' | 'seat' | 'bed' | 'wall' | 'table';
 export type Framing = 'portrait' | 'half' | 'full' | 'wide';
+export type Period = 'day' | 'golden' | 'blue' | 'night' | 'any';
+export type Place = 'indoor' | 'outdoor' | 'any';
 export type Posture = 'standing' | 'seated' | 'kneeling' | 'all_fours' | 'squatting' | 'lying' | 'supine' | 'prone'
   | 'side_lying' | 'walking' | 'running' | 'any';
 export type Orientation = 'front' | 'back' | 'side' | 'three_quarter' | 'any';
@@ -59,11 +61,12 @@ export interface Requirements {
 export interface Item {
   id: string; category: Category; label: string; prompt: string; prompt_pt?: string | null; edit_prompt?: string | null;
   adult: boolean; enabled: boolean; requirements: Requirements;
-  provides: {supports?: Support[] | null; framing?: Framing | null};
+  provides: {supports?: Support[] | null; framing?: Framing | null; view?: Orientation | null; period?: Period | null;
+    place?: Place | null};
 }
 export interface LibrarySnapshot {revision: number; items: Item[]; origins: Record<string, 'builtin' | 'user' | 'custom'>}
 
-export interface Issue {code: string; level: 'error' | 'warning' | 'unknown'; kind: 'product' | 'model' | 'policy'; field: string; message: string}
+export interface Issue {code: string; level: 'error' | 'warning' | 'adjusted' | 'unknown'; kind: 'product' | 'model' | 'policy'; field: string; message: string}
 export interface Prepared {
   valid: boolean; status: string; issues: Issue[]; slots: Record<string, number>; prompt: string | null;
   segments: {block: string; text: string}[]; checks: {id: string; question: string}[];
@@ -89,3 +92,9 @@ export interface Run {
 export interface Health {studio_version: string; data_dir: string; comfy_url: string;
   comfy: {available: boolean; version?: string; devices?: string[]}; progress_live: boolean; lan_token: boolean;
   network_access?: {mode: 'local' | 'lan' | 'token'; allowed_networks: string[]; urls: string[]}}
+
+export interface CoherenceIssue {severity: 'error' | 'warning'; quote: string; problem: string; suggestion: string}
+export interface CoherenceJob {
+  id: string; status: 'queued' | 'running' | 'completed' | 'failed' | 'cancelled'; prompt?: string; error?: string | null;
+  result?: {coherent: boolean | null; issues: CoherenceIssue[]; raw?: string};
+}

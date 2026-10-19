@@ -8,7 +8,8 @@ from .catalog import Item, Library
 from .request import CatalogValue, Request
 from .vocabulary import CATEGORIES, FRAMING_ORDER, agreed
 
-Level = Literal['error', 'warning', 'unknown']
+# 'adjusted': the Studio rewrote the instruction to keep it coherent and says so.
+Level = Literal['error', 'warning', 'adjusted', 'unknown']
 Kind = Literal['product', 'model', 'policy']
 
 
@@ -118,8 +119,11 @@ def assess(request: Request, library: Library) -> Assessment:
 
     requirements = tuple(item.requirements for item in resolved.values())
     _check_conflicts(request, resolved, report)
+    _check_body(request, resolved, report)
     _check_supports(request, resolved, report)
     _check_framing(request, resolved, report)
+    _check_scene(request, resolved, report)
+    _check_mask(request, report)
     total, existing = _participants(request, resolved, report)
     if request.wardrobe_scope == 'all':
         if request.attribute('wardrobe').intent != 'set':
@@ -129,6 +133,7 @@ def assess(request: Request, library: Library) -> Assessment:
             report('wardrobe_scope_requires_people', 'attributes.wardrobe',
                    'Informe ao menos duas pessoas em Cena ou adicione outro personagem para aplicar a roupa a todos.')
 
+    _check_output(request, report)
     if request.details.strip():
         report('details_not_analyzed', 'details', 'Os detalhes adicionais são enviados literalmente, sem análise.',
                'unknown')
@@ -193,7 +198,7 @@ def _check_conflicts(request, resolved, report) -> None:
         report('replace_person_keep_identity', 'attributes.subject',
                'Trocar a pessoa e manter a identidade do rosto pode gerar instruções conflitantes. '
                'Para editar a mesma pessoa, escolha "Manter da foto" no campo Pessoa.', 'warning')
-    for key, label in (('posture', 'posturas'), ('orientation', 'orientações'), ('gaze', 'olhares')):
+    for key, label in (('posture', 'posturas'), ('gaze', 'olhares')):
         facts = _declared(request, resolved, key)
         if facts and agreed({value for _, value in facts}) is None:
             for category, _ in facts:
@@ -217,15 +222,143 @@ def _check_conflicts(request, resolved, report) -> None:
                        'A opção não declara: ' + ', '.join(missing) + '.', 'unknown')
 
 
-def _check_supports(request, resolved, report) -> None:
-    context = request.context
+def available_supports(request, resolved):
+    """Supports the scene offers: a tuple, 'new' when the setting is created with the image, or None if unknown."""
     environment = request.attribute('environment')
     if environment.intent == 'set' and 'environment' in resolved:
-        available = resolved['environment'].provides.supports
-    elif environment.intent in ('set', 'transfer') or request.mode == 'generate':
-        available = 'new'                    # a new setting is created with the scene
-    else:
-        available = context.supports
+        return resolved['environment'].provides.supports
+    if environment.intent in ('set', 'transfer') or request.mode == 'generate':
+        return 'new'
+    return request.context.supports
+
+
+NEAR_VIEWS = {frozenset({'three_quarter', 'front'}), frozenset({'three_quarter', 'side'})}
+HIDDEN_FACE_GAZES = ('down', 'up', 'away', 'closed')
+
+
+def _orientation_facts(resolved) -> list[tuple[str, str]]:
+    """(category, side of the body seen by the camera) from poses, actions and the camera's view."""
+    facts = []
+    for category, item in resolved.items():
+        value = item.provides.view if category == 'camera' else item.requirements.orientation
+        if value not in (None, 'any'):
+            facts.append((category, value))
+    return facts
+
+
+def effective_orientation(resolved) -> str | None:
+    """The orientation the prompt states: the body items' own value first, otherwise the camera's view."""
+    facts = _orientation_facts(resolved)
+    body = {v for c, v in facts if c != 'camera'}
+    values = body or {v for _, v in facts}
+    return next(iter(values)) if len(values) == 1 else None
+
+
+def body_gaze(orientation: str | None, gaze: str | None) -> str | None:
+    """The gaze actually written: looking at the camera from behind or in profile needs a head turn."""
+    if gaze == 'camera' and orientation == 'back':
+        return 'over_shoulder_camera'
+    if gaze == 'camera' and orientation == 'side':
+        return 'turn_to_camera'
+    return gaze
+
+
+def _check_body(request, resolved, report) -> None:
+    facts = _orientation_facts(resolved)
+    values = {value for _, value in facts}
+    if len(values) > 1:
+        if frozenset(values) in NEAR_VIEWS:
+            for category, _ in facts:
+                report('near_orientation', f'attributes.{category}', 'As opções pedem ângulos próximos, mas '
+                       'diferentes, do corpo; o prompt usa o da pose.', 'warning')
+        else:
+            message = ('A câmera e a pose mostram lados diferentes do corpo; escolha um dos dois.'
+                       if any(c == 'camera' for c, _ in facts) else 'As opções pedem orientações incompatíveis.')
+            for category, _ in facts:
+                report('conflicting_orientation', f'attributes.{category}', message)
+        return
+    orientation = effective_orientation(resolved)
+    gaze_facts = _declared(request, resolved, 'gaze')
+    gaze = agreed({v for _, v in gaze_facts}) if gaze_facts else None
+    where = f'attributes.{gaze_facts[0][0]}' if gaze_facts else 'attributes.pose'
+    if orientation == 'back' and gaze == 'camera':
+        report('gaze_over_shoulder', where, 'De costas, olhar para a câmera foi ajustado para olhar por cima do '
+               'ombro, sem girar a cabeça além do pescoço.', 'adjusted')
+    elif orientation == 'side' and gaze == 'camera':
+        report('gaze_head_turn', where, 'De perfil, olhar para a câmera foi ajustado para a cabeça girar em direção '
+               'a ela, no máximo até o ombro.', 'adjusted')
+    elif orientation == 'front' and gaze == 'back':
+        report('gaze_back_facing_front', where, 'O corpo está de frente e o olhar vai para trás, por cima do ombro: '
+               'a cabeça fica de costas para a câmera.', 'warning')
+    elif orientation == 'back' and gaze in HIDDEN_FACE_GAZES:
+        report('gaze_not_visible', where, 'De costas o rosto não aparece; o olhar não poderá ser verificado.',
+               'unknown')
+
+
+def _check_scene(request, resolved, report) -> None:
+    light, scene = resolved.get('lighting'), resolved.get('environment')
+    if light and scene:
+        for key in ('period', 'place'):
+            a, b = getattr(light.provides, key), getattr(scene.provides, key)
+            if a in (None, 'any') or b in (None, 'any') or a == b:
+                continue
+            if key == 'place':
+                report('light_place', 'attributes.lighting', 'A luz e o cenário indicam ambientes diferentes '
+                       '(interno e externo).', 'warning')
+            elif 'night' in (a, b):
+                report('light_period', 'attributes.lighting', 'A luz e o cenário indicam horários incompatíveis '
+                       '(noite e dia).')
+            else:
+                report('light_period_near', 'attributes.lighting', 'A luz e o cenário indicam horários diferentes.',
+                       'warning')
+    camera = resolved.get('camera')
+    usual = camera.provides.framing if camera else None
+    if usual is None:
+        return
+    minimums = [i.requirements.minimum_framing for i in resolved.values() if i.requirements.minimum_framing]
+    if minimums and FRAMING_ORDER[usual] < max(FRAMING_ORDER[m] for m in minimums):
+        report('camera_framing', 'attributes.camera', 'A lente escolhida favorece um recorte mais fechado do que a '
+               'pose precisa.', 'warning')
+    framing = resolved.get('framing')
+    visible = framing.provides.framing if framing else None
+    if visible and abs(FRAMING_ORDER[visible] - FRAMING_ORDER[usual]) >= 2:
+        report('camera_vs_framing', 'attributes.camera', 'A lente e o enquadramento pedem recortes muito '
+               'diferentes.', 'warning')
+
+
+MASK_RULES = (
+    ('framing', 'error', 'Com máscara não é possível reenquadrar: só a área pintada muda.'),
+    ('camera', 'error', 'Com máscara não é possível mudar a câmera: só a área pintada muda.'),
+    ('environment', 'warning', 'Com máscara, o cenário só muda dentro da área pintada.'),
+    ('lighting', 'warning', 'Com máscara, a luz só muda dentro da área pintada.'),
+    ('pose', 'warning', 'Com máscara, o corpo fora da área pintada não se move; a pose pode ficar quebrada.'),
+    ('action', 'warning', 'Com máscara, o corpo fora da área pintada não se move; a ação pode ficar quebrada.'),
+)
+
+
+def _check_mask(request, report) -> None:
+    if request.mode != 'edit' or not request.mask:
+        return
+    for category, level, message in MASK_RULES:
+        if request.attribute(category).intent in ('set', 'transfer'):
+            report(f'mask_{category}', f'attributes.{category}', message, level)
+
+
+def _check_output(request, report) -> None:
+    output, engine = request.output, request.engine
+    turbo = output.profile == 'turbo'
+    if turbo and (engine.steps is not None or engine.cfg is not None):
+        report('turbo_settings', 'engine', 'O modo Turbo usa sempre 8 passos e CFG 1; os valores informados são '
+               'ignorados.', 'adjusted')
+    if turbo and output.refine:
+        report('turbo_refine', 'output.refine', 'O aprimoramento não é usado no modo Turbo.', 'adjusted')
+    if engine.negative_prompt.strip() and (turbo or (engine.cfg or 1) <= 1):
+        report('negative_ignored', 'engine', 'O prompt negativo só tem efeito com CFG acima de 1.', 'warning')
+
+
+def _check_supports(request, resolved, report) -> None:
+    context = request.context
+    available = available_supports(request, resolved)
     for category, item in resolved.items():
         needed = item.requirements.support_any_of
         if not needed or context.allow_new_supports or available == 'new':
@@ -269,6 +402,17 @@ def _participants(request, resolved, report):
     if existing:
         counts.append(existing)
     total = max(counts) if counts else None
+    requested = request.participants.requested
+    needed = [(f'attributes.{c}', item.requirements.participants) for c, item in resolved.items()
+              if item.requirements.participants]
+    if request.characters:
+        needed.append(('characters', 1 + len(request.characters)))
+    for where, count in needed:
+        if requested and count > requested:
+            report('participants_mismatch', where, f'Você pediu {requested} pessoa(s), mas esta escolha exige {count}.')
+    if request.mode == 'edit' and requested and existing and existing > requested:
+        report('cannot_remove_people', 'participants.requested', 'A foto já tem mais pessoas do que o pedido; o '
+               'Studio não remove pessoas.', 'warning')
     if request.mode == 'edit' and existing is None and total and total > 1:
         report('unknown_existing', 'participants.existing', 'Informe quantas pessoas já estão na foto.', 'unknown')
     return total, existing

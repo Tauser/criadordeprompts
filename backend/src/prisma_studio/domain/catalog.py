@@ -5,7 +5,7 @@ import unicodedata
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from .vocabulary import Category, Framing, Gaze, Orientation, Posture, Support
+from .vocabulary import Category, Framing, Gaze, Orientation, Period, Place, Posture, Support
 
 ITEM_ID = r'^[a-z0-9][a-z0-9._-]{2,79}$'
 
@@ -23,7 +23,10 @@ class Requirements(BaseModel):
 class Provides(BaseModel):
     model_config = ConfigDict(extra='forbid', frozen=True)
     supports: tuple[Support, ...] | None = None
-    framing: Framing | None = None
+    framing: Framing | None = None            # framing items: the visible area; cameras: the usual crop of the lens
+    view: Orientation | None = None           # cameras: which side of the body the camera sees
+    period: Period | None = None              # lighting and settings
+    place: Place | None = None                # lighting and settings
 
 
 class Item(BaseModel):

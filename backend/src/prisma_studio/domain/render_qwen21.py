@@ -52,7 +52,12 @@ GAZES = {
     'camera': 'The eyes look at the camera.', 'away': 'The eyes look away from the camera.',
     'down': 'The eyes look downwards.', 'up': 'The eyes look upwards.',
     'back': 'The head turns to look back over the shoulder.', 'closed': 'The eyes are closed.',
+    # Written by the compiler when the body orientation needs a head turn to see the camera.
+    'over_shoulder_camera': 'The head turns to look back over the shoulder toward the camera, no further than the neck '
+                            'allows, and the eyes look at the camera.',
+    'turn_to_camera': 'The head turns toward the camera, no further than the shoulder, and the eyes look at the camera.',
 }
+HEAD = 'The neck stays natural: the head turns no further than over the shoulder.'
 ORIENTATIONS = {
     'front': 'The front of the body faces the camera.',
     'back': 'The body is seen from behind, with the back toward the camera.',
@@ -203,8 +208,12 @@ def _guidance(block: ir.Guidance) -> str:
         return GAZES[block.value]
     if block.key == 'orientation':
         return ORIENTATIONS[block.value]
+    if block.key == 'head':
+        return HEAD
     if block.key == 'new_supports':
         return 'Add only the support surfaces the pose or action needs.'
-    options = [SUPPORTS[s] for s in block.value.split('|')]
-    choice = options[0] if len(options) == 1 else ', '.join(options[:-1]) + ' or ' + options[-1]
-    return f'The pose is supported by {choice}, with believable contact and weight.'
+    surface = SUPPORTS[block.value]
+    if block.key == 'support':
+        return (f'The body is supported by {surface}, with believable contact and weight; it does not rest partly '
+                'on another surface unless the pose describes it.')
+    return f'Part of the body rests on {surface}, with believable contact and weight.'
