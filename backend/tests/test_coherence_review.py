@@ -56,3 +56,36 @@ def _check_endpoint(client):
     assert status['result'] == {'coherent': True, 'issues': []}
     invalid = client.post('/api/coherence', json={'mode': 'generate', 'attributes': {'face': {'intent': 'keep'}}})
     assert invalid.status_code == 422 and invalid.json()['issues']
+
+
+def test_adult_instructions_stay_out_of_the_review_and_subject_judgements_are_dropped():
+    from conftest import item
+    from helpers import cat, generate_request
+    from prisma_studio.application.coherence import review_text, without_subject_judgement
+    from prisma_studio.domain.catalog import Library
+    library = Library(items=[item('wardrobe.none', 'wardrobe', 'no clothing', adult=True),
+                             item('env.room', 'environment', 'a hotel room')])
+    request = generate_request({'wardrobe': cat('wardrobe.none'), 'environment': cat('env.room')},
+                               content_mode='adult', confirmations=['adults_only'])
+    text, omitted = review_text(request, library)
+    assert omitted == 1 and 'no clothing' not in text and 'a hotel room' in text
+    assert 'not part of this review' in text
+    review = {'coherent': False, 'issues': [
+        {'severity': 'error', 'quote': 'nude', 'problem': 'A nudez viola a política de conteúdo.', 'suggestion': ''},
+        {'severity': 'warning', 'quote': 'bed', 'problem': 'O apoio muda entre cama e chão.', 'suggestion': ''}]}
+    cleaned = without_subject_judgement(review)
+    assert cleaned['dropped'] == 1 and [i['quote'] for i in cleaned['issues']] == ['bed']
+    only_policy = without_subject_judgement({'coherent': False, 'issues': review['issues'][:1]})
+    assert only_policy['coherent'] is True and only_policy['issues'] == []
+
+
+def test_a_cut_answer_keeps_the_issues_that_arrived_complete():
+    cut = ('{"coherent": false, "issues": [{"severity": "error", "quote": "window", "problem": "A luz contradiz a '
+           'janela.", "suggestion": "Use a janela."}, {"severity": "warning", "quote": "bed", "problem": "Texto cort')
+    review = parse_review(cut)
+    assert review['truncated'] and [i['quote'] for i in review['issues']] == ['window']
+
+
+def test_repeated_findings_are_shown_once():
+    issue = {'severity': 'error', 'quote': 'light', 'problem': 'A luz contradiz a janela.', 'suggestion': ''}
+    assert len(parse_review(json.dumps({'coherent': False, 'issues': [issue] * 4}))['issues']) == 1

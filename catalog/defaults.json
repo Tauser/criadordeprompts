@@ -418,8 +418,8 @@
       "id": "pose.neutral",
       "category": "pose",
       "label": "Em pé · braços relaxados",
-      "prompt": "standing upright facing the camera, weight evenly on both feet set hip-width apart, arms hanging relaxed at the sides with open hands, shoulders level and head straight",
-      "prompt_pt": "em pé de frente para a câmera, peso igual nos dois pés afastados na largura do quadril, braços soltos ao lado do corpo com as mãos abertas, ombros nivelados e cabeça reta",
+      "prompt": "standing upright facing the camera, weight evenly on both feet set hip-width apart, arms hanging relaxed at the sides with open hands and shoulders level",
+      "prompt_pt": "em pé de frente para a câmera, peso igual nos dois pés afastados na largura do quadril, braços soltos ao lado do corpo com as mãos abertas e ombros nivelados",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -427,7 +427,8 @@
         "posture": "standing",
         "gaze": "any",
         "support_any_of": ["floor"],
-        "minimum_framing": "full"
+        "minimum_framing": "full",
+        "orientation": "front"
       },
       "provides": {
         "supports": null,
@@ -438,8 +439,8 @@
       "id": "pose.seated",
       "category": "pose",
       "label": "Sentado · postura ereta",
-      "prompt": "sitting upright on a seat with the back straight, both thighs resting on the seat, knees bent at about ninety degrees, both feet flat on the floor and both hands resting on the thighs",
-      "prompt_pt": "sentado ereto num assento, costas retas, as duas coxas apoiadas no assento, joelhos dobrados em cerca de noventa graus, os dois pés apoiados no chão e as mãos sobre as coxas",
+      "prompt": "sitting upright with the back straight, both thighs resting on the surface beneath them, knees bent at about ninety degrees, both feet flat on the floor and both hands resting on the thighs",
+      "prompt_pt": "sentado ereto com as costas retas, as duas coxas apoiadas na superfície, joelhos dobrados em cerca de noventa graus, os dois pés apoiados no chão e as mãos sobre as coxas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -458,8 +459,8 @@
       "id": "pose.kneeling",
       "category": "pose",
       "label": "Ajoelhado · tronco ereto",
-      "prompt": "kneeling upright on both knees, thighs vertical and in line with the torso, shins and the tops of the feet flat on the ground behind, back straight and arms relaxed at the sides",
-      "prompt_pt": "ajoelhado ereto sobre os dois joelhos, coxas na vertical alinhadas ao tronco, canelas e peito dos pés apoiados no chão atrás, costas retas e braços soltos ao lado do corpo",
+      "prompt": "kneeling upright on both knees, thighs vertical and in line with the torso, shins and the tops of the feet flat on the surface behind, back straight and arms relaxed at the sides",
+      "prompt_pt": "ajoelhado ereto sobre os dois joelhos, coxas na vertical alinhadas ao tronco, canelas e peito dos pés apoiados na superfície atrás, costas retas e braços soltos ao lado do corpo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -487,7 +488,8 @@
         "posture": "standing",
         "gaze": "back",
         "support_any_of": [],
-        "minimum_framing": null
+        "minimum_framing": null,
+        "orientation": "back"
       },
       "provides": {
         "supports": null,
@@ -518,8 +520,8 @@
       "id": "pose.recline",
       "category": "pose",
       "label": "Reclinado no sofá",
-      "prompt": "reclining on a sofa with the upper back and shoulders resting against the armrest, both legs extended along the seat cushion, one arm resting across the waist and the other along the backrest",
-      "prompt_pt": "reclinado num sofá com a parte de cima das costas e os ombros apoiados no braço do sofá, as duas pernas estendidas sobre o assento, um braço sobre a cintura e o outro ao longo do encosto",
+      "prompt": "reclining on a sofa with the upper back and shoulders resting against the armrest, both legs extended along the seat cushion, the right arm resting across the waist and the left arm resting along the backrest",
+      "prompt_pt": "reclinado num sofá com a parte de cima das costas e os ombros apoiados no braço do sofá, as duas pernas estendidas sobre o assento, o braço direito sobre a cintura e o braço esquerdo ao longo do encosto",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -538,13 +540,13 @@
       "id": "pose.handsknees",
       "category": "pose",
       "label": "Apoio em mãos e joelhos",
-      "prompt": "on hands and knees, both palms flat on the surface directly below the shoulders with straight arms, both knees directly below the hips, the back flat and level and the head in line with the spine",
-      "prompt_pt": "apoiado nas mãos e nos joelhos, as duas palmas apoiadas logo abaixo dos ombros com os braços retos, os dois joelhos logo abaixo do quadril, as costas retas na horizontal e a cabeça alinhada à coluna",
+      "prompt": "on hands and knees, both palms flat on the surface directly below the shoulders with straight arms, both knees directly below the hips and the back flat and level",
+      "prompt_pt": "apoiado nas mãos e nos joelhos, as duas palmas apoiadas logo abaixo dos ombros com os braços retos, os dois joelhos logo abaixo do quadril e as costas retas na horizontal",
       "adult": false,
       "enabled": true,
       "requirements": {
         "participants": 1,
-        "posture": "kneeling",
+        "posture": "all_fours",
         "gaze": "any",
         "support_any_of": ["floor", "bed"],
         "minimum_framing": "full"
@@ -578,8 +580,8 @@
       "id": "pose.walllean",
       "category": "pose",
       "label": "Em pé · costas na parede",
-      "prompt": "standing with the shoulder blades and upper back resting flat against a wall, both feet planted a short step in front of the wall, one knee slightly bent and both arms hanging relaxed at the sides",
-      "prompt_pt": "em pé com as escápulas e a parte de cima das costas encostadas na parede, os dois pés apoiados um passo à frente da parede, um joelho levemente dobrado e os dois braços soltos ao lado do corpo",
+      "prompt": "standing with the shoulder blades and upper back resting flat against a wall, both feet planted a short step in front of the wall, the right knee slightly bent and both arms hanging relaxed at the sides",
+      "prompt_pt": "em pé com as escápulas e a parte de cima das costas encostadas na parede, os dois pés apoiados um passo à frente da parede, o joelho direito levemente dobrado e os dois braços soltos ao lado do corpo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -598,8 +600,8 @@
       "id": "pose.chairside",
       "category": "pose",
       "label": "Cadeira · sentado de lado",
-      "prompt": "sitting sideways on a chair with the backrest beside the body, both feet flat on the floor, the torso turned toward the camera and one forearm resting on top of the backrest",
-      "prompt_pt": "sentado de lado numa cadeira com o encosto ao lado do corpo, os dois pés apoiados no chão, o tronco virado para a câmera e um antebraço apoiado em cima do encosto",
+      "prompt": "sitting sideways on a chair with the backrest beside the body, both feet flat on the floor, the torso turned toward the camera and the right forearm resting on top of the backrest",
+      "prompt_pt": "sentado de lado numa cadeira com o encosto ao lado do corpo, os dois pés apoiados no chão, o tronco virado para a câmera e o antebraço direito apoiado em cima do encosto",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -638,8 +640,8 @@
       "id": "pose.sofaarm",
       "category": "pose",
       "label": "Sofá · cotovelo no apoio",
-      "prompt": "sitting upright at one end of a sofa, the near elbow resting on the armrest with that hand relaxed, the other hand resting on the lap and both feet flat on the floor",
-      "prompt_pt": "sentado ereto numa ponta do sofá, o cotovelo do lado do braço apoiado no braço do sofá com a mão relaxada, a outra mão sobre o colo e os dois pés apoiados no chão",
+      "prompt": "sitting upright at one end of a sofa, the right elbow resting on the armrest with the right hand relaxed, the left hand resting on the lap and both feet flat on the floor",
+      "prompt_pt": "sentado ereto numa ponta do sofá, o cotovelo direito apoiado no braço do sofá com a mão direita relaxada, a mão esquerda sobre o colo e os dois pés apoiados no chão",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -678,8 +680,8 @@
       "id": "pose.hiphand",
       "category": "pose",
       "label": "Em pé · uma mão na cintura",
-      "prompt": "standing with the weight on one leg and that hip shifted slightly outward, the other knee relaxed and slightly bent, one hand placed on the hip with the elbow pointing out to the side, the other arm relaxed and the shoulders angled slightly toward the camera",
-      "prompt_pt": "em pé com o peso numa perna e esse lado do quadril levemente projetado, o outro joelho relaxado e levemente dobrado, uma mão na cintura com o cotovelo apontando para o lado, o outro braço solto e os ombros levemente voltados para a câmera",
+      "prompt": "standing with the weight on the right leg and the right hip shifted slightly outward, the left knee relaxed and slightly bent, the right hand placed on the right hip with the elbow pointing out to the side, the left arm hanging relaxed and the shoulders angled slightly toward the camera",
+      "prompt_pt": "em pé com o peso na perna direita e o quadril direito levemente projetado para fora, o joelho esquerdo relaxado e levemente dobrado, a mão direita apoiada no quadril direito com o cotovelo apontando para o lado, o braço esquerdo solto e os ombros levemente virados para a câmera",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -718,8 +720,8 @@
       "id": "pose.seatedcross",
       "category": "pose",
       "label": "Cadeira · pernas cruzadas",
-      "prompt": "sitting upright on a chair with one leg crossed over the other at the knee, the upper foot off the floor, the lower foot flat on the floor and both hands resting on the upper knee",
-      "prompt_pt": "sentado ereto numa cadeira com uma perna cruzada sobre a outra na altura do joelho, o pé de cima fora do chão, o pé de baixo apoiado no chão e as duas mãos sobre o joelho de cima",
+      "prompt": "sitting upright on a chair with the right leg crossed over the left leg at the knee, the right foot off the floor, the left foot flat on the floor and both hands resting on the right knee",
+      "prompt_pt": "sentado ereto numa cadeira com a perna direita cruzada sobre a esquerda na altura do joelho, o pé direito fora do chão, o pé esquerdo apoiado no chão e as duas mãos sobre o joelho direito",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1118,7 +1120,7 @@
         "supports": null,
         "framing": null,
         "period": "any",
-        "place": "indoor"
+        "place": "any"
       }
     },
     {
@@ -1189,8 +1191,8 @@
       "id": "style.real",
       "category": "style",
       "label": "Realista",
-      "prompt": "photorealistic professional photography, natural pores, realistic hair strands, true-to-life fabric detail",
-      "prompt_pt": "fotografia profissional fotorrealista, poros naturais, fios de cabelo realistas e detalhes fiéis dos tecidos",
+      "prompt": "photorealistic photograph taken with a full-frame camera and a sharp prime lens, natural skin with visible pores and fine texture, realistic hair strands, true-to-life colors and fabric detail, accurate hands",
+      "prompt_pt": "fotografia fotorrealista feita com câmera full-frame e lente fixa nítida, pele natural com poros e textura fina, fios de cabelo realistas, cores e tecidos fiéis e mãos corretas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1203,14 +1205,15 @@
       "provides": {
         "supports": null,
         "framing": null
-      }
+      },
+      "edit_prompt": "Render the result as a natural, high-resolution photograph with real skin texture and visible pores, realistic hair, true-to-life colors and accurate hands, without a painted, airbrushed or plastic look."
     },
     {
       "id": "style.anime",
       "category": "style",
       "label": "Anime",
-      "prompt": "premium contemporary anime illustration, crisp expressive line art, controlled cel shading, coherent anime anatomy",
-      "prompt_pt": "ilustração anime contemporânea de qualidade, linhas expressivas e definidas, sombreamento cel-shading controlado e anatomia consistente",
+      "prompt": "high-quality contemporary anime illustration, clean confident line art, cel shading with crisp two-tone shadows, vivid but controlled colors, expressive eyes, consistent anime proportions and a detailed painted background",
+      "prompt_pt": "ilustração anime contemporânea de alta qualidade, traço limpo e firme, cel-shading com sombras em dois tons, cores vivas e controladas, olhos expressivos, proporções de anime consistentes e fundo pintado detalhado",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1223,14 +1226,58 @@
       "provides": {
         "supports": null,
         "framing": null
-      }
+      },
+      "edit_prompt": "Redraw the whole image as a high-quality contemporary anime illustration with clean line art and cel shading, keeping the people recognizable."
     },
     {
       "id": "style.cinematic",
       "category": "style",
       "label": "Cinema",
-      "prompt": "premium cinematic film still, natural skin, filmic contrast, realistic photographic depth",
-      "prompt_pt": "frame cinematográfico de alto nível, pele natural, contraste de cinema e profundidade fotográfica realista",
+      "prompt": "cinematic film still shot on 35 mm film with an anamorphic lens, motivated lighting, filmic contrast with soft highlight roll-off, subtle film grain, natural skin tones and shallow depth of field",
+      "prompt_pt": "frame de cinema filmado em 35 mm com lente anamórfica, luz motivada, contraste de filme com altas luzes suaves, grão sutil, pele natural e pouca profundidade de campo",
+      "adult": false,
+      "enabled": true,
+      "requirements": {
+        "participants": null,
+        "posture": null,
+        "gaze": null,
+        "support_any_of": null,
+        "minimum_framing": null
+      },
+      "provides": {
+        "supports": null,
+        "framing": null
+      },
+      "edit_prompt": "Give the whole image the look of a cinematic film still: filmic contrast, soft highlight roll-off, subtle film grain and natural skin tones, keeping the people recognizable."
+    },
+    {
+      "id": "style.illustration",
+      "category": "style",
+      "label": "Ilustração",
+      "prompt": "polished semi-realistic digital painting, soft painterly brushwork, consistent material rendering, a harmonious color palette, clean readable shapes and accurate anatomy",
+      "prompt_pt": "pintura digital semirrealista refinada, pinceladas suaves, materiais consistentes, paleta harmoniosa, formas claras e anatomia correta",
+      "adult": false,
+      "enabled": true,
+      "requirements": {
+        "participants": null,
+        "posture": null,
+        "gaze": null,
+        "support_any_of": null,
+        "minimum_framing": null
+      },
+      "provides": {
+        "supports": null,
+        "framing": null
+      },
+      "edit_prompt": "Repaint the whole image as a polished semi-realistic digital painting with soft brushwork and a harmonious palette, keeping the people recognizable."
+    },
+    {
+      "id": "style.film",
+      "category": "style",
+      "label": "Filme analógico",
+      "prompt": "candid analog photograph on 35 mm color film, natural colors with gentle grain, slightly soft focus, warm highlights and softly faded shadows",
+      "edit_prompt": "Give the whole image the look of a 35 mm color film photograph with gentle grain, warm highlights and softly faded shadows, keeping the people recognizable.",
+      "prompt_pt": "foto analógica espontânea em filme colorido 35 mm, cores naturais com grão suave, foco levemente macio, altas luzes quentes e sombras levemente desbotadas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1246,11 +1293,75 @@
       }
     },
     {
-      "id": "style.illustration",
+      "id": "style.bw",
       "category": "style",
-      "label": "Ilustração",
-      "prompt": "polished semi-realistic digital illustration, consistent material rendering, elegant color design",
-      "prompt_pt": "ilustração digital semirrealista refinada, materiais consistentes e design elegante de cores",
+      "label": "Preto e branco",
+      "prompt": "black-and-white fine-art photograph with a rich tonal range, deep blacks, luminous highlights and fine grain",
+      "edit_prompt": "Convert the whole image into a black-and-white fine-art photograph with a rich tonal range, deep blacks and luminous highlights, keeping the people recognizable.",
+      "prompt_pt": "fotografia artística em preto e branco com ampla gama de tons, pretos profundos, altas luzes luminosas e grão fino",
+      "adult": false,
+      "enabled": true,
+      "requirements": {
+        "participants": null,
+        "posture": null,
+        "gaze": null,
+        "support_any_of": null,
+        "minimum_framing": null
+      },
+      "provides": {
+        "supports": null,
+        "framing": null
+      }
+    },
+    {
+      "id": "style.oil",
+      "category": "style",
+      "label": "Pintura a óleo",
+      "prompt": "classical oil painting on canvas with visible brushstrokes, rich layered color, soft chiaroscuro lighting and a subtle canvas texture",
+      "edit_prompt": "Repaint the whole image as a classical oil painting on canvas with visible brushstrokes and soft chiaroscuro, keeping the people recognizable.",
+      "prompt_pt": "pintura a óleo clássica sobre tela, pinceladas visíveis, cores em camadas, claro-escuro suave e textura sutil da tela",
+      "adult": false,
+      "enabled": true,
+      "requirements": {
+        "participants": null,
+        "posture": null,
+        "gaze": null,
+        "support_any_of": null,
+        "minimum_framing": null
+      },
+      "provides": {
+        "supports": null,
+        "framing": null
+      }
+    },
+    {
+      "id": "style.watercolor",
+      "category": "style",
+      "label": "Aquarela",
+      "prompt": "delicate watercolor painting on textured paper with soft transparent washes, gentle color bleeding, light pencil outlines and areas of untouched white paper",
+      "edit_prompt": "Repaint the whole image as a delicate watercolor on textured paper with soft washes and light pencil outlines, keeping the people recognizable.",
+      "prompt_pt": "aquarela delicada em papel texturizado, aguadas suaves e transparentes, cores que se misturam, contornos leves a lápis e áreas de papel branco",
+      "adult": false,
+      "enabled": true,
+      "requirements": {
+        "participants": null,
+        "posture": null,
+        "gaze": null,
+        "support_any_of": null,
+        "minimum_framing": null
+      },
+      "provides": {
+        "supports": null,
+        "framing": null
+      }
+    },
+    {
+      "id": "style.render3d",
+      "category": "style",
+      "label": "3D estilizado",
+      "prompt": "stylized 3D animated-film render with soft global illumination, smooth subsurface skin, appealing slightly exaggerated proportions and clean materials",
+      "edit_prompt": "Re-render the whole image as a stylized 3D animated-film scene with soft global illumination and clean materials, keeping the people recognizable.",
+      "prompt_pt": "render 3D estilizado de animação, iluminação global suave, pele lisa com subsurface, proporções simpáticas levemente exageradas e materiais limpos",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2301,8 +2412,8 @@
       "id": "pose.railing",
       "category": "pose",
       "label": "Apoiado no parapeito",
-      "prompt": "standing and leaning forward with both forearms resting on a railing, one foot crossed behind the other at the ankle",
-      "prompt_pt": "em pé, inclinado para a frente com os dois antebraços apoiados num parapeito, um pé cruzado atrás do outro na altura do tornozelo",
+      "prompt": "standing and leaning forward with both forearms resting on a railing, the right foot crossed behind the left foot at the ankle",
+      "prompt_pt": "em pé, inclinado para a frente com os dois antebraços apoiados num parapeito, o pé direito cruzado atrás do esquerdo na altura do tornozelo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2321,8 +2432,8 @@
       "id": "pose.stool",
       "category": "pose",
       "label": "Banqueta alta",
-      "prompt": "sitting on a tall stool with one foot on the footrest, the other leg extended down to the floor and both hands resting on the front edge of the seat",
-      "prompt_pt": "sentado numa banqueta alta com um pé no apoio, a outra perna estendida até o chão e as duas mãos na borda da frente do assento",
+      "prompt": "sitting on a tall stool with the right foot on the footrest, the left leg extended down to the floor and both hands resting on the front edge of the seat",
+      "prompt_pt": "sentado numa banqueta alta com o pé direito no apoio, a perna esquerda estendida até o chão e as duas mãos na borda da frente do assento",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2381,8 +2492,8 @@
       "id": "pose.chin_hand",
       "category": "pose",
       "label": "Mão no queixo",
-      "prompt": "sitting at a table with one elbow on the tabletop, the chin resting on that hand and the other hand flat on the table",
-      "prompt_pt": "sentado à mesa com um cotovelo sobre o tampo, o queixo apoiado nessa mão e a outra mão espalmada sobre a mesa",
+      "prompt": "sitting at a table with the right elbow on the tabletop, the chin resting on the right hand and the left hand flat on the table",
+      "prompt_pt": "sentado à mesa com o cotovelo direito sobre o tampo, o queixo apoiado na mão direita e a mão esquerda espalmada sobre a mesa",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2801,8 +2912,8 @@
       "id": "action.coat",
       "category": "action",
       "label": "Vestir o casaco",
-      "prompt": "pulling a coat over the shoulders, one arm already in its sleeve and the other hand holding the collar",
-      "prompt_pt": "vestindo um casaco pelos ombros, um braço já na manga e a outra mão segurando a gola",
+      "prompt": "pulling a coat over the shoulders, the right arm already in its sleeve and the left hand holding the collar",
+      "prompt_pt": "vestindo um casaco sobre os ombros, com o braço direito já na manga e a mão esquerda segurando a gola",
       "adult": false,
       "enabled": true,
       "requirements": {

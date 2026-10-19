@@ -37,7 +37,7 @@ export function CoherenceReview({request, prompt, ready}: Props) {
       for (let i = 0; i < 240 && !TERMINAL.has(current.status); i++) {
         await new Promise(r => setTimeout(r, 1500));
         if (mine.cancelled) return;
-        current = {...(await api.coherence(current.id)), prompt: current.prompt};
+        current = {...(await api.coherence(current.id)), prompt: current.prompt, omitted: current.omitted};
         if (mine.cancelled) return;
         setJob(current);
       }
@@ -75,6 +75,11 @@ export function CoherenceReview({request, prompt, ready}: Props) {
             {issue.suggestion && <span className="suggestion">Sugestão: {issue.suggestion}</span>}
           </li>))}</ul>}
         {result.raw && <details className="raw"><summary>O modelo respondeu fora do formato esperado</summary><pre>{result.raw}</pre></details>}
+        {result.truncated && <p className="muted small">A resposta do modelo veio cortada; aparecem só os apontamentos completos.</p>}
+        {!!job?.omitted && <p className="muted small">{job.omitted === 1 ? 'Uma instrução de opção adulta ficou'
+          : `${job.omitted} instruções de opções adultas ficaram`} fora da análise: ela revisa a coerência, não o tema.</p>}
+        {!!result.dropped && <p className="muted small">{result.dropped === 1 ? 'Um apontamento sobre o tema, e não sobre a coerência, foi descartado'
+          : `${result.dropped} apontamentos sobre o tema, e não sobre a coerência, foram descartados`}.</p>}
         <p className="help">Análise consultiva do modelo local: pode errar e não bloqueia a geração.</p>
       </>}
     </div>

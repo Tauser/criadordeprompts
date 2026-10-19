@@ -1,11 +1,13 @@
 """Assess declared facts only. Unknown facts are reported, never assumed."""
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from typing import Literal
 
 from .catalog import Item, Library
 from .request import CatalogValue, Request
+from .text_audit import FIXED_HEAD
 from .vocabulary import CATEGORIES, FRAMING_ORDER, agreed
 
 # 'adjusted': the Studio rewrote the instruction to keep it coherent and says so.
@@ -124,6 +126,7 @@ def assess(request: Request, library: Library) -> Assessment:
     _check_framing(request, resolved, report)
     _check_scene(request, resolved, report)
     _check_mask(request, report)
+    _check_edit_load(request, resolved, report)
     total, existing = _participants(request, resolved, report)
     if request.wardrobe_scope == 'all':
         if request.attribute('wardrobe').intent != 'set':
@@ -222,6 +225,55 @@ def _check_conflicts(request, resolved, report) -> None:
                        'A opção não declara: ' + ', '.join(missing) + '.', 'unknown')
 
 
+def body_moves(request) -> bool:
+    return any(request.attribute(c).intent in ('set', 'transfer') for c in ('pose', 'action'))
+
+
+def framing_already_there(request, resolved) -> bool:
+    """An edit that asks for the framing the photo already has: reframing would only invite the model to redraw.
+    When the pose changes, the old crop no longer fits the body, so the reframe instruction stays."""
+    framing = resolved.get('framing')
+    return (request.mode == 'edit' and framing is not None and request.attribute('framing').intent == 'set'
+            and framing.provides.framing is not None and framing.provides.framing == request.context.original_framing
+            and not body_moves(request))
+
+
+# Postures that rarely fit the crop of a photo taken of someone standing or sitting.
+GROUND_POSTURES = ('lying', 'supine', 'prone', 'side_lying', 'all_fours')
+
+
+IDENTITY_KEEPS = ('subject', 'face', 'body')
+
+
+def _check_edit_load(request, resolved, report) -> None:
+    if request.mode != 'edit':
+        return
+    if framing_already_there(request, resolved):
+        report('framing_already_there', 'attributes.framing', 'A foto já tem esse enquadramento; ele é mantido em vez '
+               'de pedir um reenquadramento.', 'adjusted')
+    keeps_person = any(request.attribute(c).intent == 'keep' for c in IDENTITY_KEEPS)
+    postures = {i.requirements.posture for c, i in resolved.items() if c in ('pose', 'action')}
+    frame_locked = (request.attribute('framing').intent == 'keep'
+                    or (request.attribute('framing').intent == 'free' and not request.context.allow_reframing))
+    if postures & set(GROUND_POSTURES) and (frame_locked or request.attribute('camera').intent == 'keep'):
+        report('posture_in_old_frame', 'attributes.pose', 'A nova postura deitada ou de quatro fica presa ao recorte '
+               'e ao ângulo da foto original, e o modelo tende a distorcer corpo, cabeça e cenário para encaixá-la. '
+               'Deixe Câmera e Enquadramento livres (ou peça Corpo inteiro) e, se puder, use resolução 1536.',
+               'warning')
+    if request.attribute('style').intent == 'set' and keeps_person:
+        report('style_redraws', 'attributes.style', 'Mudar o estilo numa edição refaz a imagem inteira e enfraquece a '
+               'preservação do corpo e do rosto. Deixe o estilo livre se a foto já tem o visual desejado.', 'warning')
+    if request.attribute('wardrobe').intent == 'set' and request.attribute('body').intent == 'keep':
+        report('hidden_body', 'attributes.wardrobe', 'A roupa nova mostra partes do corpo que a foto não mostra; o '
+               'modelo precisa inventá-las, então a forma do corpo pode mudar.', 'warning')
+    changes = [c for c in CATEGORIES if request.attribute(c).intent in ('set', 'transfer')
+               and not (c == 'framing' and framing_already_there(request, resolved))]
+    if keeps_person and len(changes) >= 4:
+        report('many_changes', 'attributes', f'{len(changes)} mudanças de uma vez: o modelo tende a refazer a pessoa. '
+               'Para preservar corpo e rosto, faça a edição em etapas (por exemplo, cenário e luz primeiro, depois '
+               'pose e roupa).', 'warning')
+
+
 def available_supports(request, resolved):
     """Supports the scene offers: a tuple, 'new' when the setting is created with the image, or None if unknown."""
     environment = request.attribute('environment')
@@ -293,6 +345,12 @@ def _check_body(request, resolved, report) -> None:
     elif orientation == 'back' and gaze in HIDDEN_FACE_GAZES:
         report('gaze_not_visible', where, 'De costas o rosto não aparece; o olhar não poderá ser verificado.',
                'unknown')
+    if body_gaze(orientation, gaze) in ('back', 'over_shoulder_camera', 'turn_to_camera'):
+        for category in ('pose', 'action'):
+            item = resolved.get(category)
+            if item and re.search(FIXED_HEAD, item.prompt.lower()):
+                report('head_fixed_by_pose', f'attributes.{category}', 'O texto desta opção mantém a cabeça alinhada, '
+                       'mas o olhar pede que ela gire: escolha outra opção ou outro olhar.', 'warning')
 
 
 def _check_scene(request, resolved, report) -> None:

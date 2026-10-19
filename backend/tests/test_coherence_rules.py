@@ -115,3 +115,59 @@ def test_output_settings_that_have_no_effect_are_reported(scene):
     assessment, _ = run(request, scene)
     assert {'turbo_settings', 'turbo_refine'} <= set(codes(assessment, 'adjusted'))
     assert 'negative_ignored' in codes(assessment, 'warning')
+
+
+@pytest.fixture
+def photo():
+    return Library(items=[
+        item('pose.stand', 'pose', 'standing relaxed', req={'participants': 1, 'posture': 'standing', 'gaze': 'any'}),
+        item('frame.full', 'framing', 'full-body framing', prov={'framing': 'full'}),
+        item('style.real', 'style', 'photorealistic photography'),
+        item('wardrobe.dress', 'wardrobe', 'a red dress'),
+        item('env.room', 'environment', 'a hotel room'),
+        item('light.soft', 'lighting', 'soft light'),
+    ])
+
+
+KEEP_PERSON = {'subject': {'intent': 'keep'}, 'face': {'intent': 'keep'}, 'body': {'intent': 'keep'}}
+
+
+def test_framing_the_photo_already_has_is_kept_instead_of_reframed(photo):
+    request = edit_request({**KEEP_PERSON, 'framing': cat('frame.full'), 'environment': cat('env.room')},
+                           context={'original_framing': 'full'})
+    assessment, compiled = run(request, photo)
+    assert 'framing_already_there' in codes(assessment, 'adjusted')
+    assert 'Reframe' not in compiled.text and 'framing and crop' in compiled.text
+    other, compiled = run(edit_request({**KEEP_PERSON, 'framing': cat('frame.full')},
+                                       context={'original_framing': 'half'}), photo)
+    assert 'framing_already_there' not in codes(other) and 'Reframe the shot' in compiled.text
+
+
+def test_poses_carry_the_anatomy_guard(photo):
+    _, compiled = run(edit_request({**KEEP_PERSON, 'pose': cat('pose.stand')}), photo)
+    assert 'two legs and two feet, with natural adult proportions: the head is in scale with the shoulders' in compiled.text
+    assert 'guide.anatomy' in {c.id for c in checklist(compiled.blocks)}
+    _, scene_only = run(edit_request({**KEEP_PERSON, 'environment': cat('env.room')}), photo)
+    assert 'exactly two arms' not in scene_only.text
+
+
+def test_edits_that_endanger_the_body_are_flagged(photo):
+    request = edit_request({**KEEP_PERSON, 'style': cat('style.real'), 'wardrobe': cat('wardrobe.dress'),
+                            'environment': cat('env.room'), 'lighting': cat('light.soft')})
+    assessment, _ = run(request, photo)
+    assert {'style_redraws', 'hidden_body', 'many_changes'} <= set(codes(assessment, 'warning'))
+    assert assessment.valid
+    light, _ = run(edit_request({**KEEP_PERSON, 'lighting': cat('light.soft')}), photo)
+    assert not {'style_redraws', 'hidden_body', 'many_changes'} & set(codes(light))
+
+
+def test_a_new_pose_is_reframed_even_when_the_photo_has_that_framing(photo):
+    library = Library(items=[*photo.items, item('pose.fours', 'pose', 'on hands and knees',
+                                                req={'participants': 1, 'posture': 'all_fours', 'gaze': 'any'})])
+    request = edit_request({**KEEP_PERSON, 'framing': cat('frame.full'), 'pose': cat('pose.fours'),
+                            'camera': {'intent': 'keep'}}, context={'original_framing': 'full'})
+    assessment, compiled = run(request, library)
+    assert 'framing_already_there' not in codes(assessment) and 'Reframe the shot' in compiled.text
+    assert 'posture_in_old_frame' in codes(assessment, 'warning')
+    standing, _ = run(edit_request({**KEEP_PERSON, 'pose': cat('pose.stand'), 'camera': {'intent': 'keep'}}), library)
+    assert 'posture_in_old_frame' not in codes(standing)

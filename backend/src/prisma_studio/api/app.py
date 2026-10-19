@@ -17,11 +17,13 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from .. import __version__
 from ..application.library import LibraryService
 from ..application.runs import RequestRejected, RunService, prepare
-from ..application.coherence import CoherenceService
+from ..application.coherence import CoherenceService, review_text
 from ..application.contract_errors import contract_issues
 from ..application.translation import TranslationService
 from ..config import Config
+from ..domain.catalog import Item
 from ..domain.request import Request
+from ..domain.text_audit import audit_item
 from ..domain.vocabulary import CATEGORIES
 from ..infrastructure.comfy.client import ComfyClient, ComfyRejected, ComfyUnavailable
 from ..infrastructure.comfy.progress import ProgressTracker
@@ -227,6 +229,11 @@ def create_app(config: Config | None = None, container: Container | None = None)
     def save_library(body: LibrarySave):
         return c.library.save(body.revision, body.items)
 
+    @app.post('/api/library/audit')
+    def audit_library_item(body: dict):
+        """Wording review of one item while it is being edited; nothing is saved."""
+        return {'findings': [f.__dict__ for f in audit_item(Item.model_validate(body))]}
+
     # files -----------------------------------------------------------------------
     @app.post('/api/files')
     async def upload(file: UploadFile = File(...)):
@@ -330,10 +337,12 @@ def create_app(config: Config | None = None, container: Container | None = None)
     # coherence review (local text model, on demand) ------------------------------
     @app.post('/api/coherence')
     def review_coherence(body: dict):
-        prepared = prepare(Request.model_validate(body), c.library.library())
+        request, library = Request.model_validate(body), c.library.library()
+        prepared = prepare(request, library)
         if not prepared['valid']:
             raise RequestRejected('Corrija os erros do pedido antes de analisar a coerência.', prepared['issues'])
-        return c.coherence.review(prepared['prompt'])
+        reviewed, omitted = review_text(request, library)
+        return c.coherence.review(prepared['prompt'], reviewed, omitted)
 
     @app.get('/api/coherence/{job_id}')
     def coherence(job_id: str):

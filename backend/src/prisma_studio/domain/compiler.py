@@ -5,10 +5,10 @@ from dataclasses import dataclass
 
 from . import ir
 from .request import CatalogValue, Request
-from .rules import Assessment, available_supports, body_gaze, effective_orientation
+from .rules import Assessment, available_supports, body_gaze, effective_orientation, framing_already_there
 from .vocabulary import CATEGORIES, FRAMING_ORDER, SUPPORT_PRIORITY, agreed
 
-COMPILER_VERSION = '1.7.0'
+COMPILER_VERSION = '1.9.0'
 
 # Operation order: scene first, then person changes; style leads in generation.
 EDIT_ORDER = ('environment', 'lighting', 'style', 'camera', 'framing', 'subject', 'face', 'body', 'skin', 'hair',
@@ -37,9 +37,10 @@ def build_ir(request: Request, assessment: Assessment) -> list:
     edit = request.mode == 'edit'
     blocks: list = [ir.Header(request.mode, len(assessment.slots))]
     order = EDIT_ORDER if edit else GENERATE_ORDER
+    same_framing = framing_already_there(request, assessment.resolved)
     for category in order:
         attribute = request.attribute(category)
-        if attribute.intent != 'set':
+        if attribute.intent != 'set' or (category == 'framing' and same_framing):
             continue
         participants = None
         is_instruction = False
@@ -65,7 +66,8 @@ def build_ir(request: Request, assessment: Assessment) -> list:
         blocks.append(ir.Character(assessment.slots[character.reference_id], index + 2, character.description.strip()))
 
     if edit:
-        kept = tuple(c for c in CATEGORIES if request.attribute(c).intent == 'keep')
+        kept = tuple(c for c in CATEGORIES
+                     if request.attribute(c).intent == 'keep' or (c == 'framing' and same_framing))
         free = [c for c in CATEGORIES if request.attribute(c).intent == 'free']
         if kept or not free:
             blocks.append(ir.Keep(kept, everything_else=not free,
@@ -98,6 +100,8 @@ def build_ir(request: Request, assessment: Assessment) -> list:
         body.append(ir.Guidance('gaze', gaze))
     if posture or orientation:
         body.append(ir.Guidance('head', 'natural'))
+    if any(request.attribute(c).intent in ('set', 'transfer') for c in ('pose', 'action')):
+        body.append(ir.Guidance('anatomy', 'limbs'))      # complex poses are where extra legs and arms appear
     anchor = max((i for i, b in enumerate(blocks) if isinstance(b, ir.Operation)
                   and b.category in ('pose', 'action', 'expression')), default=len(blocks) - 1)
     blocks[anchor + 1:anchor + 1] = body

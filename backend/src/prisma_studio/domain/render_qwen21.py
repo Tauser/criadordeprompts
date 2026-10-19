@@ -58,6 +58,8 @@ GAZES = {
     'turn_to_camera': 'The head turns toward the camera, no further than the shoulder, and the eyes look at the camera.',
 }
 HEAD = 'The neck stays natural: the head turns no further than over the shoulder.'
+ANATOMY = ('Each person has exactly two arms, two hands, two legs and two feet, with natural adult proportions: '
+           'the head is in scale with the shoulders and torso, neither enlarged nor shrunk.')
 ORIENTATIONS = {
     'front': 'The front of the body faces the camera.',
     'back': 'The body is seen from behind, with the back toward the camera.',
@@ -210,6 +212,8 @@ def _guidance(block: ir.Guidance) -> str:
         return ORIENTATIONS[block.value]
     if block.key == 'head':
         return HEAD
+    if block.key == 'anatomy':
+        return ANATOMY
     if block.key == 'new_supports':
         return 'Add only the support surfaces the pose or action needs.'
     surface = SUPPORTS[block.value]

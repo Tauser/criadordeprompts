@@ -1,4 +1,4 @@
-import type {CoherenceJob, Health, LibrarySnapshot, Prepared, Run, StudioRequest} from './types';
+import type {CoherenceJob, Health, Item, LibrarySnapshot, Prepared, Run, StudioRequest, TextFinding} from './types';
 
 export class ApiError extends Error {
   constructor(public status: number, public body: {error?: string; issues?: unknown[]; details?: unknown[]}) {
@@ -28,6 +28,7 @@ async function call<T>(method: string, path: string, body?: unknown, timeoutMs =
 export const api = {
   health: () => call<Health>('GET', '/api/health'),
   library: () => call<LibrarySnapshot>('GET', '/api/library'),
+  auditItem: (item: Item) => call<{findings: TextFinding[]}>('POST', '/api/library/audit', item),
   saveLibrary: (revision: number, items: unknown[]) => call<LibrarySnapshot>('PUT', '/api/library', {revision, items}),
   prepare: (request: StudioRequest) => call<Prepared>('POST', '/api/prepare', request),
   upload: (file: Blob, name: string) => {

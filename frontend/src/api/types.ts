@@ -96,5 +96,8 @@ export interface Health {studio_version: string; data_dir: string; comfy_url: st
 export interface CoherenceIssue {severity: 'error' | 'warning'; quote: string; problem: string; suggestion: string}
 export interface CoherenceJob {
   id: string; status: 'queued' | 'running' | 'completed' | 'failed' | 'cancelled'; prompt?: string; error?: string | null;
-  result?: {coherent: boolean | null; issues: CoherenceIssue[]; raw?: string};
+  omitted?: number;                                     // adult instructions left out of the review
+  result?: {coherent: boolean | null; issues: CoherenceIssue[]; raw?: string; dropped?: number; truncated?: boolean};
 }
+
+export interface TextFinding {code: string; level: 'conflict' | 'ambiguity' | 'style'; message: string}

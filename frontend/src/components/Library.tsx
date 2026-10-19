@@ -1,6 +1,6 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {api} from '../api/client';
-import {CATEGORIES, type Category, type Item, type LibrarySnapshot} from '../api/types';
+import {CATEGORIES, type Category, type Item, type LibrarySnapshot, type TextFinding} from '../api/types';
 import {CATEGORY_LABELS, FRAMING_LABELS, GAZE_LABELS, ORIENTATION_LABELS, PERIOD_LABELS, PLACE_LABELS,
   POSTURE_LABELS} from '../lib/labels';
 import {metadataLabel, missingMetadata} from '../lib/metadata';
@@ -54,6 +54,16 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
     if (job) api.cancelTranslation(job).catch(() => undefined);
   }, []);
   const dirty = draft !== null && JSON.stringify(draft) !== original;
+  // Wording review of the open item: text that contradicts its own metadata or can be read two ways.
+  const [findings, setFindings] = useState<TextFinding[]>([]);
+  useEffect(() => {
+    if (!draft || !draft.prompt.trim() || !draft.label.trim()) {setFindings([]); return;}
+    let current = true;
+    const timer = window.setTimeout(() => {
+      api.auditItem(draft).then(r => {if (current) setFindings(r.findings);}).catch(() => {if (current) setFindings([]);});
+    }, 400);
+    return () => {current = false; window.clearTimeout(timer);};
+  }, [draft]);
   useEffect(() => setDirty(dirty), [dirty, setDirty]);
 
   const items = useMemo(() => snapshot.items.filter(item => (category === 'all' || item.category === category)
@@ -288,6 +298,9 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
             <label className="check"><input type="checkbox" checked={draft.adult} onChange={e => setDraft({...draft, adult: e.target.checked})} /> Conteúdo adulto (+18)</label>
             <label className="check"><input type="checkbox" checked={draft.enabled} onChange={e => setDraft({...draft, enabled: e.target.checked})} /> Ativa</label>
           </div>
+          {findings.length > 0 && <ul className="issues" aria-label="Revisão do texto">{findings.map(f => (
+            <li key={f.code} className={'issue ' + (f.level === 'conflict' ? 'error' : f.level === 'ambiguity' ? 'warning' : 'unknown')}>
+              <span className="level">{f.level === 'conflict' ? 'Conflito' : f.level === 'ambiguity' ? 'Ambíguo' : 'Redação'}</span>{f.message}</li>))}</ul>}
           {missingMetadata(draft).length > 0 && <p className="issue warning">Falta informar: {missingMetadata(draft).map(metadataLabel).join(', ')}.
             Use "qualquer" ou deixe os apoios vazios quando a opção não exigir nada.</p>}
           {['pose', 'action', 'expression', 'subject'].includes(draft.category) && (
