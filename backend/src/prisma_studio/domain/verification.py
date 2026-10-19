@@ -20,6 +20,7 @@ class Check:
 
 
 def checklist(blocks) -> list[Check]:
+    acting = any(isinstance(b, ir.Operation) and b.category == 'action' for b in blocks)
     hidden_face = any(isinstance(b, ir.Guidance) and b.key == 'orientation' and b.value == 'back' for b in blocks)
     header = next((b for b in blocks if isinstance(b, ir.Header)), None)
     edit = header is not None and header.mode == 'edit'
@@ -29,6 +30,8 @@ def checklist(blocks) -> list[Check]:
         if isinstance(block, ir.Operation):
             question = (f'The image fulfills this edit instruction: {block.text}' if block.is_instruction
                         else f'The {ASPECT_NAMES[block.category]} matches: {block.text}')
+            if block.category == 'pose' and acting:
+                question += ' (the arms and hands may follow the action instead)'
             if block.category == 'wardrobe' and wardrobe_scope:
                 total = wardrobe_scope.total if wardrobe_scope.target == 'all' else 1
                 for person in range(1, total + 1):
@@ -76,6 +79,11 @@ JUDGE_SYSTEM = (
     'Copy each id exactly from its square brackets; do not replace ids with sequential numbers.')
 
 
+def _bare(value) -> str:
+    """Judges sometimes copy the brackets the checklist puts around each id."""
+    return str(value).strip().strip('[]').strip()
+
+
 def judge_prompt(checks: list[Check]) -> str:
     lines = [f'[{c.id}] {c.question}' for c in checks]
     return 'Checklist:\n' + '\n'.join(lines)
@@ -94,7 +102,7 @@ def parse_verdicts(text: str, checks: list[Check]) -> dict[str, dict]:
             data = None
         entries = data.get('results') if isinstance(data, dict) else None
         entries = entries if isinstance(entries, list) else []
-        ids = [str(entry.get('id')) for entry in entries if isinstance(entry, dict)]
+        ids = [_bare(entry.get('id')) for entry in entries if isinstance(entry, dict)]
         expected = {c.id for c in checks}
         # Some local judges return the ordinal numbers from older checklists instead of the block IDs.
         # Accept only a complete, unique 1..N set; partial or mixed IDs cannot be mapped safely.
@@ -103,7 +111,7 @@ def parse_verdicts(text: str, checks: list[Check]) -> dict[str, dict]:
         aliases = {str(i + 1): c.id for i, c in enumerate(checks)} if numbered else {}
         for entry in entries:
             if isinstance(entry, dict) and entry.get('verdict') in VERDICTS:
-                key = str(entry.get('id'))
+                key = _bare(entry.get('id'))
                 results[aliases.get(key, key)] = {'verdict': entry['verdict'],
                                                   'note': str(entry.get('note', ''))[:300]}
     return {c.id: results.get(c.id, {'verdict': 'unknown', 'note': 'Sem resposta válida do avaliador.'})

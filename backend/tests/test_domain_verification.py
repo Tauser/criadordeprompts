@@ -49,3 +49,19 @@ def test_mixed_numbered_and_named_results_do_not_guess_the_missing_id():
 def test_judge_prompt_has_only_named_ids_without_competing_ordinals():
     prompt = judge_prompt([Check('op.environment', 'A blue background')])
     assert prompt == 'Checklist:\n[op.environment] A blue background'
+
+
+def test_ids_copied_with_brackets_are_accepted():
+    from prisma_studio.domain.verification import Check, parse_verdicts
+    checks = [Check('op.environment', 'q1'), Check('guide.gaze', 'q2')]
+    answer = '{"results": [{"id": "[op.environment]", "verdict": "met"}, {"id": " [guide.gaze] ", "verdict": "partial"}]}'
+    verdicts = parse_verdicts(answer, checks)
+    assert verdicts['op.environment']['verdict'] == 'met' and verdicts['guide.gaze']['verdict'] == 'partial'
+
+
+def test_pose_check_lets_the_arms_follow_an_action(library):
+    from helpers import cat, generate_request, run
+    from prisma_studio.domain.verification import checklist
+    compiled = run(generate_request({'pose': cat('pose.seated'), 'action': cat('action.read')}), library)[1]
+    pose = next(c for c in checklist(compiled.blocks) if c.id == 'op.pose')
+    assert pose.question.endswith('(the arms and hands may follow the action instead)')

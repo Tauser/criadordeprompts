@@ -264,8 +264,8 @@ def _check_edit_load(request, resolved, report) -> None:
         report('style_redraws', 'attributes.style', 'Mudar o estilo numa edição refaz a imagem inteira e enfraquece a '
                'preservação do corpo e do rosto. Deixe o estilo livre se a foto já tem o visual desejado.', 'warning')
     if request.attribute('wardrobe').intent == 'set' and request.attribute('body').intent == 'keep':
-        report('hidden_body', 'attributes.wardrobe', 'A roupa nova mostra partes do corpo que a foto não mostra; o '
-               'modelo precisa inventá-las, então a forma do corpo pode mudar.', 'warning')
+        report('hidden_body', 'attributes.wardrobe', 'Se a roupa nova mostrar partes do corpo que a foto não mostra, '
+               'o modelo precisa inventá-las, e a forma do corpo pode mudar.', 'warning')
     changes = [c for c in CATEGORIES if request.attribute(c).intent in ('set', 'transfer')
                and not (c == 'framing' and framing_already_there(request, resolved))]
     if keeps_person and len(changes) >= 4:
