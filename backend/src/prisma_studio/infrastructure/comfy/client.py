@@ -72,6 +72,13 @@ class ComfyClient:
     def object_info(self) -> dict:
         return self._json('GET', '/object_info')
 
+    def lora_names(self) -> list[str]:
+        """LoRA files ComfyUI can load, as it names them."""
+        info = self._json('GET', '/object_info/LoraLoaderModelOnly').get('LoraLoaderModelOnly', {})
+        spec = info.get('input', {}).get('required', {}).get('lora_name', [[]])
+        names = spec[0] if spec and isinstance(spec[0], list) else (spec[1] or {}).get('options', [])
+        return [str(n) for n in names]
+
     def submit(self, graph: dict, prompt_id: str) -> str:
         """Queue a graph under a client-chosen UUID, so an unconfirmed submission can be looked up."""
         response = self._call('POST', '/prompt', json={'prompt': graph, 'client_id': self.client_id,

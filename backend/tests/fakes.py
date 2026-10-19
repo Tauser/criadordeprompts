@@ -27,10 +27,15 @@ class FakeComfy:
         self.text_answer = text_answer
         self.object_info_data = object_info
         self.script = ['pending', 'in_progress', 'completed']
+        self.loras = ['anatomy_fix_qwen21.safetensors', 'realism/ultra_real.safetensors']
 
     def _check(self):
         if self.offline:
             raise ComfyNotSent('connection refused')
+
+    def lora_names(self):
+        self._check()
+        return list(self.loras)
 
     def object_info(self):
         self._check()

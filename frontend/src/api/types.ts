@@ -29,9 +29,11 @@ export interface Output {
   refine: boolean;
 }
 
+export interface LoraChoice {name: string; strength: number}
 export interface Engine {
   steps?: number | null; cfg?: number | null; sampler?: string | null; scheduler?: string | null;
   denoise?: number | null; negative_prompt: string;
+  loras?: LoraChoice[];
 }
 
 export interface StudioRequest {

@@ -404,6 +404,12 @@ def _check_mask(request, report) -> None:
 
 def _check_output(request, report) -> None:
     output, engine = request.output, request.engine
+    names = [lora.name for lora in engine.loras]
+    if len(set(names)) != len(names):
+        report('duplicate_lora', 'engine', 'O mesmo LoRA foi escolhido duas vezes.')
+    if names:
+        report('lora_not_analyzed', 'engine', 'LoRA não é analisado pelo Studio: confira se foi treinado para o Qwen '
+               'Image 2.1 e compare com e sem ele na mesma seed.', 'unknown', 'model')
     turbo = output.profile == 'turbo'
     if turbo and (engine.steps is not None or engine.cfg is not None):
         report('turbo_settings', 'engine', 'O modo Turbo usa sempre 8 passos e CFG 1; os valores informados são '

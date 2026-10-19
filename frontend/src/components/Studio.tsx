@@ -370,7 +370,41 @@ function Engine({request, patch}: {request: StudioRequest; patch: Patch}) {
           onChange={e => patch(r => {r.engine.negative_prompt = e.target.value;})} /></label>
       <TranslateButton label="o prompt negativo" text={request.engine.negative_prompt} disabled={(request.engine.cfg ?? 1) <= 1}
                        onTranslated={text => patch(r => {r.engine.negative_prompt = text;})} />
+      <Loras request={request} patch={patch} />
     </fieldset>
+  );
+}
+
+// LoRAs installed in ComfyUI, applied in order to the image model. Up to three; nothing is analysed by the rules.
+function Loras({request, patch}: {request: StudioRequest; patch: Patch}) {
+  const [installed, setInstalled] = useState<string[] | null>(null);
+  const [offline, setOffline] = useState(false);
+  useEffect(() => {
+    api.loras().then(r => {setInstalled(r.loras); setOffline(!r.available);}).catch(() => {setInstalled([]); setOffline(true);});
+  }, []);
+  const chosen = request.engine.loras ?? [];
+  const set = (index: number, change: Partial<{name: string; strength: number}>) => patch(r => {
+    r.engine.loras = (r.engine.loras ?? []).map((l, i) => i === index ? {...l, ...change} : l);
+  });
+  const add = () => patch(r => {r.engine.loras = [...(r.engine.loras ?? []), {name: installed?.[0] ?? '', strength: 0.8}];});
+  const remove = (index: number) => patch(r => {r.engine.loras = (r.engine.loras ?? []).filter((_, i) => i !== index);});
+  return (
+    <div className="loras">
+      <h3 className="small">LoRA</h3>
+      {chosen.map((lora, index) => (
+        <div key={index} className="fields three">
+          <label>Arquivo<select value={lora.name} onChange={e => set(index, {name: e.target.value})}>
+            {[...new Set([lora.name, ...(installed ?? [])])].filter(Boolean).map(n => <option key={n} value={n}>{n}</option>)}
+          </select></label>
+          <label>Força<input type="number" min={-2} max={2} step={0.05} value={lora.strength}
+            onChange={e => set(index, {strength: Number(e.target.value)})} /></label>
+          <button type="button" className="quiet" onClick={() => remove(index)} aria-label={`Remover LoRA ${lora.name}`}>Remover</button>
+        </div>))}
+      {chosen.length < 3 && <button type="button" className="quiet" disabled={!installed?.length} onClick={add}>Adicionar LoRA</button>}
+      <p className="help">{offline ? 'ComfyUI offline: a lista de LoRAs aparece quando ele voltar.'
+        : installed && !installed.length ? 'Nenhum LoRA instalado em ComfyUI\\models\\loras.'
+        : 'Use só LoRAs treinados para o Qwen Image 2.1. Comece com força entre 0,4 e 0,8 e compare com e sem, na mesma seed.'}</p>
+    </div>
   );
 }
 

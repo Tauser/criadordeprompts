@@ -159,3 +159,19 @@ describe('Regenerate', () => {
     expect(repeats[0].body.request_id).not.toEqual(repeats[1].body.request_id);
   });
 });
+
+describe('LoRA', () => {
+  it('lists the installed LoRAs and sends the chosen one with its strength', async () => {
+    vi.stubGlobal('fetch', vi.fn((path: string, init?: RequestInit) => path === '/api/loras'
+      ? Promise.resolve(new Response(JSON.stringify({available: true, loras: ['anatomy_fix.safetensors']}), {status: 200}))
+      : respond(path, init)));
+    render(<App />);
+    fireEvent.click(await screen.findByRole('tab', {name: 'Avançado'}));
+    const add = await screen.findByRole('button', {name: 'Adicionar LoRA'});
+    await waitFor(() => expect((add as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.click(add);
+    fireEvent.change(screen.getByLabelText('Força'), {target: {value: '0.6'}});
+    await waitFor(() => expect(calls.some(c => c.path === '/api/prepare'
+      && c.body.engine?.loras?.[0]?.name === 'anatomy_fix.safetensors' && c.body.engine.loras[0].strength === 0.6)).toBe(true));
+  });
+});

@@ -321,6 +321,14 @@ def create_app(config: Config | None = None, container: Container | None = None)
                 await asyncio.sleep(1)
         return StreamingResponse(stream(), media_type='text/event-stream', headers={'Cache-Control': 'no-store'})
 
+    # LoRAs installed in ComfyUI -------------------------------------------------------
+    @app.get('/api/loras')
+    def loras():
+        try:
+            return {'available': True, 'loras': sorted(c.comfy.lora_names(), key=str.lower)}
+        except ComfyUnavailable:
+            return {'available': False, 'loras': []}
+
     # translation -------------------------------------------------------------------
     @app.post('/api/translations')
     def translate(body: TranslationCreate):

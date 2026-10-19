@@ -185,7 +185,8 @@ class Executor:
                     images=tuple(uploaded['images']), mask=uploaded['mask'],
                     negative_prompt=engine.get('negative_prompt', ''), steps=engine.get('steps'),
                     cfg=engine.get('cfg'), sampler=engine.get('sampler'), scheduler=engine.get('scheduler'),
-                    denoise=engine.get('denoise'), prefix=f'prisma/{run["id"][:8]}'))
+                    denoise=engine.get('denoise'), prefix=f'prisma/{run["id"][:8]}',
+                    loras=tuple((lora['name'], lora['strength']) for lora in engine.get('loras') or ())))
             self._drive(task, build)
         tasks = self.repository.tasks(run['id'], 'image')
         if not all(t['status'] in TASK_DONE for t in tasks):

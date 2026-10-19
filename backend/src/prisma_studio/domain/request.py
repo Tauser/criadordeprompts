@@ -74,6 +74,18 @@ class SceneContext(_Strict):
     original_framing: Framing | None = None
 
 
+class LoraChoice(_Strict):
+    """A LoRA installed in ComfyUI (name as ComfyUI lists it) applied to the image model."""
+    name: str = Field(min_length=1, max_length=200, pattern=r'^[^<>:"|?*]+\.safetensors$')
+    strength: float = Field(default=0.8, ge=-2, le=2)
+
+    @model_validator(mode='after')
+    def _no_parent(self):
+        if '..' in self.name:
+            raise ValueError('Nome de LoRA inválido.')
+        return self
+
+
 class EngineSettings(_Strict):
     steps: int | None = Field(default=None, ge=1, le=100)
     cfg: float | None = Field(default=None, ge=1, le=20)
@@ -81,6 +93,7 @@ class EngineSettings(_Strict):
     scheduler: str | None = Field(default=None, max_length=64)
     denoise: float | None = Field(default=None, ge=0.01, le=1)
     negative_prompt: str = Field(default='', max_length=4000)
+    loras: tuple[LoraChoice, ...] = Field(default=(), max_length=3)
 
 
 class Output(_Strict):

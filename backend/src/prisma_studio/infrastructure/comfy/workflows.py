@@ -18,6 +18,7 @@ PROFILES = {
 MAX_EDIT_PIXELS = 2048 * 2048
 IMAGE_OUTPUT_NODE = '60'
 TEXT_OUTPUT_NODE = '92'
+LORA_NODES = 30                    # LoraLoaderModelOnly nodes of image graphs: 30, 31, 32
 IMAGE_INPUT_NODES = 200            # LoadImage nodes of image graphs: 201, 202...
 TEXT_IMAGE_NODES = 300             # LoadImage nodes of text graphs: 300, 301...
 
@@ -42,6 +43,7 @@ class ImageJob:
     mask_grow: int = 16
     mask_feather: int = 24
     prefix: str = 'prisma/studio'
+    loras: tuple[tuple[str, float], ...] = ()   # (file name, strength), applied in order
 
 
 @dataclass(frozen=True)
@@ -92,6 +94,13 @@ def image_graph(job: ImageJob) -> dict:
             'clip': ['2', 0], 'vae': ['3', 0], 'prompt': job.prompt, 'negative_prompt': job.negative_prompt,
             'resolution': job.resolution}},
     }
+    model = ['1', 0]
+    for index, (name, strength) in enumerate(job.loras):
+        node = str(LORA_NODES + index)
+        g[node] = {'class_type': 'LoraLoaderModelOnly', 'inputs': {'model': model, 'lora_name': name,
+                                                                    'strength_model': strength}}
+        model = [node, 0]
+    g['4']['inputs']['model'] = model
     for index, name in enumerate(job.images, 1):
         g[str(IMAGE_INPUT_NODES + index)] = {'class_type': 'LoadImage', 'inputs': {'image': name}}
         g['10']['inputs'][f'images.image_{index}'] = [str(IMAGE_INPUT_NODES + index), 0]

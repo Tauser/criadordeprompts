@@ -28,6 +28,7 @@ async function call<T>(method: string, path: string, body?: unknown, timeoutMs =
 export const api = {
   health: () => call<Health>('GET', '/api/health'),
   library: () => call<LibrarySnapshot>('GET', '/api/library'),
+  loras: () => call<{available: boolean; loras: string[]}>('GET', '/api/loras'),
   auditItem: (item: Item) => call<{findings: TextFinding[]}>('POST', '/api/library/audit', item),
   saveLibrary: (revision: number, items: unknown[]) => call<LibrarySnapshot>('PUT', '/api/library', {revision, items}),
   prepare: (request: StudioRequest) => call<Prepared>('POST', '/api/prepare', request),
