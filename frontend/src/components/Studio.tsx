@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ApiError, api} from '../api/client';
-import type {Attribute, Category, LibrarySnapshot, Prepared, Run, StudioRequest} from '../api/types';
+import type {Attribute, Category, Issue, LibrarySnapshot, Prepared, Run, StudioRequest} from '../api/types';
 import {ADVANCED, BASIC, RUN_STATUS, TERMINAL} from '../lib/labels';
 import {load, save} from '../lib/storage';
 import {useRun} from '../lib/useRun';
@@ -94,8 +94,15 @@ export function Studio({library, comfyOnline, notify}: Props) {
         setPrepared(result); setPreparedFor(workspace); setPrepareError(null);
       } catch (error) {
         if (token !== epoch.current) return;
-        setPrepared(null);
-        setPrepareError(error instanceof ApiError && error.status === 422 ? 'Preencha os campos obrigatórios (descrições vazias ou valores fora do permitido).' : (error as Error).message);
+        const issues = error instanceof ApiError && error.status === 422 ? (error.body.issues ?? []) as Issue[] : [];
+        if (issues.length) {           // contract errors name their fields: show them like the other issues
+          setPrepared({valid: false, status: 'incompatible', issues, slots: {}, prompt: null, segments: [], checks: []});
+          setPreparedFor(workspace); setPrepareError(null);
+        } else {
+          setPrepared(null);
+          setPrepareError(error instanceof ApiError && error.status === 422
+            ? 'Há campos com valores vazios ou fora do permitido.' : (error as Error).message);
+        }
       } finally {
         if (token === epoch.current) setPending(false);
       }
@@ -190,7 +197,7 @@ export function Studio({library, comfyOnline, notify}: Props) {
   const focusField = (path: string) => {
     const category = path.startsWith('attributes.') ? path.split('.')[1] as Category : null;
     if (category) setTab(ADVANCED.includes(category) ? 'advanced' : 'basic');
-    else if (/^(engine|participants|context)/.test(path)) setTab('advanced');   // Cena and Parâmetros live there
+    else if (/^(engine|participants|context|output\.(width|height|seed))/.test(path)) setTab('advanced');   // Cena and Parâmetros
     else if (path.startsWith('output')) setTab('basic');
     const target = category ? `field-${category}` : path === 'confirmations' ? 'confirmations' : null;
     if (target) window.setTimeout(() => document.getElementById(target)?.focus(), 50);

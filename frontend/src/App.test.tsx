@@ -61,6 +61,17 @@ describe('Studio', () => {
     expect(body.request.participants.requested).toBe(2);
   });
 
+  it('names the fields the contract rejects', async () => {
+    const issue = {code: 'contract', level: 'error', kind: 'product', field: 'attributes.pose', message: 'Pose: o texto não pode ficar vazio.'};
+    vi.stubGlobal('fetch', vi.fn((path: string, init?: RequestInit) => path === '/api/prepare'
+      ? Promise.resolve(new Response(JSON.stringify({error: 'Há campos com valores vazios ou fora do permitido.', issues: [issue]}), {status: 422}))
+      : respond(path, init)));
+    render(<App />);
+    expect((await screen.findAllByText(issue.message)).length).toBeGreaterThan(0);
+    expect(screen.getByText('Incoerente · 1 erro')).toBeTruthy();
+    expect(screen.queryByText(/Preencha os campos obrigatórios/)).toBeNull();
+  });
+
   it.each([500, 200])('keeps the same submission ID after an ambiguous HTTP %s answer and a 404 lookup', async status => {
     let attempts = 0;
     vi.stubGlobal('fetch', vi.fn((path: string, init?: RequestInit) => {

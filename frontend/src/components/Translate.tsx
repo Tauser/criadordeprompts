@@ -45,6 +45,8 @@ export function TranslateButton({text, onTranslated, label, disabled}: Props) {
         const status = await api.translation(created.id);
         if (mine.cancelled) return;
         if (status.status === 'completed' && status.text) {
+          if (status.text.length > MAX_LENGTH)        // never let a runaway answer replace the field
+            throw new Error('A tradução saiu longa demais e foi descartada. O texto original foi preservado.');
           const before = latest.current;
           if (before.trim() !== source
               && !confirm(`O campo mudou durante a tradução. Substituir pelo texto traduzido?\n\n${status.text}`)) {

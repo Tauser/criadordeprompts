@@ -195,3 +195,13 @@ def test_every_category_offers_common_options_with_complete_metadata(client):
             assert r['gaze'], item['id']
         if item['category'] == 'environment':
             assert p['supports'] is not None, item['id']
+
+
+def test_contract_errors_name_the_fields(client):
+    body = {'mode': 'generate', 'attributes': {'pose': {'intent': 'set', 'value': {'kind': 'text', 'text': '  '}}},
+            'output': {'width': 1000, 'height': 1024}, 'engine': {'steps': 0}}
+    response = client.post('/api/prepare', json=body)
+    assert response.status_code == 422
+    issues = {i['field']: i['message'] for i in response.json()['issues']}
+    assert issues == {'attributes.pose': 'Pose: o texto não pode ficar vazio.',
+                      'output.width': 'Largura: use um múltiplo de 32.', 'engine.steps': 'Passos: o valor mínimo é 1.'}

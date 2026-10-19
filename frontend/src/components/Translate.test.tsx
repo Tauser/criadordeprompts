@@ -44,3 +44,15 @@ it('cancels the translation when the field goes away', async () => {
   await act(async () => {await Promise.resolve(); await Promise.resolve();});
   expect(api.cancelTranslation).toHaveBeenCalledWith('job-2');
 });
+
+it('never replaces the field with a runaway translation', async () => {
+  vi.useFakeTimers();
+  vi.mocked(api.translate).mockResolvedValue({id: 'job-3', status: 'queued'});
+  vi.mocked(api.translation).mockResolvedValue({id: 'job-3', status: 'completed', text: 'a black dress, '.repeat(400)});
+  const onTranslated = vi.fn();
+  render(<TranslateButton label="a roupa" text="um vestido preto" onTranslated={onTranslated} />);
+  fireEvent.click(screen.getByRole('button', {name: 'Traduzir a roupa para inglês'}));
+  await act(async () => {await vi.advanceTimersByTimeAsync(1600);});
+  expect(onTranslated).not.toHaveBeenCalled();
+  expect(screen.getByRole('alert').textContent).toContain('longa demais');
+});

@@ -18,6 +18,7 @@ from .. import __version__
 from ..application.library import LibraryService
 from ..application.runs import RequestRejected, RunService, prepare
 from ..application.coherence import CoherenceService
+from ..application.contract_errors import contract_issues
 from ..application.translation import TranslationService
 from ..config import Config
 from ..domain.request import Request
@@ -166,8 +167,9 @@ def create_app(config: Config | None = None, container: Container | None = None)
 
     @app.exception_handler(ValidationError)
     async def invalid(_r, error: ValidationError):
-        return JSONResponse({'error': 'Pedido fora do contrato.', 'details': json.loads(error.json())[:20]},
-                            status_code=422)
+        return JSONResponse({'error': 'Há campos com valores vazios ou fora do permitido.',
+                             'issues': contract_issues(error.errors(include_url=False)[:20]),
+                             'details': json.loads(error.json())[:20]}, status_code=422)
 
     @app.exception_handler(ComfyUnavailable)
     async def offline(_r, _e):
