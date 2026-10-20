@@ -32,37 +32,51 @@ export function AttributeField({category, attribute, items, references, targetId
     else if (value.startsWith('catalog:')) onChange({intent: 'set', value: {kind: 'catalog', item_id: value.slice(8)}});
     else if (value.startsWith('ref:')) onChange({intent: 'transfer', reference_id: value.slice(4)});
   };
+  const defined = attribute.intent === 'set' || attribute.intent === 'transfer';
+  const item = attribute.intent === 'set' && attribute.value?.kind === 'catalog'
+    ? items.find(i => i.id === (attribute.value as {item_id: string}).item_id) : undefined;
+  const source = attribute.intent === 'transfer' ? references.find(r => r.id === attribute.reference_id) : undefined;
+  // Explanations stay out of the form: they appear on hover or keyboard focus.
+  const description = attribute.intent === 'free' ? 'Sem instrução: o modelo decide.'
+    : attribute.intent === 'keep' ? 'Fica como está na foto.'
+    : item ? item.prompt_pt || item.prompt
+    : source ? `Vem da imagem de referência “${source.label}”.` : null;
+  const tipId = `${id}-tip`;
   return (
-    <div className={'field' + (issues.length ? ' has-issue' : '')}>
-      <label htmlFor={id}>{CATEGORY_LABELS[category]}</label>
-      <select id={id} value={key} disabled={disabled} onChange={e => select(e.target.value)}
-              aria-describedby={issues.length ? `${id}-issues` : undefined}>
-        {mode === 'edit' && <option value="keep">Manter da foto</option>}
-        <option value="free">Sem instrução (o modelo decide)</option>
-        <option value="text">Descrição personalizada…</option>
-        {items.length > 0 && <optgroup label="Biblioteca">
-          {sorted.map(item => <option key={item.id} value={`catalog:${item.id}`}>{item.label}{item.adult ? ' · +18' : ''}</option>)}
-        </optgroup>}
-        {sources.length > 0 && <optgroup label="Imagem de referência">
-          {sources.map(ref => <option key={ref.id} value={`ref:${ref.id}`}>{ref.label}</option>)}
-        </optgroup>}
-        {!known.has(key) && <option value={key}>Seleção indisponível · revise</option>}
-      </select>
-      {attribute.intent === 'set' && attribute.value?.kind === 'text' && (
+    <div className={'field' + (issues.length ? ' has-issue' : '') + (defined ? ' is-set' : '')}>
+      <div className="field-label">
+        <label htmlFor={id}>{CATEGORY_LABELS[category]}</label>
+        {issues.length ? <span className="dot warn" title="Com conflito" /> : defined ? <span className="dot set" title="Definido" /> : null}
+      </div>
+      <div className="field-control">
+        <select id={id} value={key} disabled={disabled} onChange={e => select(e.target.value)} className={defined ? '' : 'is-default'}
+                aria-describedby={description || issues.length ? tipId : undefined}>
+          {mode === 'edit' && <option value="keep">Manter da foto</option>}
+          <option value="free">Livre</option>
+          <option value="text">Descrição personalizada…</option>
+          {items.length > 0 && <optgroup label="Biblioteca">
+            {sorted.map(item => <option key={item.id} value={`catalog:${item.id}`}>{item.label}{item.adult ? ' · +18' : ''}</option>)}
+          </optgroup>}
+          {sources.length > 0 && <optgroup label="Imagem de referência">
+            {sources.map(ref => <option key={ref.id} value={`ref:${ref.id}`}>{ref.label}</option>)}
+          </optgroup>}
+          {!known.has(key) && <option value={key}>Seleção indisponível · revise</option>}
+        </select>
+        {(description || issues.length > 0) && (
+          <span role="tooltip" id={tipId} className="tip field-tip">
+            {description && <span>{description}</span>}
+            {issues.length > 0 && <ul id={`${id}-issues`} className="field-issues">{issues.map(m => <li key={m}>{m}</li>)}</ul>}
+          </span>
+        )}
+      </div>
+      {attribute.intent === 'set' && attribute.value?.kind === 'text' && (<>
         <textarea rows={2} value={attribute.value.text} disabled={disabled} placeholder="Descreva em inglês (ou em português e traduza)"
                   aria-label={`Descrição de ${CATEGORY_LABELS[category]} em inglês`}
                   onChange={e => onChange({intent: 'set', value: {kind: 'text', text: e.target.value}})} />
-      )}
-      {attribute.intent === 'set' && attribute.value?.kind === 'text' && (
         <TranslateButton label={CATEGORY_LABELS[category].toLowerCase()} text={attribute.value.text} disabled={disabled}
                          onTranslated={text => onChange({intent: 'set', value: {kind: 'text', text}})} />
-      )}
-      {attribute.intent === 'set' && attribute.value?.kind === 'catalog' && (() => {
-        const item = items.find(i => i.id === (attribute.value as {item_id: string}).item_id);
-        return item?.prompt_pt ? <p className="field-pt">{item.prompt_pt}</p> : null;
-      })()}
+      </>)}
       {children}
-      {issues.length > 0 && <ul id={`${id}-issues`} className="field-issues">{issues.map(m => <li key={m}>{m}</li>)}</ul>}
     </div>
   );
 }

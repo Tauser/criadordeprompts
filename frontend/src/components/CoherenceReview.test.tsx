@@ -45,13 +45,24 @@ it('summarises the rules as a single verdict', () => {
   const view = (p: Prepared) => render(<PromptPreview request={initialRequest('generate')} prepared={p} pending={false} error={null}
     onManual={() => undefined} onManualText={() => undefined} onFocusField={() => undefined} />);
   view(prepared(false, ['error', 'error', 'warning']));        // same message twice: one conflict, two fields
-  expect(screen.getByText('Incoerente · 1 erro')).toBeTruthy();
+  expect(screen.getByText('1 conflito')).toBeTruthy();
   expect(screen.getAllByText('error')).toHaveLength(1);
   cleanup();
   view(prepared(true, ['warning', 'adjusted']));
-  expect(screen.getByText('Apto · 1 aviso · 1 ajuste')).toBeTruthy();
+  expect(screen.getByText('Pronto · 1 aviso · 1 ajuste')).toBeTruthy();
   expect(screen.getByText('Ajustado')).toBeTruthy();
   cleanup();
   view(prepared(true, []));
-  expect(screen.getByText('Apto para gerar')).toBeTruthy();
+  expect(screen.getByText('Pronto para gerar')).toBeTruthy();
+});
+
+it('shows what is still missing in an edit as steps, not as errors', () => {
+  const missing = (code: string) => ({code, level: 'error', kind: 'product', field: 'attributes', message: code}) as Prepared['issues'][number];
+  render(<PromptPreview request={initialRequest('edit')} pending={false} error={null}
+    prepared={{valid: false, status: 'incompatible', slots: {}, prompt: null, segments: [], checks: [],
+      issues: [missing('missing_target'), missing('missing_change')]}}
+    onManual={() => undefined} onManualText={() => undefined} onFocusField={() => undefined} />);
+  expect(screen.getByText('Faltam 2 passos')).toBeTruthy();
+  expect(screen.getByRole('button', {name: 'Adicione a foto alvo'})).toBeTruthy();
+  expect(screen.queryByText('Conflito')).toBeNull();
 });

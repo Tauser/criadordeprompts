@@ -50,8 +50,9 @@ describe('Studio', () => {
     render(<App />);
     fireEvent.change(await screen.findByLabelText('Roupa'), {target: {value: 'text'}});
     fireEvent.change(screen.getByLabelText('Descrição de Roupa em inglês'), {target: {value: 'blue coats'}});
-    fireEvent.change(screen.getByLabelText('Aplicar roupa a'), {target: {value: 'all'}});
+    fireEvent.click(screen.getByRole('radio', {name: 'Todas as pessoas'}));
     fireEvent.click(screen.getByRole('tab', {name: 'Avançado'}));
+    fireEvent.click(screen.getByRole('button', {name: /^Cena/}));
     fireEvent.change(screen.getByLabelText('Pessoas pedidas'), {target: {value: '2'}});
     const generate = screen.getByRole('button', {name: 'Gerar imagem'});
     await waitFor(() => expect((generate as HTMLButtonElement).disabled).toBe(false));
@@ -68,7 +69,7 @@ describe('Studio', () => {
       : respond(path, init)));
     render(<App />);
     expect((await screen.findAllByText(issue.message)).length).toBeGreaterThan(0);
-    expect(screen.getByText('Incoerente · 1 erro')).toBeTruthy();
+    expect(screen.getByText('1 conflito')).toBeTruthy();
     expect(screen.queryByText(/Preencha os campos obrigatórios/)).toBeNull();
   });
 
@@ -108,8 +109,8 @@ describe('Studio', () => {
     expect(posts).toHaveLength(1);
     expect(posts[0].body.request.attributes.environment).toEqual({intent: 'set', value: {kind: 'catalog', item_id: 'environment.garden'}});
     expect(posts[0].body.request_id).toMatch(/^[0-9a-f-]{36}$/);
-    expect(await screen.findByText('Carregando modelos')).toBeTruthy();
-    const stop = screen.getByRole('button', {name: '■ Parar'});
+    expect((await screen.findAllByText('Carregando modelos')).length).toBeGreaterThan(0);
+    const stop = screen.getByRole('button', {name: 'Parar'});
     await act(async () => {fireEvent.click(stop);});
     expect(calls.some(c => c.path === '/api/runs/run1/cancel')).toBe(true);
   });
@@ -119,8 +120,22 @@ describe('Studio', () => {
     await screen.findByLabelText('Cenário');
     fireEvent.click(screen.getByRole('radio', {name: 'Editar foto'}));
     expect(((await screen.findByLabelText('Cenário')) as HTMLSelectElement).value).toBe('keep');
-    expect(await screen.findByText('Nenhuma alteração foi pedida para a foto.')).toBeTruthy();
+    expect(await screen.findByText('Escolha pelo menos um campo para mudar')).toBeTruthy();
+    expect(screen.getByText('Falta 1 passo')).toBeTruthy();
+    expect(screen.getByText('Escolha pelo menos um campo para mudar para começar.')).toBeTruthy();
     expect((screen.getByRole('button', {name: 'Gerar edição'}) as HTMLButtonElement).disabled).toBe(true);
+  });
+});
+
+describe('Clear', () => {
+  it('starts the current mode over after confirming', async () => {
+    vi.stubGlobal('confirm', () => true);
+    render(<App />);
+    const environment = await screen.findByLabelText('Cenário') as HTMLSelectElement;
+    fireEvent.change(environment, {target: {value: 'catalog:environment.garden'}});
+    expect(environment.value).toBe('catalog:environment.garden');
+    fireEvent.click(screen.getByRole('button', {name: 'Limpar'}));
+    expect((screen.getByLabelText('Cenário') as HTMLSelectElement).value).toBe('free');
   });
 });
 
@@ -135,10 +150,10 @@ describe('History', () => {
     const {History} = await import('./components/History');
     const notify = vi.fn();
     render(<History activeRun="run1" onSelect={() => undefined} keepFiles={['abc']} notify={notify} />);
-    expect(await screen.findByRole('tab', {name: /Concluídos 1/})).toBeTruthy();
-    fireEvent.click(screen.getByRole('tab', {name: /Em andamento/}));
+    expect(await screen.findByRole('button', {name: /Concluídos 1/})).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', {name: /Em andamento/}));
     expect(await screen.findByText('Nenhum pedido neste filtro.')).toBeTruthy();
-    fireEvent.click(screen.getByRole('tab', {name: /Todos/}));
+    fireEvent.click(screen.getByRole('button', {name: /Todos/}));
     await act(async () => {fireEvent.click(await screen.findByRole('button', {name: 'Apagar este pedido'}));});
     const request = calls.find(c => c.path === '/api/runs/delete');
     expect(request?.body).toEqual({ids: ['run1'], keep_files: ['abc']});
@@ -151,9 +166,9 @@ describe('Regenerate', () => {
     runStatus = 'completed';
     localStorage.setItem('prisma.active-run', JSON.stringify('run1'));
     render(<App />);
-    const again = await screen.findByRole('button', {name: '↻ Gerar de novo'});
+    const again = await screen.findByRole('button', {name: 'Nova seed'});
     await act(async () => {fireEvent.click(again);});
-    await act(async () => {fireEvent.click(screen.getByRole('button', {name: 'Repetir com a mesma seed'}));});
+    await act(async () => {fireEvent.click(screen.getByRole('button', {name: 'Mesma seed'}));});
     const repeats = calls.filter(c => c.path === '/api/runs/run1/repeat');
     expect(repeats.map(c => c.body.same_seed)).toEqual([false, true]);
     expect(repeats[0].body.request_id).not.toEqual(repeats[1].body.request_id);
@@ -167,6 +182,7 @@ describe('LoRA', () => {
       : respond(path, init)));
     render(<App />);
     fireEvent.click(await screen.findByRole('tab', {name: 'Avançado'}));
+    fireEvent.click(screen.getByRole('button', {name: /^LoRA/}));
     const add = await screen.findByRole('button', {name: 'Adicionar LoRA'});
     await waitFor(() => expect((add as HTMLButtonElement).disabled).toBe(false));
     fireEvent.click(add);

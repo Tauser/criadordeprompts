@@ -3,16 +3,18 @@ import {api, fileUrl} from '../api/client';
 import type {Run, Task} from '../api/types';
 import {wordDiff} from '../lib/diff';
 import {KIND, PHASE, RUN_STATUS, TASK_STATUS, TERMINAL, VERDICT} from '../lib/labels';
-import {useCollapsed} from '../lib/useCollapsed';
-import {CollapseButton} from './Collapse';
+import {formatSeconds, runProgress} from '../lib/progress';
+import {relativeTime} from '../lib/time';
+import {Icon} from './Icon';
 
 interface Props {run: Run | null; connection: string; onReuse: (hash: string) => void; notify: (m: string, e?: boolean) => void;
   onRepeat: (sameSeed: boolean) => Promise<void>}
 
-function useNow(active: boolean) {
+export function useNow(active: boolean) {
   const [now, setNow] = useState(Date.now() / 1000);
   useEffect(() => {
     if (!active) return;
+    setNow(Date.now() / 1000);
     const timer = window.setInterval(() => setNow(Date.now() / 1000), 1000);
     return () => window.clearInterval(timer);
   }, [active]);
@@ -21,17 +23,26 @@ function useNow(active: boolean) {
 
 const seconds = (value: number) => value < 60 ? `${value.toFixed(value < 10 ? 1 : 0)} s` : `${Math.floor(value / 60)} min ${Math.round(value % 60)} s`;
 
+// The stage: the result first, then what to do with it; progress while the run works; technical detail folded away.
 export function RunPanel({run, connection, onReuse, notify, onRepeat}: Props) {
   const [repeating, setRepeating] = useState(false);
-  const [collapsed, toggle] = useCollapsed('result');
+  const [chosen, setChosen] = useState<string | null>(null);
+  const [showChecks, setShowChecks] = useState(false);
   const active = !!run && !TERMINAL.has(run.status);
   const now = useNow(active);
+  useEffect(() => {setChosen(null); setShowChecks(false);}, [run?.id]);
+
   if (!run) return (
-    <section className={'card collapsible' + (collapsed ? ' is-collapsed' : '')}>
-      <div className="section-title"><h2>Resultado</h2><CollapseButton collapsed={collapsed} onToggle={toggle} controls="run-body" label="resultado" /></div>
-      {!collapsed && <p id="run-body" className="muted">Nenhum pedido selecionado.</p>}
+    <section className="card run stage-card" aria-labelledby="run-title">
+      <div className="section-title"><h2 id="run-title">Resultado</h2></div>
+      <div className="stage-empty">
+        <Icon name="image" size={28} />
+        <p>Seu resultado aparece aqui.</p>
+        <p className="muted small">Preencha os campos e gere com <kbd>Ctrl</kbd> + <kbd>Enter</kbd>.</p>
+      </div>
     </section>
   );
+
   const review = run.status === 'review';
   const checks = Object.fromEntries((run.settings.checks ?? []).map(c => [c.id, c.question]));
   const refineEvent = [...(run.events ?? [])].reverse().find(e => e.type === 'refine_checked') as
@@ -39,15 +50,30 @@ export function RunPanel({run, connection, onReuse, notify, onRepeat}: Props) {
   const choose = async (choice: 'refined' | 'original') => {
     try {await api.review(run.id, choice);} catch (error) {notify((error as Error).message, true);}
   };
+  const images = run.images.filter(image => image.files.length);
+  const shown = images.find(i => i.task_id === chosen) ?? images.find(i => i.task_id === run.best_task_id) ?? images[0];
+  const progress = runProgress(run, now);
+  const verdicts = shown?.verdicts ? Object.entries(shown.verdicts) : [];
+  const met = verdicts.filter(([, v]) => v.verdict === 'met').length;
+  const repeat = async (sameSeed: boolean) => {setRepeating(true); try {await onRepeat(sameSeed);} finally {setRepeating(false);}};
+  const settings = [run.settings.profile === 'turbo' ? 'Turbo' : 'Completa',
+    run.settings.width ? `${run.settings.width}×${run.settings.height}` : run.settings.resolution ? String(run.settings.resolution) : 'Original',
+    `${run.settings.variations} ${run.settings.variations === 1 ? 'variação' : 'variações'}`].join(' · ');
+
   return (
-    <section className={'card run collapsible' + (collapsed ? ' is-collapsed' : '')} aria-labelledby="run-title" aria-live="polite">
+    <section className="card run stage-card" aria-labelledby="run-title">
       <div className="section-title">
         <h2 id="run-title">{RUN_STATUS[run.status] ?? run.status}</h2>
-        <span className="muted small">{connection === 'offline' ? 'Sem conexão com o Studio · tentando de novo' : ''}</span>
-        {collapsed && <span className="collapsed-summary">{run.images.filter(i => i.files.length).length} {run.images.filter(i => i.files.length).length === 1 ? 'imagem' : 'imagens'}</span>}
-        <CollapseButton collapsed={collapsed} onToggle={toggle} controls="run-body" label="resultado" />
+        <span className="muted small">{active ? settings : `${relativeTime(run.created_at)} · ${formatSeconds(progress.elapsed)}`}</span>
+        <span className="spacer" />
+        {connection === 'offline' && <span className="badge undetermined">Sem conexão com o Studio · tentando de novo</span>}
+        {verdicts.length > 0 && (
+          <button type="button" className={'badge ' + (met === verdicts.length ? 'compatible' : 'undetermined')} aria-expanded={showChecks}
+                  onClick={() => setShowChecks(s => !s)} title="A verificação é feita pelo modelo local e também pode errar.">
+            <Icon name="check" size={12} /> {met} de {verdicts.length} requisitos</button>
+        )}
       </div>
-      {!collapsed && <div id="run-body">
+
       {run.error && <p className="issue error">{run.error}</p>}
       {(run.tasks ?? []).filter(t => t.status === 'uncertain').map(task => (
         <div key={task.id} className="issue warning" role="alert">
@@ -62,18 +88,6 @@ export function RunPanel({run, connection, onReuse, notify, onRepeat}: Props) {
           </div>
         </div>
       ))}
-      {!active && (
-        <div className="row repeat">
-          <button className="secondary" disabled={repeating} title="Mesmo pedido, nova seed"
-                  onClick={async () => {setRepeating(true); try {await onRepeat(false);} finally {setRepeating(false);}}}>
-            {repeating ? 'Enviando…' : '↻ Gerar de novo'}</button>
-          <button className="quiet" disabled={repeating} title={`Mesmo pedido e mesma seed (${run.settings.seed})`}
-                  onClick={async () => {setRepeating(true); try {await onRepeat(true);} finally {setRepeating(false);}}}>
-            Repetir com a mesma seed</button>
-        </div>
-      )}
-      {run.cancel_requested && active && <p className="help">Parada solicitada. Aguardando a confirmação do ComfyUI.</p>}
-      <TaskList tasks={run.tasks ?? []} now={now} />
       {review && (
         <div className="review">
           <h3>Revise o aprimoramento</h3>
@@ -89,34 +103,78 @@ export function RunPanel({run, connection, onReuse, notify, onRepeat}: Props) {
           </div>
         </div>
       )}
-      <div className="results">
-        {run.images.filter(image => image.files.length).map(image => (
-          <article key={image.task_id} className={'result' + (run.best_task_id === image.task_id && run.images.length > 1 ? ' best' : '')}>
-            <a href={fileUrl(image.files[0])} target="_blank" rel="noreferrer"><img src={fileUrl(image.files[0])} alt={`Variação ${image.position + 1}`} /></a>
-            <div className="row">
-              <span className="muted small">seed {image.seed}{image.score != null ? ` · ${Math.round(image.score * 100)}%` : ''}</span>
-              <span className="spacer" />
-              <a className="button quiet" href={fileUrl(image.files[0])} download={`prisma-${image.seed}.png`}>Baixar</a>
-              <button className="quiet" onClick={() => onReuse(image.files[0])}>Editar este resultado</button>
-            </div>
-            {image.verdicts && (
-              <details>
-                <summary>Verificação por requisito</summary>
-                <ul className="verdicts">{Object.entries(image.verdicts).map(([id, v]) => (
-                  <li key={id} className={v.verdict}><strong>{VERDICT[v.verdict]}</strong> · {checks[id] ?? id}{v.note ? ` — ${v.note}` : ''}</li>
-                ))}</ul>
-                <p className="help">A verificação é feita pelo modelo local e também pode errar.</p>
-              </details>
-            )}
-          </article>
-        ))}
-      </div>
-      <details>
-        <summary>Prompt efetivamente enviado</summary>
+
+      {shown ? (
+        <figure className="stage">
+          <a href={fileUrl(shown.files[0])} target="_blank" rel="noreferrer" title="Abrir em tamanho real">
+            <img src={fileUrl(shown.files[0])} alt={`Variação ${shown.position + 1}`} /></a>
+          {active && <Steps progress={progress} />}
+        </figure>
+      ) : active ? (
+        <div className="stage stage-pending"><Steps progress={progress} /></div>
+      ) : null}
+
+      {showChecks && shown?.verdicts && (
+        <ul className="verdicts">{verdicts.map(([id, v]) => (
+          <li key={id} className={v.verdict}><strong>{VERDICT[v.verdict]}</strong> · {checks[id] ?? id}{v.note ? ` — ${v.note}` : ''}</li>
+        ))}</ul>
+      )}
+
+      {images.length > 1 && (
+        <div className="variations" role="group" aria-label="Variações">
+          {images.map(image => (
+            <button key={image.task_id} type="button" aria-pressed={image === shown}
+                    className={'variation' + (image === shown ? ' on' : '')} onClick={() => setChosen(image.task_id)}
+                    title={`Variação ${image.position + 1} · seed ${image.seed}${image.score != null ? ` · ${Math.round(image.score * 100)}%` : ''}`}>
+              <img src={fileUrl(image.files[0])} alt={`Variação ${image.position + 1}`} />
+              {run.best_task_id === image.task_id && <span className="best-mark" title="Melhor avaliada"><Icon name="star" size={11} /></span>}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {(shown || !active) && (
+        <div className="row stage-actions">
+          {shown && <>
+            <button className="primary" onClick={() => onReuse(shown.files[0])}><Icon name="edit" size={15} />Editar este resultado</button>
+            <a className="button secondary" title={`seed ${shown.seed}`} href={fileUrl(shown.files[0])} download={`prisma-${shown.seed}.png`}><Icon name="download" size={15} />Baixar</a>
+          </>}
+          <span className="spacer" />
+          {!active && <>
+            <button className="quiet" disabled={repeating} title="Mesmo pedido, nova seed" onClick={() => repeat(false)}>
+              <Icon name="refresh" size={15} />{repeating ? 'Enviando…' : 'Nova seed'}</button>
+            <button className="quiet" disabled={repeating} title={`Mesmo pedido e mesma seed (${run.settings.seed})`} onClick={() => repeat(true)}>
+              Mesma seed</button>
+          </>}
+        </div>
+      )}
+      {run.cancel_requested && active && <p className="help">Parada solicitada. Aguardando a confirmação do ComfyUI.</p>}
+
+      <details className="tech">
+        <summary>Detalhes técnicos</summary>
+        <TaskList tasks={run.tasks ?? []} now={now} />
+        <h3 className="small">Prompt efetivamente enviado</h3>
         <pre>{run.effective_prompt}</pre>
       </details>
-      </div>}
     </section>
+  );
+}
+
+function Steps({progress}: {progress: ReturnType<typeof runProgress>}) {
+  return (
+    <div className="steps-overlay">
+      <ol className="steps">
+        {progress.steps.map(step => (
+          <li key={step.id} className={step.state}>
+            <span className="step-bar"><i style={{width: `${Math.round((step.state === 'done' ? 1 : step.state === 'now' ? step.fraction ?? 0 : 0) * 100)}%`}} /></span>
+            {step.label}
+          </li>
+        ))}
+      </ol>
+      <div className="steps-line"><span>{progress.label || 'Aguardando'}</span>
+        {progress.detail && <span className="muted">{progress.detail}</span>}
+        <span className="spacer" /><span className="muted num">{formatSeconds(progress.elapsed)}</span></div>
+    </div>
   );
 }
 
@@ -134,7 +192,6 @@ function TaskList({tasks, now}: {tasks: Task[]; now: number}) {
             <span className="muted">{TASK_STATUS[task.status] ?? task.status}</span>
             {live?.phase && <span>{PHASE[live.phase] ?? live.phase}{live.value != null && live.maximum ? ` · passo ${live.value}/${live.maximum}` : ''}</span>}
             {elapsed != null && <span className="muted">{seconds(Math.max(0, elapsed))}</span>}
-            {live?.value != null && live.maximum ? <progress max={live.maximum} value={live.value} /> : null}
             {phases && <span className="muted small">{Object.entries(phases).map(([p, s]) => `${PHASE[p] ?? p}: ${seconds(s)}`).join(' · ')}</span>}
             {task.error && <span className="issue error">{task.error}</span>}
           </li>

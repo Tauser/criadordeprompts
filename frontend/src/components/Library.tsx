@@ -66,10 +66,16 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
   }, [draft]);
   useEffect(() => setDirty(dirty), [dirty, setDirty]);
 
-  const items = useMemo(() => snapshot.items.filter(item => (category === 'all' || item.category === category)
-    && (!incomplete || missingMetadata(item).length > 0)
-    && (!query || (item.label + ' ' + item.prompt).toLowerCase().includes(query.toLowerCase())))
-    .sort((a, b) => compareCategoryThenLabel(a, b)), [snapshot, category, query, incomplete]);
+  const matching = useMemo(() => snapshot.items.filter(item => (!incomplete || missingMetadata(item).length > 0)
+    && (!query || (item.label + ' ' + item.prompt + ' ' + (item.prompt_pt ?? '')).toLowerCase().includes(query.toLowerCase()))),
+    [snapshot, query, incomplete]);
+  const items = useMemo(() => matching.filter(item => category === 'all' || item.category === category)
+    .sort((a, b) => compareCategoryThenLabel(a, b)), [matching, category]);
+  const perCategory = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const item of matching) counts[item.category] = (counts[item.category] ?? 0) + 1;
+    return counts;
+  }, [matching]);
   // Selection survives filtering; ids that no longer exist are dropped.
   useEffect(() => {
     const ids = new Set(snapshot.items.map(i => i.id));
@@ -226,13 +232,15 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
       <div className="library-toolbar">
         <label className="search"><span className="sr-only">Buscar</span>
           <input type="search" placeholder="Buscar por nome ou descrição" value={query} onChange={e => setQuery(e.target.value)} aria-label="Buscar opções" /></label>
-        <select aria-label="Categoria" value={category} onChange={e => setCategory(e.target.value as Category | 'all')}>
-          <option value="all">Todas as categorias</option>
-          {SORTED_CATEGORIES.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
-        </select>
         <label className="check"><input type="checkbox" checked={incomplete} onChange={e => setIncomplete(e.target.checked)} />
           Só metadados incompletos ({incompleteCount})</label>
         <span className="muted small library-count">{items.length} opções</span>
+      </div>
+      <div className="chips category-chips" role="group" aria-label="Categoria">
+        {(['all', ...SORTED_CATEGORIES] as (Category | 'all')[]).filter(c => c === 'all' || perCategory[c] || c === category).map(c => (
+          <button key={c} aria-pressed={category === c} className={'chip' + (category === c ? ' active' : '')} onClick={() => setCategory(c)}>
+            {c === 'all' ? 'Todas' : CATEGORY_LABELS[c]} <span>{c === 'all' ? matching.length : perCategory[c] ?? 0}</span></button>
+        ))}
       </div>
       <div className="bulk-bar" role="toolbar" aria-label="Seleção">
         <label className="check"><input type="checkbox" checked={allVisible} disabled={!items.length}
@@ -259,8 +267,11 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
                      onChange={() => {toggleOne(index, shiftHeld.current); shiftHeld.current = false;}} />
               <button className={'item' + (draft?.id === item.id ? ' selected' : '')} onClick={() => open(item)}>
                 <strong>{item.label}</strong>
-                <span className="muted small">{CATEGORY_LABELS[item.category]}{item.adult ? ' · +18' : ''}{!item.enabled ? ' · desativada' : ''}
-                  {snapshot.origins[item.id] !== 'builtin' ? ' · sua' : ''}</span>
+                {(() => {
+                  const tags = [category === 'all' && CATEGORY_LABELS[item.category], item.adult && '+18', !item.enabled && 'desativada',
+                    snapshot.origins[item.id] !== 'builtin' && 'sua'].filter(Boolean);
+                  return tags.length ? <span className="muted small">{tags.join(' · ')}</span> : null;
+                })()}
                 {item.prompt_pt && <span className="item-pt">{item.prompt_pt}</span>}
                 {missingMetadata(item).length > 0 && <span className="missing-meta">Falta: {missingMetadata(item).map(metadataLabel).join(', ')}</span>}
               </button>
@@ -271,7 +282,16 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
       {!draft && <section className="card editor-empty"><h2>Escolha uma opção</h2>
         <p className="muted">Selecione um item da lista para ver e editar o texto que vai para o modelo, ou crie uma opção nova.</p></section>}
       {draft && (
-        <section className="card editor" aria-label="Editar opção">
+        <section className="card editor" aria-labelledby="editor-title">
+          <header className="editor-head">
+            <h2 id="editor-title">{draft.label.trim() || 'Nova opção'}</h2>
+            {dirty && <span className="badge undetermined">Alterações não salvas</span>}
+            <span className="spacer" />
+            {snapshot.origins[draft.id] && snapshot.origins[draft.id] !== 'builtin' &&
+              <button className="quiet" onClick={remove} disabled={saving}>{snapshot.origins[draft.id] === 'custom' ? 'Restaurar padrão' : 'Remover'}</button>}
+            <button className="quiet" onClick={() => open(null)}>Fechar</button>
+            <button className="primary" onClick={save} disabled={saving || !dirty}>{saving ? 'Salvando…' : 'Salvar'}</button>
+          </header>
           <div className="fields">
             <label>Categoria
               <select value={draft.category} disabled={snapshot.origins[draft.id] !== undefined}
@@ -282,8 +302,10 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
             <label>Nome<input value={draft.label} maxLength={80} onChange={e => setDraft({...draft, label: e.target.value})} /></label>
             <label>Descrição em português (para você consultar)
               <textarea rows={3} value={draft.prompt_pt ?? ''} onChange={e => setDraft({...draft, prompt_pt: e.target.value})} /></label>
-            <button className="quiet" disabled={translating || !draft.prompt_pt?.trim()} onClick={translate}>
-              {translating ? 'Traduzindo no modelo local…' : 'Traduzir para inglês'}</button>
+            <span className="translate">
+              {translating ? <span className="muted small">Traduzindo no modelo local…</span>
+                : <button type="button" className="btn-link" disabled={!draft.prompt_pt?.trim()} onClick={translate}>Traduzir para inglês</button>}
+            </span>
             <label>Descrição em inglês (é o texto enviado ao modelo)
               <textarea rows={4} value={draft.prompt} onChange={e => setDraft({...draft, prompt: e.target.value})} /></label>
             <TranslateButton key={`prompt-${draft.id}`} label="a descrição em inglês" text={draft.prompt}
@@ -364,13 +386,6 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
               onChange={e => setDraft({...draft, provides: {...draft.provides, framing: (e.target.value || null) as Item['provides']['framing']}})}>
               {sortedOptions(FRAMINGS, FRAMING_LABELS).map(p => <option key={p} value={p}>{p ? FRAMING_LABELS[p] : 'não informada'}</option>)}</select></label>
           )}
-          <div className="row">
-            {snapshot.origins[draft.id] && snapshot.origins[draft.id] !== 'builtin' &&
-              <button className="quiet" onClick={remove} disabled={saving}>{snapshot.origins[draft.id] === 'custom' ? 'Restaurar padrão' : 'Remover'}</button>}
-            <span className="spacer" />
-            <button className="quiet" onClick={() => open(null)}>Fechar</button>
-            <button className="primary" onClick={save} disabled={saving || !dirty}>{saving ? 'Salvando…' : 'Salvar'}</button>
-          </div>
         </section>
       )}
     </div>

@@ -5,6 +5,9 @@ import {RUN_STATUS, TERMINAL} from '../lib/labels';
 import {relativeTime} from '../lib/time';
 import {useCollapsed} from '../lib/useCollapsed';
 import {CollapseButton} from './Collapse';
+import {Icon} from './Icon';
+
+const PREVIEW = 8;   // tiles shown before "Ver todos"
 
 type Filter = 'all' | 'completed' | 'active' | 'problems';
 const FILTERS: Record<Filter, string> = {all: 'Todos', completed: 'Concluídos', active: 'Em andamento', problems: 'Falhas e cancelados'};
@@ -27,6 +30,7 @@ export function History({activeRun, onSelect, keepFiles, notify}: Props) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleting, setDeleting] = useState(false);
   const [collapsed, toggleCollapsed] = useCollapsed('history');
+  const [expanded, setExpanded] = useState(false);
 
   const refresh = useCallback(() => api.runs().then(r => {setRuns(r.runs); setError(null);})
     .catch(e => setError((e as Error).message)), []);
@@ -76,15 +80,15 @@ export function History({activeRun, onSelect, keepFiles, notify}: Props) {
         </div>
       </div>
       {!collapsed && <div id="history-body">
-      <div className="chips" role="tablist" aria-label="Filtrar histórico">
+      <div className="chips" role="group" aria-label="Filtrar histórico">
         {(Object.keys(FILTERS) as Filter[]).map(f => (
-          <button key={f} role="tab" aria-selected={filter === f} className={'chip' + (filter === f ? ' active' : '')}
+          <button key={f} aria-pressed={filter === f} className={'chip' + (filter === f ? ' active' : '')}
                   onClick={() => setFilter(f)}>{FILTERS[f]} <span>{counts[f]}</span></button>
         ))}
       </div>
       {error && <p className="issue warning">{error}</p>}
       <ul className="history-grid">
-        {visible.map(run => {
+        {(expanded || selecting ? visible : visible.slice(0, PREVIEW)).map(run => {
           const images = run.images.filter(i => i.files.length);
           const best = images.find(i => i.task_id === run.best_task_id) ?? images[0];
           const terminal = TERMINAL.has(run.status);
@@ -99,7 +103,7 @@ export function History({activeRun, onSelect, keepFiles, notify}: Props) {
                   {best ? <img src={fileUrl(best.files[0])} alt="" loading="lazy" /> : <span className="thumb-empty">{RUN_STATUS[run.status] ?? run.status}</span>}
                   <span className={'status-dot ' + run.status}>{RUN_STATUS[run.status] ?? run.status}</span>
                   {images.length > 1 && <span className="count">×{images.length}</span>}
-                  {selecting && terminal && <span className={'tick' + (checked ? ' on' : '')} aria-hidden="true">✓</span>}
+                  {selecting && terminal && <span className={'tick' + (checked ? ' on' : '')} aria-hidden="true"><Icon name="check" size={12} /></span>}
                 </span>
                 <span className="tile-meta">
                   <strong>{run.mode === 'edit' ? 'Edição' : 'Criação'}</strong>
@@ -108,13 +112,17 @@ export function History({activeRun, onSelect, keepFiles, notify}: Props) {
                 <span className="tile-summary">{summary(run)}</span>
               </button>
               {!selecting && terminal && (
-                <button className="tile-delete" aria-label="Apagar este pedido" title="Apagar" onClick={() => remove([run.id])}>🗑</button>
+                <button className="tile-delete" aria-label="Apagar este pedido" title="Apagar" onClick={() => remove([run.id])}><Icon name="trash" size={14} /></button>
               )}
             </li>
           );
         })}
       </ul>
-      {!visible.length && !error && <p className="muted">{runs.length ? 'Nenhum pedido neste filtro.' : 'Os pedidos aparecem aqui.'}</p>}
+      {visible.length > PREVIEW && !selecting && (
+        <button className="quiet history-more" onClick={() => setExpanded(e => !e)}>
+          {expanded ? 'Mostrar menos' : `Ver todos (${visible.length})`}</button>
+      )}
+      {!visible.length && !error && <p className="muted">{runs.length ? 'Nenhum pedido neste filtro.' : 'Os pedidos que você gerar aparecem aqui.'}</p>}
       </div>}
     </section>
   );

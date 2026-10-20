@@ -22,7 +22,7 @@ it.each(['generate', 'edit'] as const)('adds uploaded photos in %s mode without 
   fireEvent.change(screen.getByLabelText(/Adicionar imagens/), {target: {files: [image]}});
   expect(await screen.findByRole('img', {name: 'foto.png'})).toBeTruthy();
   expect(screen.getByText('1 / 10')).toBeTruthy();
-  if (mode === 'edit') expect(screen.getByText('Foto alvo · image1')).toBeTruthy();
+  if (mode === 'edit') expect(screen.getByText('Foto alvo')).toBeTruthy();
   await waitFor(() => expect(api.upload).toHaveBeenCalledWith(image, 'foto.png'));
   expect(notify).not.toHaveBeenCalled();
 });

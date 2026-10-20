@@ -34,6 +34,12 @@ const PATHS: Record<string, string> = {
   select: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 17l2 2 4-4',
   star: 'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z',
   wand: 'M5 19L15 9M14 4v2M19 9h2M17.5 5.5L16 7M19 14l-1.5-1.5M9.5 4.5L11 6',
+  info: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 11v5M11.1 7.8a.9 .9 0 1 0 1.8 0a.9 .9 0 1 0 -1.8 0',
+  more: 'M4.8 12a1.2 1.2 0 1 0 2.4 0a1.2 1.2 0 1 0 -2.4 0M10.8 12a1.2 1.2 0 1 0 2.4 0a1.2 1.2 0 1 0 -2.4 0M16.8 12a1.2 1.2 0 1 0 2.4 0a1.2 1.2 0 1 0 -2.4 0',
+  undo: 'M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3',
+  brush: 'M14 4l6 6-8 8H6v-6zM4 20h4',
+  eraser: 'M8 20h12M5 15l9-9 5 5-9 9H8z',
+  upload: 'M12 16V4M7 9l5-5 5 5M5 20h14',
 };
 
 export function Icon({name, size = 16, title}: {name: keyof typeof PATHS | string; size?: number; title?: string}) {

@@ -1,17 +1,22 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ApiError, api} from '../api/client';
 import type {Attribute, Category, Issue, LibrarySnapshot, Prepared, Run, StudioRequest} from '../api/types';
-import {ADVANCED, BASIC, RUN_STATUS, TERMINAL} from '../lib/labels';
+import {ADVANCED, BASIC, FRAMING_LABELS, RUN_STATUS, TERMINAL} from '../lib/labels';
+import {formatSeconds, runProgress} from '../lib/progress';
+import {useCollapsed} from '../lib/useCollapsed';
 import {load, save} from '../lib/storage';
 import {useRun} from '../lib/useRun';
 import {uuid} from '../lib/uuid';
 import {addReference, enterManual, filesForSubmit, initialWorkspace, leaveManual, removeReference, requestForSubmit,
   setAttribute, setTarget, switchMode, type Workspace} from '../state/workspace';
 import {AttributeField} from './AttributeField';
+import {CollapseButton} from './Collapse';
+import {Disclosure, Segmented, Switch, Tip} from './Controls';
+import {Icon} from './Icon';
 import {History} from './History';
-import {PromptPreview} from './PromptPreview';
+import {PromptPreview, SETUP_STEPS, setupIssues} from './PromptPreview';
 import {References} from './References';
-import {RunPanel} from './RunPanel';
+import {RunPanel, useNow} from './RunPanel';
 import {TranslateButton} from './Translate';
 
 type Drafts = Record<'generate' | 'edit', Workspace>;
@@ -36,6 +41,7 @@ export function Studio({library, comfyOnline, notify}: Props) {
   const [drafts, setDrafts] = useState<Drafts>(stored?.drafts ?? {generate: initialWorkspace('generate'), edit: initialWorkspace('edit')});
   const [workspace, setWorkspace] = useState<Workspace>(stored ? stored.drafts[stored.mode] : initialWorkspace('generate'));
   const [tab, setTab] = useState<'basic' | 'advanced'>('basic');
+  const [reveal, setReveal] = useState<{block: string; n: number}>({block: '', n: 0});
   const [prepared, setPrepared] = useState<Prepared | null>(null);
   const [preparedFor, setPreparedFor] = useState<Workspace | null>(null);
   const [prepareError, setPrepareError] = useState<string | null>(null);
@@ -129,14 +135,15 @@ export function Studio({library, comfyOnline, notify}: Props) {
       attribute={request.attributes[category] ?? {intent: 'free'}} items={itemsFor(category)} references={request.references}
       disabled={request.prompt_mode === 'manual'} issues={issuesByField[`attributes.${category}`] ?? []}
       onChange={(attribute: Attribute) => update(ws => setAttribute(ws, category, attribute))}>
-      {category === 'wardrobe' && request.attributes.wardrobe?.intent === 'set' && <>
-        <label htmlFor="wardrobe-scope">Aplicar roupa a</label>
-        <select id="wardrobe-scope" value={request.wardrobe_scope ?? 'primary'} disabled={request.prompt_mode === 'manual'}
-                onChange={e => patch(r => {r.wardrobe_scope = e.target.value as 'primary' | 'all';})}>
-          <option value="primary">Pessoa principal</option><option value="all">Todas as pessoas da cena</option>
-        </select>
-        <p className="help">Para aplicar a todos, informe duas ou mais pessoas em Avançado → Cena ou adicione outro personagem.</p>
-      </>}
+      {category === 'wardrobe' && request.attributes.wardrobe?.intent === 'set' && (
+        <div className="field-extra">
+          <span className="control-label">Aplicar roupa a
+            <Tip>Para aplicar a todos, informe duas ou mais pessoas em Avançado → Cena ou adicione outro personagem.</Tip></span>
+          <Segmented small label="Aplicar roupa a" value={request.wardrobe_scope ?? 'primary'} disabled={request.prompt_mode === 'manual'}
+            options={[{value: 'primary', label: 'Pessoa principal'}, {value: 'all', label: 'Todas as pessoas'}]}
+            onChange={value => patch(r => {r.wardrobe_scope = value;})} />
+        </div>
+      )}
     </AttributeField>
   );
 
@@ -196,13 +203,27 @@ export function Studio({library, comfyOnline, notify}: Props) {
   };
   const focusField = (path: string) => {
     const category = path.startsWith('attributes.') ? path.split('.')[1] as Category : null;
+    const block = /^(participants|context)/.test(path) ? 'scene' : /^(engine|output\.(width|height|seed))/.test(path) ? 'engine'
+      : path === 'confirmations' ? 'content' : '';
     if (category) setTab(ADVANCED.includes(category) ? 'advanced' : 'basic');
-    else if (/^(engine|participants|context|output\.(width|height|seed))/.test(path)) setTab('advanced');   // Cena and Parâmetros
-    else if (path.startsWith('output')) setTab('basic');
-    const target = category ? `field-${category}` : path === 'confirmations' ? 'confirmations' : null;
-    if (target) window.setTimeout(() => document.getElementById(target)?.focus(), 50);
+    else if (block) {setTab('advanced'); setReveal(r => ({block, n: r.n + 1}));}
+    else if (path === 'attributes') setTab('basic');
+    const target = category ? `field-${category}` : path === 'attributes' ? `field-${BASIC[0]}` : path === 'confirmations' ? 'confirmations'
+      : path === 'target_id' ? 'refs-title' : null;
+    if (target) window.setTimeout(() => {
+      const element = document.getElementById(target);
+      element?.scrollIntoView?.({block: 'center', behavior: 'smooth'});
+      element?.focus({preventScroll: true});
+    }, 50);
   };
-  const toggleManual = (enabled: boolean) => {
+  // The draft of each mode is kept between visits; this starts the current mode over.
+  const clearForm = () => {
+    const label = request.mode === 'edit' ? 'Editar foto' : 'Criar imagem';
+    if (!confirm(`Limpar o formulário de “${label}”? Campos, imagens, máscara e ajustes de saída voltam ao início.`)) return;
+    setWorkspace(initialWorkspace(request.mode));
+    setTab('basic');
+  };
+  const toggleManual =(enabled: boolean) => {
     if (enabled) update(ws => enterManual(ws, prepared?.prompt ?? ''));
     else if (request.manual_prompt === prepared?.prompt || confirm('Voltar aos campos descarta o texto manual. Continuar?')) update(leaveManual);
   };
@@ -221,61 +242,98 @@ export function Studio({library, comfyOnline, notify}: Props) {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  const isSet = (c: Category) => {const a = request.attributes[c]; return !!a && a.intent !== 'free' && a.intent !== 'keep';};
+  const basicCount = BASIC.filter(isSet).length;
+  const advancedCount = ADVANCED.filter(isSet).length + (request.engine.loras?.length ? 1 : 0);
+  const blockIssues = (pattern: RegExp) => Object.keys(issuesByField).some(k => pattern.test(k));
+  const revealOf = (block: string) => reveal.block === block ? reveal.n : 0;
+
+  // What the bar at the bottom says: the progress of the open run, or why generating is not possible yet.
+  const now = useNow(busy);
+  const progress = run && busy ? runProgress(run, now) : null;
+  const missing = setupIssues(prepared?.issues ?? []);
+  const conflicts = (prepared?.issues ?? []).filter(i => i.level === 'error').length - missing.length;
+  const hint = !comfyOnline ? 'ComfyUI offline: o pedido fica na fila do Studio até ele voltar.'
+    : run?.status === 'review' ? 'Revise o texto aprimorado no painel do resultado.'
+    : progress ? [progress.detail || progress.label, formatSeconds(progress.elapsed)].filter(Boolean).join(' · ')
+    : ready || submitting ? ''
+    : pending || preparedFor !== workspace ? 'Atualizando a prévia do prompt…'
+    : missing.length && request.mode === 'edit' ? `${SETUP_STEPS[missing[0].code]} para começar.`
+    : conflicts > 0 ? (conflicts === 1 ? 'Resolva o conflito indicado no painel do Prompt.' : `Resolva os ${conflicts} conflitos indicados no painel do Prompt.`)
+    : prepareError ?? '';
+
   return (
     <>
-      <div className="workspace">
-        <div className="column">
-          <div className="segmented mode-switch" role="radiogroup" aria-label="Modo">
-            {(['generate', 'edit'] as const).map(mode => (
-              <button key={mode} role="radio" aria-checked={request.mode === mode} className={request.mode === mode ? 'active' : ''}
-                      onClick={() => changeMode(mode)}>{mode === 'generate' ? 'Criar imagem' : 'Editar foto'}</button>
-            ))}
+      <div className={'workspace' + (run ? ' has-run' : '')}>
+        <div className="column form-column">
+          <div className="mode-row">
+            <div className="segmented mode-switch" role="radiogroup" aria-label="Modo">
+              {(['generate', 'edit'] as const).map(mode => (
+                <button key={mode} role="radio" aria-checked={request.mode === mode} className={request.mode === mode ? 'active' : ''}
+                        onClick={() => changeMode(mode)}>{mode === 'generate' ? 'Criar imagem' : 'Editar foto'}</button>
+              ))}
+            </div>
+            <button className="quiet" onClick={clearForm} title="Volta campos, imagens, máscara e saída deste modo ao início">
+              <Icon name="refresh" size={14} />Limpar</button>
           </div>
           <References workspace={workspace} slots={prepared?.slots ?? {}} disabled={false} update={update} notify={notify} />
-          <section className="card">
-            <div className="segmented tabs" role="tablist">
-              <button role="tab" aria-selected={tab === 'basic'} onClick={() => setTab('basic')}>Básico</button>
-              <button role="tab" aria-selected={tab === 'advanced'} onClick={() => setTab('advanced')}>Avançado</button>
+          <section className="card" aria-labelledby="ask-title">
+            <div className="section-title">
+              <h2 id="ask-title">{request.mode === 'edit' ? 'O que mudar' : 'O que pedir'}</h2>
+              <div className="segmented tabs" role="tablist" aria-label="Campos">
+                <button role="tab" id="tab-basic" aria-controls="panel-fields" aria-selected={tab === 'basic'} onClick={() => setTab('basic')}>
+                  Básico{basicCount > 0 && <span className="tab-count" aria-label={`, ${basicCount} definidos`}>{basicCount}</span>}</button>
+                <button role="tab" id="tab-advanced" aria-controls="panel-fields" aria-selected={tab === 'advanced'} onClick={() => setTab('advanced')}>
+                  Avançado{advancedCount > 0 && <span className="tab-count" aria-label={`, ${advancedCount} definidos`}>{advancedCount}</span>}</button>
+              </div>
             </div>
             {tab === 'basic' ? (
-              <div role="tabpanel">
+              <div role="tabpanel" id="panel-fields" aria-labelledby="tab-basic">
                 <div className="fields two">{BASIC.map(field)}</div>
-                <label className="block">Detalhes adicionais (inglês)
-                  <textarea rows={3} value={request.details} maxLength={4000} disabled={request.prompt_mode === 'manual'}
+                <div className="field">
+                  <div className="field-label"><label htmlFor="details">Detalhes extras <span className="muted">· em inglês</span></label>
+                    <Tip>Enviados como estão, depois das instruções dos campos. O texto dos campos não muda, mas um detalhe que os contradiga ainda pode influenciar a imagem.</Tip></div>
+                  <textarea id="details" rows={3} value={request.details} maxLength={4000} disabled={request.prompt_mode === 'manual'}
                             placeholder="Ex.: a blue ceramic mug on the table" onChange={e => patch(r => {r.details = e.target.value;})} />
-                </label>
-                <TranslateButton label="os detalhes adicionais" text={request.details} disabled={request.prompt_mode === 'manual'}
-                                 onTranslated={text => patch(r => {r.details = text;})} />
-                <p className="help">Enviados como estão, depois das instruções dos campos. O texto dos campos não muda, mas um detalhe que os contradiga ainda pode influenciar a imagem.</p>
-                <OutputBasics request={request} patch={patch} />
+                  <TranslateButton label="os detalhes extras" text={request.details} disabled={request.prompt_mode === 'manual'}
+                                   onTranslated={text => patch(r => {r.details = text;})} />
+                </div>
               </div>
             ) : (
-              <div role="tabpanel">
-                <div className="fields two">{ADVANCED.map(field)}</div>
-                <SceneContext request={request} patch={patch} />
-                <Engine request={request} patch={patch} />
-                <Content request={request} patch={patch} library={library} update={update} />
+              <div role="tabpanel" id="panel-fields" aria-labelledby="tab-advanced">
+                <h3 className="eyebrow">Aparência</h3>
+                <div className="fields two">{ADVANCED.slice(0, 4).map(field)}</div>
+                <h3 className="eyebrow">Câmera</h3>
+                <div className="fields two">{ADVANCED.slice(4).map(field)}</div>
+                <div className="disclosures">
+                  <SceneContext request={request} patch={patch} reveal={revealOf('scene')} alert={blockIssues(/^(participants|context)/)} />
+                  <Engine request={request} patch={patch} reveal={revealOf('engine')} alert={blockIssues(/^(engine|output\.(width|height|seed))/)} />
+                  <Content request={request} patch={patch} library={library} update={update} reveal={revealOf('content')} alert={blockIssues(/^confirmations/)} />
+                </div>
               </div>
             )}
           </section>
+          <OutputCard request={request} patch={patch} />
         </div>
-        <div className="column">
+        <div className="column side-column">
+          <div className="stage-wrap">
+            <RunPanel run={run} connection={connection} onReuse={reuse} notify={notify} onRepeat={repeat} />
+            <History activeRun={activeRun} onSelect={setActiveRun} notify={notify}
+              keepFiles={[...new Set([...filesOf(workspace), ...filesOf(drafts[request.mode === 'edit' ? 'generate' : 'edit'])])]} />
+          </div>
           <PromptPreview request={request} prepared={prepared} pending={pending} error={prepareError}
             onManual={toggleManual} onManualText={text => patch(r => {r.manual_prompt = text;})} onFocusField={focusField} />
-          <RunPanel run={run} connection={connection} onReuse={reuse} notify={notify} onRepeat={repeat} />
-          <History activeRun={activeRun} onSelect={setActiveRun} notify={notify}
-            keepFiles={[...new Set([...filesOf(workspace), ...filesOf(drafts[request.mode === 'edit' ? 'generate' : 'edit'])])]} />
         </div>
       </div>
       <footer className="execution-bar" aria-label="Execução">
+        {progress && <span className="execution-progress" style={{width: `${Math.round(progress.fraction * 100)}%`}} aria-hidden="true" />}
         <div className="execution-info" aria-live="polite">
-          <span className={'dot ' + (run && !TERMINAL.has(run.status) ? 'busy' : run?.status === 'failed' ? 'bad' : 'ok')} />
-          <strong>{run ? RUN_STATUS[run.status] ?? run.status : 'Pronto'}</strong>
-          <span className="muted">{!comfyOnline ? 'ComfyUI offline: o pedido fica na fila do Studio até ele voltar.' :
-            run?.status === 'review' ? 'Revise o texto aprimorado no painel de resultado.' : run?.error ?? ''}</span>
+          <span className={'dot ' + (busy ? 'busy' : ready ? 'ok' : 'idle')} />
+          {busy ? <strong>{RUN_STATUS[run!.status] ?? run!.status}</strong> : ready && <strong>Pronto para gerar</strong>}
+          <span className="muted">{hint}</span>
         </div>
-        {busy && <button className="btn-stop" disabled={run?.cancel_requested} onClick={stop}>
-          {run?.cancel_requested ? 'Parando…' : '■ Parar'}</button>}
+        {busy && <button className="btn-stop" disabled={run?.cancel_requested} onClick={stop} title="Parar (Esc)">
+          <Icon name="stop" size={14} />{run?.cancel_requested ? 'Parando…' : 'Parar'}</button>}
         <button className="btn-generate" disabled={!ready} onClick={submit} title="Gerar (Ctrl+Enter)">
           <span>{submitting ? 'Enviando…' : request.mode === 'edit' ? 'Gerar edição' : 'Gerar imagem'}</span><kbd aria-hidden="true">Ctrl ↵</kbd></button>
       </footer>
@@ -289,70 +347,108 @@ type Patch = (fn: (r: StudioRequest) => void) => void;
 const usesPersonPhotos = (request: StudioRequest) => request.mode === 'edit' || (request.characters ?? []).length > 0
   || (['subject', 'face', 'body', 'skin', 'hair'] as const).some(c => request.attributes[c]?.intent === 'transfer');
 
-function OutputBasics({request, patch}: {request: StudioRequest; patch: Patch}) {
-  const edit = request.mode === 'edit', custom = request.output.width != null, faceDetail = request.output.face_detail;
+const ASPECTS = ['3:4', '2:3', '1:1', '4:3', '3:2', '16:9', '9:16'] as const;
+const aspectBox = (aspect: string) => {
+  const [w, h] = aspect.split(':').map(Number);
+  const scale = 14 / Math.max(w, h);
+  return <i className="aspect-box" style={{width: Math.round(w * scale), height: Math.round(h * scale)}} aria-hidden="true" />;
+};
+
+function OutputCard({request, patch}: {request: StudioRequest; patch: Patch}) {
+  const [collapsed, toggle] = useCollapsed('output');
+  const output = request.output;
+  const edit = request.mode === 'edit', custom = output.width != null;
+  const turbo = output.profile === 'turbo';
+  const face = output.face_detail == null ? 'auto' : output.face_detail ? 'on' : 'off';
+  const resolution = request.mask ? 0 : output.resolution;
+  const summary = [turbo ? 'Turbo' : 'Completa', custom && !request.mask ? `${output.width}×${output.height}` : resolution ? String(resolution) : 'Original',
+    !edit && !custom ? output.aspect : null, `${output.variations} ${output.variations === 1 ? 'variação' : 'variações'}`].filter(Boolean).join(' · ');
   return (
-    <div className="fields three">
-      <label>Execução<select value={request.output.profile} onChange={e => patch(r => {r.output.profile = e.target.value as 'qwen21' | 'turbo'; if (r.output.profile === 'turbo') r.output.refine = false;})}>
-        <option value="qwen21">Completa (40 passos)</option><option value="turbo">Turbo (8 passos)</option></select></label>
-      <label>Resolução<select value={request.output.resolution} disabled={request.mask}
-        onChange={e => patch(r => {r.output.resolution = Number(e.target.value) as StudioRequest['output']['resolution'];})}>
-        {edit && <option value={0}>Original da foto</option>}
-        <option value={1024}>1024 · rápida</option><option value={1536}>1536</option><option value={2048}>2048 · alta</option></select></label>
-      <label>Formato<select value={request.output.aspect} disabled={edit || custom}
-        onChange={e => patch(r => {r.output.aspect = e.target.value as StudioRequest['output']['aspect'];})}>
-        {['3:4', '2:3', '1:1', '4:3', '3:2', '16:9', '9:16'].map(a => <option key={a} value={a}>{a}</option>)}</select></label>
-      <label>Variações<select value={request.output.variations} onChange={e => patch(r => {r.output.variations = Number(e.target.value);})}>
-        {[1, 2, 3, 4].map(v => <option key={v} value={v}>{v}</option>)}</select></label>
-      <label title="Depois da imagem pronta, cada rosto pequeno é recortado, redesenhado em alta resolução e colado de volta: corrige olhos desnivelados ou de cores diferentes sem mudar a identidade.">
-        Detalhe dos rostos<select value={faceDetail == null ? 'auto' : faceDetail ? 'on' : 'off'}
-        onChange={e => patch(r => {r.output.face_detail = e.target.value === 'auto' ? null : e.target.value === 'on';})}>
-        <option value="auto">Automático (2+ pessoas)</option><option value="on">Sempre</option><option value="off">Nunca</option></select></label>
-      <label className="check"><input type="checkbox" checked={request.output.verify}
-        onChange={e => patch(r => {r.output.verify = e.target.checked;})} /> Verificar o resultado automaticamente</label>
-      <label className="check"><input type="checkbox" checked={request.output.refine} disabled={request.output.profile === 'turbo'}
-        onChange={e => patch(r => {r.output.refine = e.target.checked;})} /> Aprimorar o prompt (com revisão)</label>
-    </div>
+    <section className={'card output-card collapsible' + (collapsed ? ' is-collapsed' : '')} aria-labelledby="output-title">
+      <div className="section-title">
+        <h2 id="output-title">Saída</h2>
+        <span className="spacer" />
+        {collapsed && <span className="collapsed-summary">{summary}</span>}
+        <CollapseButton collapsed={collapsed} onToggle={toggle} controls="output-body" label="saída" />
+      </div>
+      {!collapsed && <div id="output-body" className="output-grid">
+        <div className="control"><span className="control-label">Qualidade</span>
+          <Segmented label="Qualidade" value={output.profile} onChange={value => patch(r => {r.output.profile = value; if (value === 'turbo') r.output.refine = false;})}
+            options={[{value: 'qwen21', label: 'Completa · 40 passos'}, {value: 'turbo', label: 'Turbo · 8 passos'}]} /></div>
+        <div className="control"><span className="control-label">Variações</span>
+          <Segmented label="Variações" value={output.variations} onChange={value => patch(r => {r.output.variations = value;})}
+            options={[1, 2, 3, 4].map(v => ({value: v, label: String(v)}))} /></div>
+        {!edit && <div className="control wide"><span className="control-label">Formato
+          {custom && <Tip>Com tamanho personalizado (Avançado → Parâmetros do modelo), o formato vem da largura e da altura.</Tip>}</span>
+          <Segmented label="Formato" value={output.aspect} disabled={custom} onChange={value => patch(r => {r.output.aspect = value;})}
+            options={ASPECTS.map(a => ({value: a, label: <>{aspectBox(a)}{a}</>}))} /></div>}
+        <div className="control"><span className="control-label">Resolução
+          {request.mask && <Tip>Com máscara, a edição usa o tamanho original da foto.</Tip>}</span>
+          <Segmented label="Resolução" value={resolution} disabled={request.mask}
+            onChange={value => patch(r => {r.output.resolution = value as StudioRequest['output']['resolution'];})}
+            options={[...(edit ? [{value: 0, label: 'Original'}] : []), {value: 1024, label: '1024', title: 'Rápida'},
+              {value: 1536, label: '1536'}, {value: 2048, label: '2048', title: 'Alta'}]} /></div>
+        <div className="control"><span className="control-label">Detalhe dos rostos
+          <Tip>Depois da imagem pronta, cada rosto pequeno é recortado, redesenhado em alta resolução e colado de volta: corrige olhos desnivelados ou de cores diferentes sem mudar a identidade.</Tip></span>
+          <Segmented label="Detalhe dos rostos" value={face}
+            onChange={value => patch(r => {r.output.face_detail = value === 'auto' ? null : value === 'on';})}
+            options={[{value: 'auto', label: 'Auto · 2+ pessoas'}, {value: 'on', label: 'Sempre'}, {value: 'off', label: 'Nunca'}]} /></div>
+        <div className="switches wide">
+          <Switch checked={output.verify} onChange={on => patch(r => {r.output.verify = on;})}>
+            <strong>Verificar o resultado</strong> <span className="muted">· o modelo local confere cada requisito</span></Switch>
+          <Switch checked={output.refine} disabled={turbo} onChange={on => patch(r => {r.output.refine = on;})}>
+            <strong>Aprimorar o prompt</strong> <span className="muted">· {turbo ? 'indisponível no Turbo' : 'você revisa o texto antes de gerar'}</span></Switch>
+        </div>
+      </div>}
+    </section>
   );
 }
 
-function SceneContext({request, patch}: {request: StudioRequest; patch: Patch}) {
+interface BlockProps {request: StudioRequest; patch: Patch; reveal: number; alert: boolean}
+
+function SceneContext({request, patch, reveal, alert}: BlockProps) {
   const edit = request.mode === 'edit';
   const supports = request.context.supports;
   const num = (v: string) => v === '' ? null : Math.max(0, Math.min(10, Number(v)));
+  const requested = request.participants.requested, existing = request.participants.existing;
+  const summary = [requested ? `${requested} ${requested === 1 ? 'pessoa' : 'pessoas'}` : 'pessoas livres',
+    edit && existing != null ? `${existing} na foto` : null,
+    edit && request.context.original_framing ? FRAMING_LABELS[request.context.original_framing] : null].filter(Boolean).join(' · ');
   return (
-    <fieldset><legend>Cena</legend>
+    <Disclosure title="Cena" summary={summary} reveal={reveal} alert={alert}>
       <div className="fields three">
-        <label>Pessoas pedidas<input type="number" min={1} max={10} value={request.participants.requested ?? ''}
+        <label>Pessoas pedidas<input type="number" min={1} max={10} value={requested ?? ''}
           onChange={e => patch(r => {r.participants.requested = num(e.target.value) || null;})} /></label>
-        {edit && <label>Pessoas na foto<input type="number" min={0} max={10} value={request.participants.existing ?? ''}
+        {edit && <label>Pessoas na foto<input type="number" min={0} max={10} value={existing ?? ''}
           onChange={e => patch(r => {r.participants.existing = num(e.target.value);})} /></label>}
         {edit && <label>Enquadramento da foto<select value={request.context.original_framing ?? ''}
           onChange={e => patch(r => {r.context.original_framing = (e.target.value || null) as StudioRequest['context']['original_framing'];})}>
           <option value="">Não informado</option><option value="full">Corpo inteiro</option><option value="half">Meio corpo</option>
           <option value="wide">Plano aberto</option><option value="portrait">Rosto e ombros</option></select></label>}
       </div>
-      {edit && <>
-        <label className="check"><input type="checkbox" checked={supports != null} onChange={e => patch(r => {r.context.supports = e.target.checked ? [] : null;})} /> Sei quais apoios existem na foto</label>
+      {edit && <div className="switches">
+        <Switch checked={supports != null} onChange={on => patch(r => {r.context.supports = on ? [] : null;})}>Sei quais apoios existem na foto</Switch>
         {supports != null && <div className="checks">{(['floor', 'seat', 'bed', 'wall', 'table'] as const).map(s => (
           <label key={s} className="check"><input type="checkbox" checked={supports.includes(s)} onChange={e => patch(r => {
             const set = new Set(r.context.supports ?? []); if (e.target.checked) set.add(s); else set.delete(s); r.context.supports = [...set];
           })} /> {({floor: 'chão', seat: 'assento', bed: 'cama', wall: 'parede', table: 'mesa'})[s]}</label>))}</div>}
-        <label className="check"><input type="checkbox" checked={request.context.allow_new_supports}
-          onChange={e => patch(r => {r.context.allow_new_supports = e.target.checked;})} /> Permitir acrescentar apoios necessários</label>
-        <label className="check"><input type="checkbox" checked={request.context.allow_reframing}
-          onChange={e => patch(r => {r.context.allow_reframing = e.target.checked;})} /> Permitir reenquadrar</label>
-      </>}
-    </fieldset>
+        <Switch checked={request.context.allow_new_supports} onChange={on => patch(r => {r.context.allow_new_supports = on;})}>Permitir acrescentar apoios necessários</Switch>
+        <Switch checked={request.context.allow_reframing} onChange={on => patch(r => {r.context.allow_reframing = on;})}>Permitir reenquadrar</Switch>
+      </div>}
+    </Disclosure>
   );
 }
 
-function Engine({request, patch}: {request: StudioRequest; patch: Patch}) {
+function Engine({request, patch, reveal, alert}: BlockProps) {
   const turbo = request.output.profile === 'turbo';
   const num = (v: string) => v === '' ? null : Number(v);
   const custom = request.output.width != null && !request.mask;
-  return (
-    <fieldset><legend>Parâmetros</legend>
+  const cfg = request.engine.cfg ?? 1;
+  const loras = request.engine.loras ?? [];
+  const summary = [`seed ${request.output.seed ?? 'aleatória'}`, turbo ? '8 passos' : `${request.engine.steps ?? 40} passos`, `CFG ${cfg}`,
+    custom ? `${request.output.width}×${request.output.height}` : null].filter(Boolean).join(' · ');
+  return (<>
+    <Disclosure title="Parâmetros do modelo" summary={summary} reveal={reveal} alert={alert}>
       <div className="fields three">
         <label>Seed<input type="number" min={0} placeholder="Aleatória" value={request.output.seed ?? ''}
           onChange={e => patch(r => {r.output.seed = num(e.target.value);})} /></label>
@@ -361,22 +457,25 @@ function Engine({request, patch}: {request: StudioRequest; patch: Patch}) {
         <label>CFG<input type="number" min={1} max={20} step={0.1} disabled={turbo} placeholder="1" value={request.engine.cfg ?? ''}
           onChange={e => patch(r => {r.engine.cfg = num(e.target.value);})} /></label>
       </div>
-      <p className="help">Para comparar ajustes, fixe a seed, use uma variação e mude um campo por vez.
-        Mais passos ou CFG maior não garantem que a edição será atendida.</p>
-      <label className="check"><input type="checkbox" checked={custom} disabled={request.mask} onChange={e => patch(r => {
-        r.output.width = e.target.checked ? 1024 : null; r.output.height = e.target.checked ? 1024 : null;})} /> Tamanho personalizado{request.mask ? ' (indisponível com máscara: a foto mantém seu tamanho)' : ''}</label>
+      <p className="help">Para comparar ajustes, fixe a seed e mude um campo por vez. Mais passos ou CFG maior não garantem que a edição será atendida.</p>
+      <Switch checked={custom} disabled={request.mask} onChange={on => patch(r => {
+        r.output.width = on ? 1024 : null; r.output.height = on ? 1024 : null;})}>
+        Tamanho personalizado{request.mask ? <span className="muted"> · indisponível com máscara</span> : null}</Switch>
       {custom && <div className="fields three">
         <label>Largura<input type="number" min={256} max={2048} step={32} value={request.output.width ?? ''} onChange={e => patch(r => {r.output.width = num(e.target.value);})} /></label>
         <label>Altura<input type="number" min={256} max={2048} step={32} value={request.output.height ?? ''} onChange={e => patch(r => {r.output.height = num(e.target.value);})} /></label>
       </div>}
-      <label className="block">Prompt negativo (só tem efeito com CFG acima de 1)
-        <textarea rows={2} value={request.engine.negative_prompt} disabled={(request.engine.cfg ?? 1) <= 1}
-          onChange={e => patch(r => {r.engine.negative_prompt = e.target.value;})} /></label>
-      <TranslateButton label="o prompt negativo" text={request.engine.negative_prompt} disabled={(request.engine.cfg ?? 1) <= 1}
-                       onTranslated={text => patch(r => {r.engine.negative_prompt = text;})} />
+      {cfg > 1 ? <>
+        <label className="block">Prompt negativo
+          <textarea rows={2} value={request.engine.negative_prompt} onChange={e => patch(r => {r.engine.negative_prompt = e.target.value;})} /></label>
+        <TranslateButton label="o prompt negativo" text={request.engine.negative_prompt}
+                         onTranslated={text => patch(r => {r.engine.negative_prompt = text;})} />
+      </> : <p className="inline-note">O prompt negativo aparece com CFG acima de 1.</p>}
+    </Disclosure>
+    <Disclosure title="LoRA" summary={loras.length ? loras.map(l => `${l.name.replace(/\.safetensors$/, '')} ${l.strength}`).join(' · ') : 'nenhum'}>
       <Loras request={request} patch={patch} />
-    </fieldset>
-  );
+    </Disclosure>
+  </>);
 }
 
 // LoRAs installed in ComfyUI, applied in order to the image model. Up to three; nothing is analysed by the rules.
@@ -394,7 +493,6 @@ function Loras({request, patch}: {request: StudioRequest; patch: Patch}) {
   const remove = (index: number) => patch(r => {r.engine.loras = (r.engine.loras ?? []).filter((_, i) => i !== index);});
   return (
     <div className="loras">
-      <h3 className="small">LoRA</h3>
       {chosen.map((lora, index) => (
         <div key={index} className="fields three">
           <label>Arquivo<select value={lora.name} onChange={e => set(index, {name: e.target.value})}>
@@ -412,7 +510,7 @@ function Loras({request, patch}: {request: StudioRequest; patch: Patch}) {
   );
 }
 
-function Content({request, patch, library, update}: {request: StudioRequest; patch: Patch; library: LibrarySnapshot;
+function Content({request, patch, library, update, reveal, alert}: BlockProps & {library: LibrarySnapshot;
   update: (fn: (ws: Workspace) => Workspace) => void}) {
   const adultIds = new Set(library.items.filter(i => i.adult).map(i => i.id));
   const setAdult = (on: boolean) => {
@@ -432,15 +530,17 @@ function Content({request, patch, library, update}: {request: StudioRequest; pat
     const set = new Set(r.confirmations); if (on) set.add(key); else set.delete(key); r.confirmations = [...set];
   });
   return (
-    <fieldset id="confirmations" tabIndex={-1}><legend>Conteúdo</legend>
-      <label className="check"><input type="checkbox" checked={request.content_mode === 'adult'} onChange={e => setAdult(e.target.checked)} /> Mostrar opções adultas (+18)</label>
-      <p className="help">Só organiza a biblioteca. Não muda as instruções dos outros campos.</p>
+    <Disclosure title="Conteúdo" summary={request.content_mode === 'adult' ? 'opções adultas (+18)' : 'padrão'} reveal={reveal} alert={alert}>
+      <div id="confirmations" tabIndex={-1} className="switches">
+      <Switch checked={request.content_mode === 'adult'} onChange={setAdult}>Mostrar opções adultas (+18)
+        <Tip>Só organiza a biblioteca. Não muda as instruções dos outros campos.</Tip></Switch>
       {request.content_mode === 'adult' && <>
         <label className="check"><input type="checkbox" checked={request.confirmations.includes('adults_only')}
           onChange={e => confirmation('adults_only', e.target.checked)} /> Confirmo que todas as pessoas retratadas são adultas.</label>
         {usesPersonPhotos(request) && <label className="check"><input type="checkbox" checked={request.confirmations.includes('consent_or_fictional')}
           onChange={e => confirmation('consent_or_fictional', e.target.checked)} /> Confirmo que as pessoas das fotos são fictícias ou consentiram com este uso.</label>}
       </>}
-    </fieldset>
+      </div>
+    </Disclosure>
   );
 }
