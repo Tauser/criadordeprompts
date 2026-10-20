@@ -1,4 +1,5 @@
-import type {CoherenceJob, Health, PeopleCount, Stats, Item, LibrarySnapshot, Prepared, Run, StudioRequest, TextFinding} from './types';
+import type {CoherenceJob, Health, PeopleCount, Stats, Item, LibrarySnapshot, Prepared, ReferenceDescription, Run, StudioRequest,
+  TextFinding} from './types';
 
 export class ApiError extends Error {
   constructor(public status: number, public body: {error?: string; issues?: unknown[]; details?: unknown[]}) {
@@ -58,6 +59,10 @@ export const api = {
   reviewCoherence: (request: StudioRequest) => call<CoherenceJob>('POST', '/api/coherence', request),
   coherence: (id: string) => call<CoherenceJob>('GET', `/api/coherence/${id}`),
   cancelCoherence: (id: string) => call<unknown>('POST', `/api/coherence/${id}/cancel`),
+  describeReference: (file: string, category: string) =>
+    call<ReferenceDescription>('POST', '/api/library/descriptions', {file, category}),
+  referenceDescription: (id: string) => call<ReferenceDescription>('GET', `/api/library/descriptions/${id}`),
+  cancelReferenceDescription: (id: string) => call<unknown>('POST', `/api/library/descriptions/${id}/cancel`),
   translation: (id: string) => call<{id: string; status: string; text?: string; error?: string}>('GET', `/api/translations/${id}`),
 };
 

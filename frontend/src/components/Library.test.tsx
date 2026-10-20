@@ -6,7 +6,9 @@ import type {LibrarySnapshot} from '../api/types';
 import {Library} from './Library';
 
 vi.mock('../api/client', () => ({api: {saveLibrary: vi.fn(), translate: vi.fn(), translation: vi.fn(),
-  cancelTranslation: vi.fn(async () => ({}))}}));
+  cancelTranslation: vi.fn(async () => ({})), auditItem: vi.fn(async () => ({findings: []})), upload: vi.fn(),
+  describeReference: vi.fn(), referenceDescription: vi.fn(), cancelReferenceDescription: vi.fn(async () => ({}))},
+  fileUrl: (hash: string) => `/api/files/${hash}`}));
 afterEach(() => {cleanup(); vi.clearAllMocks(); vi.unstubAllGlobals();});
 
 const twoItems: LibrarySnapshot = {revision: 1, origins: {'environment.a': 'builtin', 'environment.b': 'builtin'},
@@ -79,4 +81,54 @@ it('deactivates selected built-in options instead of deleting them', async () =>
   fireEvent.click(screen.getByRole('button', {name: 'Desativar'}));
   await waitFor(() => expect(api.saveLibrary).toHaveBeenCalledWith(1, [
     expect.objectContaining({id: 'environment.b', enabled: false})]));
+});
+
+const photoDraft = {category: 'action' as const, label: 'Abraço de lado (dois adultos)',
+  prompt: 'two adults standing side by side, the adult on the left wrapping the right arm around the waist of the adult on the right',
+  edit_prompt: 'Change the pose of the two adults so they stand side by side in a hug.',
+  prompt_pt: 'dois adultos em pé lado a lado, abraçados pela cintura', adult: false,
+  requirements: {participants: 2, posture: 'standing' as const, gaze: 'any' as const, orientation: 'front' as const,
+    support_any_of: [], minimum_framing: 'half' as const}};
+
+it('fills a new action from a reference photo without saving it', async () => {
+  vi.mocked(api.upload).mockResolvedValue({hash: 'photo1', mime: 'image/png', width: 640, height: 480});
+  vi.mocked(api.describeReference).mockResolvedValue({id: 'd1', status: 'completed', draft: photoDraft, findings: []});
+  const notify = vi.fn();
+  render(<Library snapshot={twoItems} onSaved={vi.fn()} notify={notify} setDirty={vi.fn()} />);
+  fireEvent.click(screen.getByRole('button', {name: 'Nova opção'}));
+  expect(screen.queryByRole('group', {name: 'Descrever a partir da foto'})).toBeNull();     // only poses and actions
+  fireEvent.change(screen.getByRole('combobox', {name: 'Categoria'}), {target: {value: 'action'}});
+  const describe = screen.getByRole('button', {name: 'Descrever a partir da foto'});
+  expect((describe as HTMLButtonElement).disabled).toBe(true);
+  fireEvent.change(screen.getByLabelText('Escolher foto de referência'),
+    {target: {files: [new File(['x'], 'ref.png', {type: 'image/png'})]}});
+  await waitFor(() => expect((describe as HTMLButtonElement).disabled).toBe(false));
+  fireEvent.click(describe);
+  await waitFor(() => expect((screen.getByLabelText('Nome') as HTMLInputElement).value).toBe(photoDraft.label));
+  expect(api.describeReference).toHaveBeenCalledWith('photo1', 'action');
+  expect((screen.getByLabelText('Descrição em inglês (é o texto enviado ao modelo)') as HTMLTextAreaElement).value)
+    .toBe(photoDraft.prompt);
+  expect((screen.getByLabelText('Pessoas') as HTMLInputElement).value).toBe('2');
+  expect(screen.getByText('Alterações não salvas')).toBeTruthy();
+  expect(api.saveLibrary).not.toHaveBeenCalled();
+  expect(notify).toHaveBeenCalledWith('Rascunho preenchido a partir da foto. Revise e salve.');
+});
+
+it('cancels a description when another item is opened, and offers none for existing options', async () => {
+  vi.stubGlobal('confirm', () => true);
+  vi.mocked(api.upload).mockResolvedValue({hash: 'photo2', mime: 'image/png', width: 64, height: 64});
+  vi.mocked(api.describeReference).mockResolvedValue({id: 'd2', status: 'running'});
+  vi.mocked(api.referenceDescription).mockReturnValue(new Promise(() => undefined));
+  render(<Library snapshot={twoItems} onSaved={vi.fn()} notify={vi.fn()} setDirty={vi.fn()} />);
+  fireEvent.click(screen.getByRole('button', {name: 'Nova opção'}));
+  fireEvent.change(screen.getByRole('combobox', {name: 'Categoria'}), {target: {value: 'pose'}});
+  fireEvent.change(screen.getByLabelText('Escolher foto de referência'),
+    {target: {files: [new File(['x'], 'ref.png', {type: 'image/png'})]}});
+  const describe = screen.getByRole('button', {name: 'Descrever a partir da foto'});
+  await waitFor(() => expect((describe as HTMLButtonElement).disabled).toBe(false));
+  fireEvent.click(describe);
+  await screen.findByText('Descrevendo no modelo local…');
+  fireEvent.click(screen.getByRole('button', {name: /Jardim/}));
+  expect(api.cancelReferenceDescription).toHaveBeenCalledWith('d2');
+  expect(screen.queryByRole('group', {name: 'Descrever a partir da foto'})).toBeNull();
 });

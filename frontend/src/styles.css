@@ -582,6 +582,10 @@ details.tech h3 { margin: 6px 0; }
 .editor-head h2 { font-size: 16px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 50%; }
 .page .card.editor { max-height: calc(100vh - 230px); overflow: auto; }
 .library-page .translate .btn-link { font-size: 12.5px; }
+.describe-photo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.describe-photo img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; background: var(--sunken); }
+.describe-photo-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+.describe-photo .btn-link { font-size: 12.5px; }
 @media (max-width: 680px) {
   .reference-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .side-column { max-height: none; overflow: visible; }

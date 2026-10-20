@@ -1,11 +1,12 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {api} from '../api/client';
-import {CATEGORIES, type Category, type Item, type LibrarySnapshot, type TextFinding} from '../api/types';
+import {CATEGORIES, type Category, type Item, type LibrarySnapshot, type ReferenceDraft, type TextFinding} from '../api/types';
 import {CATEGORY_LABELS, FRAMING_LABELS, GAZE_LABELS, ORIENTATION_LABELS, PERIOD_LABELS, PLACE_LABELS,
   POSTURE_LABELS} from '../lib/labels';
 import {metadataLabel, missingMetadata} from '../lib/metadata';
 import {compareText, sortBy} from '../lib/sort';
 import {uuid} from '../lib/uuid';
+import {DescribeFromPhoto} from './DescribeFromPhoto';
 import {TranslateButton} from './Translate';
 
 const SORTED_CATEGORIES = sortBy(CATEGORIES, c => CATEGORY_LABELS[c]);
@@ -217,6 +218,16 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
     }
   };
 
+  // A draft from a reference photo replaces the texts and the metadata of the open item; nothing is saved here.
+  const fromPhoto = (item: string, photo: ReferenceDraft) => {
+    const open = draftRef.current;
+    if (!open || open.id !== item) return;
+    if ((open.prompt.trim() || open.prompt_pt?.trim() || open.edit_prompt?.trim())
+        && !confirm('Substituir o nome, os textos e os metadados pelo rascunho da foto?')) return;
+    setDraft(d => d && d.id === item ? {...d, label: photo.label, prompt: photo.prompt, edit_prompt: photo.edit_prompt ?? null,
+      prompt_pt: photo.prompt_pt ?? '', adult: photo.adult, requirements: {...photo.requirements}} : d);
+    notify('Rascunho preenchido a partir da foto. Revise e salve.');
+  };
   const prov = (key: string, value: string) => setDraft(d => d && {...d, provides: {...d.provides, [key]: value || null}});
   const req = (key: string, value: unknown) => setDraft(d => d && {...d, requirements: {...d.requirements, [key]: value === '' ? null : value}});
 
@@ -299,6 +310,8 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
                 {SORTED_CATEGORIES.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
               </select>
             </label>
+            {(draft.category === 'pose' || draft.category === 'action') && snapshot.origins[draft.id] === undefined &&
+              <DescribeFromPhoto key={draft.id} category={draft.category} onDraft={photo => fromPhoto(draft.id, photo)} />}
             <label>Nome<input value={draft.label} maxLength={80} onChange={e => setDraft({...draft, label: e.target.value})} /></label>
             <label>Descrição em português (para você consultar)
               <textarea rows={3} value={draft.prompt_pt ?? ''} onChange={e => setDraft({...draft, prompt_pt: e.target.value})} /></label>
