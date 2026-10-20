@@ -260,6 +260,12 @@ def create_app(config: Config | None = None, container: Container | None = None)
     def save_library(body: LibrarySave):
         return c.library.save(body.revision, body.items)
 
+    @app.get('/api/library/audit')
+    def audit_library():
+        """Wording review of every saved option (defaults merged with the user's); only items with findings."""
+        return {i.id: [f.__dict__ for f in found]
+                for i in c.library.library().items if (found := audit_item(i))}
+
     @app.post('/api/library/audit')
     def audit_library_item(body: dict):
         """Wording review of one item while it is being edited; nothing is saved."""

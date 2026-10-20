@@ -73,6 +73,26 @@ def test_audit_endpoint_reviews_an_unsaved_item(tmp_path):
         assert {'second_person', 'too_vague', 'missing_pt'} <= codes_found
 
 
+def test_library_audit_lists_saved_options_with_findings_and_changes_nothing(tmp_path):
+    config = Config(data_dir=tmp_path, catalog_path=CATALOG, frontend_dir=tmp_path / 'none', start_workers=False)
+    with TestClient(create_app(config, Container(config, comfy=FakeComfy(), progress=NoProgress()))) as client:
+        before = client.get('/api/library').json()
+        bad = {'id': 'user.pose.bad', 'category': 'pose', 'label': 'Ruim', 'prompt': 'lying on your back',
+               'requirements': {'participants': 1}}
+        good = {'id': 'user.pose.good', 'category': 'pose', 'label': 'Boa', 'prompt_pt': 'em pé',
+                'prompt': 'standing upright with the arms relaxed at the sides and the weight on both feet',
+                'requirements': {'participants': 1, 'posture': 'standing', 'orientation': 'front', 'gaze': 'any',
+                                 'support_any_of': []}}
+        saved = client.put('/api/library', json={'revision': before['revision'], 'items': [bad, good]}).json()
+        report = client.get('/api/library/audit').json()
+        assert {'second_person', 'too_vague', 'missing_pt'} <= {f['code'] for f in report['user.pose.bad']}
+        assert all(set(f) == {'code', 'level', 'message'} for f in report['user.pose.bad'])
+        assert 'user.pose.good' not in report
+        # The shipped catalog carries no conflicts or ambiguities, so built-ins show at most wording notes.
+        assert all(f['level'] == 'style' for k, v in report.items() if not k.startswith('user.') for f in v)
+        assert client.get('/api/library').json() == saved
+
+
 def test_the_shipped_catalog_has_no_contradictory_or_ambiguous_wording():
     import json
     data = json.loads(CATALOG.read_text(encoding='utf-8'))

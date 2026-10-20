@@ -348,6 +348,14 @@ select { height: 38px; }
 .item.selected { background: var(--surface-2); box-shadow: inset 0 0 0 1.5px var(--ink); }
 .item-pt { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .missing-meta { font-size: 12px; color: var(--warn); }
+.review-groups { display: grid; gap: 12px; max-height: calc(100vh - 260px); overflow: auto; }
+.review-groups .item-list { margin: 0; max-height: none; overflow: visible; }
+.review-level { font-size: 13px; font-weight: 650; margin: 6px 12px 2px; }
+.review-level.error { color: var(--bad); } .review-level.warning { color: var(--warn); }
+.review-level span { color: var(--muted); font-weight: 500; margin-left: 4px; }
+.review-messages { display: grid; gap: 4px; margin-top: 4px; }
+.review-messages .issue { padding: 6px 10px; }
+.review-note { margin: 10px 12px; }
 fieldset { border: 1px solid var(--line); border-radius: 14px; margin: 14px 0 0; padding: 14px; display: grid; gap: 10px; }
 legend { color: var(--muted); padding: 0 6px; font-size: 13px; }
 .checks { display: flex; flex-wrap: wrap; gap: 12px; }

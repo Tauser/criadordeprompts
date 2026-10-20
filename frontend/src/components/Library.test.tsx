@@ -6,7 +6,7 @@ import type {LibrarySnapshot} from '../api/types';
 import {Library} from './Library';
 
 vi.mock('../api/client', () => ({api: {saveLibrary: vi.fn(), translate: vi.fn(), translation: vi.fn(),
-  cancelTranslation: vi.fn(async () => ({})), auditItem: vi.fn(async () => ({findings: []})), upload: vi.fn(),
+  cancelTranslation: vi.fn(async () => ({})), auditItem: vi.fn(async () => ({findings: []})), auditLibrary: vi.fn(), upload: vi.fn(),
   describeReference: vi.fn(), referenceDescription: vi.fn(), cancelReferenceDescription: vi.fn(async () => ({}))},
   fileUrl: (hash: string) => `/api/files/${hash}`}));
 afterEach(() => {cleanup(); vi.clearAllMocks(); vi.unstubAllGlobals();});
@@ -29,6 +29,31 @@ it('does not mark a newly opened item dirty when saving the previous item finish
   await act(async () => resolve(twoItems));
   expect((screen.getByLabelText('Nome') as HTMLInputElement).value).toBe('Praia');
   expect(setDirty).toHaveBeenLastCalledWith(false);
+});
+
+it('reviews the whole library grouped by level and opens a flagged option in the editor', async () => {
+  const snapshot: LibrarySnapshot = {...twoItems, items: [...twoItems.items, {...twoItems.items[0], id: 'environment.c', label: 'Rio'}],
+    origins: {...twoItems.origins, 'environment.c': 'builtin'}};
+  vi.mocked(api.auditLibrary).mockResolvedValue({
+    'environment.a': [{code: 'x_conflict', level: 'conflict', message: 'Texto contradiz o apoio.'},
+                      {code: 'x_style', level: 'style', message: 'Falta a descrição em português.'}],
+    'environment.c': [{code: 'y_amb', level: 'ambiguity', message: 'Pode ser lido de dois jeitos.'}],
+  });
+  render(<Library snapshot={snapshot} onSaved={vi.fn()} notify={vi.fn()} setDirty={vi.fn()} />);
+  fireEvent.click(screen.getByLabelText(/Revisar biblioteca/));
+  const conflict = await screen.findByRole('region', {name: 'Conflito'});
+  expect(conflict.textContent).toContain('Jardim');
+  expect(conflict.textContent).toContain('Texto contradiz o apoio.');
+  expect(conflict.textContent).not.toContain('Falta a descrição');
+  expect(screen.getByRole('region', {name: 'Ambíguo'}).textContent).toContain('Rio');
+  expect(screen.getByRole('region', {name: 'Redação'}).textContent).toContain('Falta a descrição em português.');
+  expect(screen.queryByText('Praia')).toBeNull();
+  expect(screen.getByLabelText(/Revisar biblioteca \(2\)/)).toBeTruthy();
+  fireEvent.click(screen.getByRole('button', {name: /Rio/}));
+  expect((screen.getByLabelText('Nome') as HTMLInputElement).value).toBe('Rio');
+  expect(api.saveLibrary).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByLabelText(/Revisar biblioteca/));
+  expect(screen.getByRole('button', {name: /Praia/})).toBeTruthy();
 });
 
 it('cancels a translation whose creation answer arrives after switching items', async () => {
