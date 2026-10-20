@@ -106,6 +106,7 @@ class Output(_Strict):
     variations: int = Field(default=1, ge=1, le=4)
     verify: bool = False
     refine: bool = False
+    face_detail: bool | None = None          # None = automatic: on with two or more people
 
     @model_validator(mode='after')
     def _size(self):

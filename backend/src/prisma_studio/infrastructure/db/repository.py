@@ -11,7 +11,8 @@ RUN_TRANSITIONS = {
     'preparing': {'refining', 'generating'},
     'refining': {'review', 'generating'},
     'review': {'generating'},
-    'generating': {'verifying', 'completed', 'uncertain'},
+    'generating': {'detailing', 'verifying', 'completed', 'uncertain'},
+    'detailing': {'verifying', 'completed'},
     'verifying': {'completed'},
     'uncertain': {'generating', 'lost'},
 }
@@ -133,7 +134,7 @@ class RunRepository:
             raise InvalidTransition('Pare o pedido antes de apagá-lo.')
         hashes = set(_hashes(loads(row['files_json'])))
         for task in tx.execute('SELECT result_json FROM tasks WHERE run_id=?', (run_id,)).fetchall():
-            hashes |= set((loads(task['result_json']) or {}).get('files', []))
+            hashes |= _result_files(loads(task['result_json']))
         tx.execute('DELETE FROM events WHERE run_id=?', (run_id,))
         tx.execute('DELETE FROM tasks WHERE run_id=?', (run_id,))
         tx.execute('DELETE FROM runs WHERE id=?', (run_id,))
@@ -145,7 +146,7 @@ class RunRepository:
         for row in connection.execute('SELECT files_json FROM runs').fetchall():
             hashes |= set(_hashes(loads(row['files_json'])))
         for row in connection.execute('SELECT result_json FROM tasks WHERE result_json IS NOT NULL').fetchall():
-            hashes |= set((loads(row['result_json']) or {}).get('files', []))
+            hashes |= _result_files(loads(row['result_json']))
         return hashes
 
     def delete_with_files(self, run_id: str, keep: set[str], remove) -> int:
@@ -280,3 +281,9 @@ def _task(row) -> dict:
     for key in [k for k in data if k.endswith('_json')]:
         data[key[:-5]] = loads(data.pop(key))
     return data
+
+
+def _result_files(result: dict | None) -> set[str]:
+    """Pictures a task keeps: its results and, after the face detail pass, the images as first generated."""
+    result = result or {}
+    return set(result.get('files', [])) | set(result.get('raw_files', []))

@@ -28,6 +28,7 @@ class FakeComfy:
         self.object_info_data = object_info
         self.script = ['pending', 'in_progress', 'completed']
         self.loras = ['anatomy_fix_qwen21.safetensors', 'realism/ultra_real.safetensors']
+        self.faces: list[dict] = []        # boxes the MediaPipe face detector reports
 
     def _check(self):
         if self.offline:
@@ -74,6 +75,8 @@ class FakeComfy:
         graph = self.jobs[prompt_id]['graph']
         if IMAGE_OUTPUT_NODE in graph:
             return {IMAGE_OUTPUT_NODE: {'images': [{'filename': f'{prompt_id}.png', 'subfolder': 'prisma', 'type': 'output'}]}}
+        if any(node['class_type'] == 'MediaPipeFaceLandmarker' for node in graph.values()):
+            return {TEXT_OUTPUT_NODE: {'text': [json.dumps([self.faces])]}}
         prompt = graph['90']['inputs']['prompt']
         answer = self.text_answer(prompt) if callable(self.text_answer) else self.text_answer
         return {TEXT_OUTPUT_NODE: {'text': [answer]}}

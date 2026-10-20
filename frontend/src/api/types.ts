@@ -27,6 +27,7 @@ export interface Output {
   variations: number;
   verify: boolean;
   refine: boolean;
+  face_detail?: boolean | null;   // null = automatic: on with two or more people
 }
 
 export interface LoraChoice {name: string; strength: number}
@@ -76,7 +77,8 @@ export interface Prepared {
 
 export interface Verdict {verdict: 'met' | 'partial' | 'unmet' | 'unknown'; note: string}
 export interface RunImage {task_id: string; position: number; seed: number; status: string; files: string[];
-  score?: number | null; verdicts?: Record<string, Verdict> | null}
+  score?: number | null; verdicts?: Record<string, Verdict> | null;
+  detail?: {found: number; refined: number} | null; raw_files?: string[]}   // raw_files: before the face detail pass
 export interface Task {id: string; kind: string; position: number; status: string; seed?: number | null;
   comfy_prompt_id?: string | null; error?: string | null; submitted_at?: number | null; started_at?: number | null;
   ended_at?: number | null; timings?: {phases: Record<string, number>} | null;
@@ -87,7 +89,8 @@ export interface Run {
   refined_prompt: string | null; error: string | null; best_task_id: string | null; cancel_requested: boolean;
   created_at: number; updated_at: number;
   settings: {profile: string; resolution: number; width?: number; height?: number; variations: number; seed: number;
-    verify: boolean; refine: boolean; checks: {id: string; question: string}[]; compiler_version: string};
+    verify: boolean; refine: boolean; face_detail?: boolean; checks: {id: string; question: string}[];
+    compiler_version: string};
   images: RunImage[]; request?: StudioRequest; files?: {references: Record<string, string>; mask: string | null};
   tasks?: Task[]; events?: RunEvent[];
 }

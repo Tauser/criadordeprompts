@@ -8,7 +8,7 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
-from PIL import Image, ImageChops, ImageFilter, ImageOps, UnidentifiedImageError
+from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageOps, UnidentifiedImageError
 
 MAX_BYTES = 25 * 1024 * 1024
 MAX_RESULT_BYTES = 256 * 1024 * 1024
@@ -125,6 +125,55 @@ def composite_on_original(original: bytes, generated: bytes, mask: bytes, feathe
         soft = weight.filter(ImageFilter.GaussianBlur(feather / 2))
         weight = ImageChops.darker(soft, weight)          # never above the drawn mask: zero stays zero
     out = Image.composite(new, base, weight)
+    buffer = io.BytesIO()
+    out.save(buffer, format='PNG')
+    return buffer.getvalue()
+
+
+def face_crop_box(box: dict, image_size: tuple[int, int], scale: float = 1.6) -> tuple[int, int, int]:
+    """Square (left, top, side) around a detected face, `scale` times its larger side, kept inside the picture."""
+    width, height = image_size
+    side = min(round(max(box['width'], box['height']) * scale), width, height)
+    cx, cy = box['x'] + box['width'] / 2, box['y'] + box['height'] / 2
+    left = min(max(0, round(cx - side / 2)), width - side)
+    top = min(max(0, round(cy - side / 2)), height - side)
+    return left, top, side
+
+
+def crop_square(data: bytes, crop: tuple[int, int, int], size: int) -> bytes:
+    left, top, side = crop
+    with Image.open(io.BytesIO(data)) as image:
+        out = ImageOps.exif_transpose(image).convert('RGB').crop((left, top, left + side, top + side))
+    out = out.resize((size, size), Image.Resampling.LANCZOS)
+    buffer = io.BytesIO()
+    out.save(buffer, format='PNG')
+    return buffer.getvalue()
+
+
+def face_mask(side: int, box: dict, crop: tuple[int, int, int]) -> Image.Image:
+    """Soft oval over the face inside a crop of `side` pixels; zero along the crop's edges."""
+    left, top, _ = crop
+    pad_x, pad_y = box['width'] * 0.12, box['height'] * 0.12
+    oval = (box['x'] - left - pad_x, box['y'] - top - pad_y * 1.5,
+            box['x'] - left + box['width'] + pad_x, box['y'] - top + box['height'] + pad_y)
+    feather = max(2.0, side * 0.04)
+    mask = Image.new('L', (side, side), 0)
+    inset = feather * 1.2
+    shrunk = (max(inset, oval[0]), max(inset, oval[1]), min(side - inset, oval[2]), min(side - inset, oval[3]))
+    ImageDraw.Draw(mask).ellipse(shrunk, fill=255)
+    return mask.filter(ImageFilter.GaussianBlur(feather / 2))
+
+
+def paste_faces(data: bytes, faces: list[tuple[bytes, dict, tuple[int, int, int]]]) -> bytes:
+    """Put each refined face crop back at its place and original size through a soft oval."""
+    with Image.open(io.BytesIO(data)) as image:
+        out = ImageOps.exif_transpose(image).convert('RGB')
+    for face, box, crop in faces:
+        left, top, side = crop
+        with Image.open(io.BytesIO(face)) as image:
+            patch = image.convert('RGB').resize((side, side), Image.Resampling.LANCZOS)
+        region = out.crop((left, top, left + side, top + side))
+        out.paste(Image.composite(patch, region, face_mask(side, box, crop)), (left, top))
     buffer = io.BytesIO()
     out.save(buffer, format='PNG')
     return buffer.getvalue()

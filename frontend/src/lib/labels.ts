@@ -10,7 +10,8 @@ export const ADVANCED: Category[] = ['face', 'body', 'skin', 'hair', 'camera', '
 
 export const RUN_STATUS: Record<string, string> = {
   created: 'Na fila do Studio', preparing: 'Preparando referências', refining: 'Aprimorando o prompt',
-  review: 'Aguardando sua revisão', generating: 'Gerando', verifying: 'Verificando o resultado',
+  review: 'Aguardando sua revisão', generating: 'Gerando', detailing: 'Refinando os rostos',
+  verifying: 'Verificando o resultado',
   completed: 'Concluído', failed: 'Falhou', cancelled: 'Cancelado', lost: 'Perdido', uncertain: 'Envio incerto',
 };
 export const TASK_STATUS: Record<string, string> = {
@@ -20,9 +21,11 @@ export const TASK_STATUS: Record<string, string> = {
 export const PHASE: Record<string, string> = {
   loading_models: 'Carregando modelos', loading_images: 'Carregando imagens', encoding: 'Lendo o prompt e as referências',
   sampling: 'Gerando a imagem', decoding: 'Decodificando', compositing: 'Recompondo a área da máscara',
-  saving: 'Salvando', generating_text: 'Gerando texto', preparing: 'Preparando', other: 'Outros',
+  saving: 'Salvando', detecting_faces: 'Detectando rostos', generating_text: 'Gerando texto', preparing: 'Preparando',
+  other: 'Outros',
 };
-export const KIND: Record<string, string> = {image: 'Imagem', refine: 'Aprimoramento', verify: 'Verificação'};
+export const KIND: Record<string, string> = {image: 'Imagem', refine: 'Aprimoramento', verify: 'Verificação',
+  face_detect: 'Detecção de rostos', face: 'Rosto'};
 export const VERDICT: Record<string, string> = {met: 'atendido', partial: 'parcial', unmet: 'não atendido', unknown: 'não avaliável'};
 export const TERMINAL = new Set(['completed', 'failed', 'cancelled', 'lost']);
 

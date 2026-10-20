@@ -6,25 +6,29 @@ import threading
 import uuid
 
 from ..application.enhancer import check, clean_output, system_prompt
+from ..domain import face_detail
 from ..domain.verification import JUDGE_SYSTEM, Check, judge_prompt, parse_verdicts, score
 from ..infrastructure.comfy.client import ComfyNotSent, ComfyRejected, ComfyUnavailable
 from ..infrastructure.comfy.validation import validate_graph
-from ..infrastructure.comfy.workflows import (MAX_EDIT_PIXELS, ImageJob, TextJob, image_graph, image_outputs,
-                                              text_graph, text_output)
+from ..infrastructure.comfy.workflows import (FACE_SIZE, MAX_EDIT_PIXELS, ImageJob, TextJob, face_boxes,
+                                              face_detect_graph, image_graph, image_outputs, text_graph, text_output)
 from ..infrastructure.db.database import now
-from ..infrastructure.storage.files import (MAX_RESULT_BYTES, composite_on_original, fit_multiple_of_32,
-                                            normalized_png, oriented_size)
+from ..infrastructure.storage.files import (MAX_RESULT_BYTES, composite_on_original, crop_square, face_crop_box,
+                                            fit_multiple_of_32, normalized_png, oriented_size, paste_faces)
 
 log = logging.getLogger('prisma.executor')
 TASK_DONE = {'completed', 'failed', 'cancelled', 'lost'}
 MAX_UNEXPECTED_ERRORS = 3
 MASK_FEATHER = 12                         # pixels of soft transition, always inside the drawn area
+FACE_SLOTS = 16                           # face task position = image position * FACE_SLOTS + face index
+IMAGE_KINDS = {'image', 'face'}
 PHASES = {'UNETLoader': 'loading_models', 'CLIPLoader': 'loading_models', 'VAELoader': 'loading_models',
           'QwenImage21Cache': 'loading_models', 'LoadImage': 'loading_images', 'LoadImageMask': 'loading_images',
           'TextEncodeQwenImage21': 'encoding', 'KSampler': 'sampling', 'SamplerCustom': 'sampling',
           'VAEDecode': 'decoding', 'GrowMask': 'compositing', 'FeatherMask': 'compositing',
           'ImageCompositeMasked': 'compositing', 'SaveImage': 'saving', 'TextGenerate': 'generating_text',
-          'BatchImagesNode': 'loading_images', 'PreviewAny': 'saving'}
+          'BatchImagesNode': 'loading_images', 'PreviewAny': 'saving', 'VAEEncode': 'encoding',
+          'LoadMediaPipeFaceLandmarker': 'loading_models', 'MediaPipeFaceLandmarker': 'detecting_faces'}
 
 
 class Executor:
@@ -109,6 +113,8 @@ class Executor:
                 self._refining(run)
             elif status == 'generating':
                 self._generating(run)
+            elif status == 'detailing':
+                self._detailing(run)
             elif status == 'verifying':
                 self._verifying(run)
         except ComfyUnavailable:
@@ -197,10 +203,96 @@ class Executor:
         if not done:
             self.repository.transition(run['id'], 'failed', error=next((t['error'] for t in tasks if t['error']),
                                                                        'Nenhuma imagem foi gerada.'))
-        elif settings['verify'] and settings['checks']:
+        elif settings.get('face_detail'):
+            self.repository.transition(run['id'], 'detailing')
+        else:
+            self._images_ready(run, done)
+
+    def _images_ready(self, run: dict, done: list[dict]) -> None:
+        settings = run['settings']
+        if settings['verify'] and settings['checks']:
             self.repository.transition(run['id'], 'verifying')
         else:
             self.repository.transition(run['id'], 'completed', best_task_id=done[0]['id'])
+
+    def _detailing(self, run: dict) -> None:
+        """Per image: detect the faces, redraw each small one from its crop, paste them back. A failure here only
+        leaves that face (or image) as generated: the pass improves a result, it never loses one."""
+        settings = run['settings']
+        detects = {t['position']: t for t in self.repository.tasks(run['id'], 'face_detect')}
+        faces = {t['position']: t for t in self.repository.tasks(run['id'], 'face')}
+        waiting = False
+        for image in self.repository.tasks(run['id'], 'image'):
+            if self._stop.is_set():
+                return
+            if image['status'] != 'completed' or 'detail' in image['result']:
+                continue
+            file_hash = image['result']['files'][0]
+            detect = detects.get(image['position']) or self.repository.add_task(run['id'], 'face_detect',
+                                                                                image['position'])
+
+            def detect_graph(file_hash=file_hash):
+                name = self.comfy.upload(self.store.read(file_hash), f'prisma_{file_hash[:24]}.png', 'image/png')
+                return face_detect_graph(name, max(1, settings.get('participants') or 1))
+            detect = self._drive_optional(detect, detect_graph)
+            if detect['status'] not in TASK_DONE:
+                waiting = True
+                continue
+            data = self.store.read(file_hash)
+            size = oriented_size(data)
+            found = face_boxes(detect['result'].get('text')) if detect['status'] == 'completed' else []
+            pending = []
+            for index, box in enumerate(found[:FACE_SLOTS]):
+                if max(box['width'], box['height']) > face_detail.MAX_FACE:
+                    continue                      # already large enough to carry its own detail
+                slot = image['position'] * FACE_SLOTS + index
+                crop = face_crop_box(box, size)
+                task = faces.get(slot) or self.repository.add_task(run['id'], 'face', slot, seed=image['seed'])
+
+                def face_graph(task=task, crop=crop, index=index, data=data, file_hash=file_hash):
+                    name = self.comfy.upload(crop_square(data, crop, FACE_SIZE),
+                                             f'prisma_face_{file_hash[:24]}_{index}.png', 'image/png')
+                    return image_graph(self._face_job(run, task['seed'], name))
+                pending.append((self._drive_optional(task, face_graph), box, crop))
+            if not all(task['status'] in TASK_DONE for task, _, _ in pending):
+                waiting = True
+                continue
+            self._paste_faces(image, data, len(found), pending)
+        if not waiting:
+            done = [t for t in self.repository.tasks(run['id'], 'image') if t['status'] == 'completed']
+            self._images_ready(run, done)
+
+    def _face_job(self, run: dict, seed: int, name: str) -> ImageJob:
+        """Img2img of one face crop: no LoRA and no reference image, so only the low denoise touches the face."""
+        settings, engine = run['settings'], run['settings']['engine']
+        style = dict((run.get('compiled') or {}).get('segments') or ()).get('op.style')
+        return ImageJob(mode='generate', prompt=face_detail.prompt(style), profile=settings['profile'], seed=seed,
+                        resolution=FACE_SIZE, init_image=name, denoise=face_detail.DENOISE,
+                        negative_prompt=engine.get('negative_prompt', ''), steps=engine.get('steps'),
+                        sampler=engine.get('sampler'), scheduler=engine.get('scheduler'),
+                        prefix=f'prisma/{run["id"][:8]}_face')
+
+    def _paste_faces(self, image: dict, data: bytes, found: int, pending: list) -> None:
+        refined = []
+        for task, box, crop in pending:
+            if task['status'] == 'completed':
+                output = task['result']['images'][0]
+                refined.append((self.comfy.view(output['filename'], output.get('subfolder', ''), output['type']),
+                                box, crop))
+        result = {**image['result'], 'detail': {'found': found, 'refined': len(refined)}}
+        if refined:
+            with self.repository.db.write_lock:
+                stored = self.store.put(paste_faces(data, refined), MAX_RESULT_BYTES)
+                self.repository.record_file(stored)
+            result.update(files=[stored.hash], raw_files=image['result']['files'])
+        self.repository.task_transition(image['id'], 'completed', result_json=result)
+
+    def _drive_optional(self, task: dict, build) -> dict:
+        """Like `_drive`, but a graph this ComfyUI cannot run fails only the task, not the whole run."""
+        try:
+            return self._drive(task, build)
+        except ValueError as error:
+            return self.repository.task_transition(task['id'], 'failed', error=str(error)[:2000])
 
     def _verifying(self, run: dict) -> None:
         checks = [Check(**c) for c in run['settings']['checks']]
@@ -291,8 +383,9 @@ class Executor:
         timings = self._timings(task)
         if state.status == 'completed':
             outputs = self.comfy.outputs(task['comfy_prompt_id'])
-            result = {'images': image_outputs(outputs)} if task['kind'] == 'image' else {'text': text_output(outputs)}
-            if task['kind'] == 'image' and not result['images']:
+            images = task['kind'] in IMAGE_KINDS
+            result = {'images': image_outputs(outputs)} if images else {'text': text_output(outputs)}
+            if images and not result['images']:
                 return self.repository.task_transition(task['id'], 'failed', error='O workflow terminou sem imagem.',
                                                        timings_json=timings)
             return self.repository.task_transition(task['id'], 'completed', result_json=result, timings_json=timings,

@@ -4,6 +4,7 @@ from __future__ import annotations
 import secrets
 from dataclasses import asdict
 
+from ..domain import face_detail
 from ..domain.compiler import compile_request
 from ..domain.request import Request
 from ..domain.rules import assess
@@ -72,6 +73,7 @@ class RunService:
             'verify': output.verify, 'refine': output.refine and output.profile == 'qwen21',
             'engine': request.engine.model_dump(), 'checks': [asdict(c) for c in checklist(compiled.blocks)],
             'compiler_version': compiled.version, 'participants': assessment.participants_total, 'blocks': [b.id for b in compiled.blocks],
+            'face_detail': face_detail.enabled(output.face_detail, assessment.participants_total),
         }
         return self._insert(request_id, request.mode, request.model_dump(mode='json'),
                             {'references': files, 'mask': mask}, settings, prompt=compiled.text,

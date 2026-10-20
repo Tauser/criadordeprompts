@@ -290,7 +290,7 @@ const usesPersonPhotos = (request: StudioRequest) => request.mode === 'edit' || 
   || (['subject', 'face', 'body', 'skin', 'hair'] as const).some(c => request.attributes[c]?.intent === 'transfer');
 
 function OutputBasics({request, patch}: {request: StudioRequest; patch: Patch}) {
-  const edit = request.mode === 'edit', custom = request.output.width != null;
+  const edit = request.mode === 'edit', custom = request.output.width != null, faceDetail = request.output.face_detail;
   return (
     <div className="fields three">
       <label>Execução<select value={request.output.profile} onChange={e => patch(r => {r.output.profile = e.target.value as 'qwen21' | 'turbo'; if (r.output.profile === 'turbo') r.output.refine = false;})}>
@@ -304,6 +304,10 @@ function OutputBasics({request, patch}: {request: StudioRequest; patch: Patch}) 
         {['3:4', '2:3', '1:1', '4:3', '3:2', '16:9', '9:16'].map(a => <option key={a} value={a}>{a}</option>)}</select></label>
       <label>Variações<select value={request.output.variations} onChange={e => patch(r => {r.output.variations = Number(e.target.value);})}>
         {[1, 2, 3, 4].map(v => <option key={v} value={v}>{v}</option>)}</select></label>
+      <label title="Depois da imagem pronta, cada rosto pequeno é recortado, redesenhado em alta resolução e colado de volta: corrige olhos desnivelados ou de cores diferentes sem mudar a identidade.">
+        Detalhe dos rostos<select value={faceDetail == null ? 'auto' : faceDetail ? 'on' : 'off'}
+        onChange={e => patch(r => {r.output.face_detail = e.target.value === 'auto' ? null : e.target.value === 'on';})}>
+        <option value="auto">Automático (2+ pessoas)</option><option value="on">Sempre</option><option value="off">Nunca</option></select></label>
       <label className="check"><input type="checkbox" checked={request.output.verify}
         onChange={e => patch(r => {r.output.verify = e.target.checked;})} /> Verificar o resultado automaticamente</label>
       <label className="check"><input type="checkbox" checked={request.output.refine} disabled={request.output.profile === 'turbo'}

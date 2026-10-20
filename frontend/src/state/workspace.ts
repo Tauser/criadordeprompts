@@ -32,7 +32,7 @@ export function initialRequest(mode: 'generate' | 'edit'): StudioRequest {
     context: {supports: null, allow_new_supports: false, allow_reframing: true, original_framing: null},
     details: '', confirmations: [],
     output: {profile: 'qwen21', resolution: mode === 'edit' ? 0 : 1024, aspect: '3:4', width: null, height: null,
-      seed: null, variations: 1, verify: false, refine: false},
+      seed: null, variations: 1, verify: false, refine: false, face_detail: null},
     engine: {negative_prompt: ''},
   };
 }

@@ -1,6 +1,7 @@
 """API graphs built from code. Node ids, classes and model files live only here."""
 from __future__ import annotations
 
+import json
 import math
 from dataclasses import dataclass, field
 
@@ -21,6 +22,8 @@ TEXT_OUTPUT_NODE = '92'
 LORA_NODES = 30                    # LoraLoaderModelOnly nodes of image graphs: 30, 31, 32
 IMAGE_INPUT_NODES = 200            # LoadImage nodes of image graphs: 201, 202...
 TEXT_IMAGE_NODES = 300             # LoadImage nodes of text graphs: 300, 301...
+FACE_MODEL = 'mediapipe_face_fp32.safetensors'
+FACE_SIZE = 1024                   # side of the square face crop sent back to the image model
 
 
 @dataclass(frozen=True)
@@ -44,6 +47,7 @@ class ImageJob:
     mask_feather: int = 24
     prefix: str = 'prisma/studio'
     loras: tuple[tuple[str, float], ...] = ()   # (file name, strength), applied in order
+    init_image: str | None = None     # uploaded picture to start from (img2img at `denoise`), not a reference
 
 
 @dataclass(frozen=True)
@@ -75,8 +79,17 @@ def settings(job: ImageJob) -> dict:
         if value is not None:
             base[key] = value
     if job.profile == 'turbo':
-        base.update(steps=8, cfg=1.0, sampler='euler', scheduler='turbo', denoise=1.0)
+        base.update(steps=8, cfg=1.0, sampler='euler', scheduler='turbo',
+                    denoise=job.denoise if job.init_image and job.denoise is not None else 1.0)
     return base
+
+
+def turbo_tail(denoise: float) -> str:
+    """The turbo schedule from the first sigma at or below `denoise`: the distilled model only knows its own steps."""
+    values = [float(v) for v in TURBO_SIGMAS.split(',')]
+    start = next(i for i, v in enumerate(values) if v <= denoise + 1e-6)
+    tail = values[min(start, len(values) - 2):]
+    return ', '.join(f'{v:g}' for v in tail)
 
 
 def image_graph(job: ImageJob) -> dict:
@@ -104,16 +117,23 @@ def image_graph(job: ImageJob) -> dict:
     for index, name in enumerate(job.images, 1):
         g[str(IMAGE_INPUT_NODES + index)] = {'class_type': 'LoadImage', 'inputs': {'image': name}}
         g['10']['inputs'][f'images.image_{index}'] = [str(IMAGE_INPUT_NODES + index), 0]
-    if job.mode == 'generate' and not job.width:
+    if job.init_image and (job.mode != 'generate' or job.width):
+        raise ValueError('Partir de uma imagem é uma geração sem tamanho próprio: o tamanho é o da imagem.')
+    if job.mode == 'generate' and not job.width and not job.init_image:
         raise ValueError('A geração exige largura e altura calculadas.')
     if job.width:
         width, height = job.width, job.height
         g['11'] = {'class_type': 'EmptySD3LatentImage', 'inputs': {'width': width, 'height': height, 'batch_size': 1}}
         latent = ['11', 0]
+    elif job.init_image:
+        g['12'] = {'class_type': 'LoadImage', 'inputs': {'image': job.init_image}}
+        g['13'] = {'class_type': 'VAEEncode', 'inputs': {'pixels': ['12', 0], 'vae': ['3', 0]}}
+        latent = ['13', 0]
     else:
         latent = ['10', 2]
     if job.profile == 'turbo':
-        g['40'] = {'class_type': 'ManualSigmas', 'inputs': {'sigmas': TURBO_SIGMAS}}
+        sigmas = turbo_tail(s['denoise']) if job.init_image else TURBO_SIGMAS
+        g['40'] = {'class_type': 'ManualSigmas', 'inputs': {'sigmas': sigmas}}
         g['41'] = {'class_type': 'KSamplerSelect', 'inputs': {'sampler_name': 'euler'}}
         g['42'] = {'class_type': 'SamplerCustom', 'inputs': {
             'model': ['4', 0], 'add_noise': True, 'noise_seed': job.seed, 'cfg': 1.0, 'positive': ['10', 0],
@@ -141,6 +161,36 @@ def image_graph(job: ImageJob) -> dict:
         final = ['54', 0]
     g[IMAGE_OUTPUT_NODE] = {'class_type': 'SaveImage', 'inputs': {'images': final, 'filename_prefix': job.prefix}}
     return g
+
+
+def face_detect_graph(image: str, faces: int, min_confidence: float = 0.5) -> dict:
+    """Find up to `faces` faces with ComfyUI's MediaPipe detector; the boxes come back as text."""
+    return {
+        '70': {'class_type': 'LoadImage', 'inputs': {'image': image}},
+        '71': {'class_type': 'LoadMediaPipeFaceLandmarker', 'inputs': {'model_name': FACE_MODEL}},
+        '72': {'class_type': 'MediaPipeFaceLandmarker', 'inputs': {
+            'face_detection_model': ['71', 0], 'image': ['70', 0], 'detector_variant': 'full', 'num_faces': faces,
+            'min_confidence': min_confidence, 'missing_frame_fallback': 'empty'}},
+        TEXT_OUTPUT_NODE: {'class_type': 'PreviewAny', 'inputs': {'source': ['72', 1]}},
+    }
+
+
+def face_boxes(text: str | None) -> list[dict]:
+    """Boxes of the first (only) frame as {x, y, width, height, score}; malformed entries are dropped."""
+    try:
+        frames = json.loads(text or '[]')
+    except ValueError:
+        return []
+    frame = frames[0] if isinstance(frames, list) and frames and isinstance(frames[0], list) else []
+    boxes = []
+    for box in frame:
+        try:
+            values = {k: float(box[k]) for k in ('x', 'y', 'width', 'height')}
+        except (KeyError, TypeError, ValueError):
+            continue
+        if values['width'] > 0 and values['height'] > 0:
+            boxes.append({**values, 'score': float(box.get('score') or 0)})
+    return boxes
 
 
 def text_graph(job: TextJob) -> dict:

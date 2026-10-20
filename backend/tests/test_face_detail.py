@@ -1,0 +1,165 @@
+import io
+import json
+
+import pytest
+from PIL import Image
+
+from fakes import png
+from helpers import cat
+from prisma_studio.domain import face_detail
+from prisma_studio.domain.request import Request
+from prisma_studio.infrastructure.comfy.client import ComfyRejected
+from prisma_studio.infrastructure.comfy.workflows import (ImageJob, face_boxes, face_detect_graph, image_graph,
+                                                          turbo_tail)
+from prisma_studio.infrastructure.storage.files import crop_square, face_crop_box, paste_faces
+from test_executor import env  # noqa: F401 - shared fixture
+
+FACE = {'x': 10, 'y': 8, 'width': 8, 'height': 10, 'label': 'face', 'score': 0.9}
+OTHER = {'x': 40, 'y': 20, 'width': 9, 'height': 11, 'label': 'face', 'score': 0.7}
+
+
+def couple(**output):
+    return Request(mode='generate', participants={'requested': 2},
+                   attributes={'environment': cat('env.garden'), 'action': cat('action.hug')}, output=output)
+
+
+def single(**output):
+    return Request(mode='generate', attributes={'subject': cat('subject.woman'), 'environment': cat('env.garden')},
+                   output=output)
+
+
+# domain ---------------------------------------------------------------------
+def test_automatic_mode_follows_the_number_of_people():
+    assert face_detail.enabled(None, 2) and face_detail.enabled(None, 3)
+    assert not face_detail.enabled(None, 1) and not face_detail.enabled(None, None)
+    assert face_detail.enabled(True, 1) and not face_detail.enabled(False, 2)
+
+
+def test_prompt_asks_for_matching_level_eyes_and_keeps_the_style_without_image_tags():
+    text = face_detail.prompt('Render the result as a watercolor painting.')
+    assert 'level with each other' in text and 'iris color' in text
+    assert text.endswith('Render the result as a watercolor painting.')
+    assert '<image' not in face_detail.prompt('Render the whole image in the style of <image2>.')
+
+
+# graphs ---------------------------------------------------------------------
+def test_detect_graph_uses_full_range_detector_and_caps_faces():
+    graph = face_detect_graph('shot.png', 2)
+    detector = next(n for n in graph.values() if n['class_type'] == 'MediaPipeFaceLandmarker')['inputs']
+    assert detector['detector_variant'] == 'full' and detector['num_faces'] == 2 and detector['min_confidence'] == 0.5
+
+
+def test_face_boxes_reads_the_first_frame_and_drops_bad_entries():
+    text = json.dumps([[FACE, {'x': 1, 'y': 2}, {**OTHER, 'width': 0}]])
+    assert [b['x'] for b in face_boxes(text)] == [10.0]
+    assert face_boxes('not json') == [] and face_boxes(None) == [] and face_boxes('[[]]') == []
+
+
+def test_img2img_graph_encodes_the_start_image_without_using_it_as_reference():
+    graph = image_graph(ImageJob(mode='generate', prompt='face', init_image='crop.png', denoise=0.45,
+                                 resolution=1024))
+    assert graph['13']['class_type'] == 'VAEEncode' and graph['12']['inputs']['image'] == 'crop.png'
+    assert graph['42']['inputs']['latent_image'] == ['13', 0] and graph['42']['inputs']['denoise'] == 0.45
+    assert not any(k.startswith('images.') for k in graph['10']['inputs'])
+    with pytest.raises(ValueError):
+        image_graph(ImageJob(mode='edit', prompt='x', images=('a.png',), init_image='crop.png'))
+
+
+def test_turbo_img2img_starts_at_the_matching_sigma():
+    assert turbo_tail(0.45) == '0.414568, 0'
+    assert turbo_tail(1.0).startswith('1, 0.978453')
+    assert turbo_tail(0.0) == '0.414568, 0'          # never fewer than one step
+    graph = image_graph(ImageJob(mode='generate', prompt='face', profile='turbo', init_image='c.png', denoise=0.45))
+    assert graph['40']['inputs']['sigmas'] == '0.414568, 0'
+
+
+# crop and paste -------------------------------------------------------------
+def test_crop_box_is_square_scaled_and_inside_the_picture():
+    assert face_crop_box({'x': 100, 'y': 100, 'width': 80, 'height': 100}, (896, 1184)) == (60, 70, 160)
+    left, top, side = face_crop_box({'x': 0, 'y': 2, 'width': 50, 'height': 60}, (896, 1184))
+    assert (left, top) == (0, 0) and side == 96
+    assert face_crop_box({'x': 850, 'y': 10, 'width': 40, 'height': 40}, (896, 1184))[0] == 896 - 64
+    assert face_crop_box({'x': 0, 'y': 0, 'width': 900, 'height': 900}, (300, 200))[2] == 200
+
+
+def test_paste_changes_only_the_face_oval():
+    base = png(200, 160, (10, 10, 10))
+    box = {'x': 80, 'y': 50, 'width': 40, 'height': 50}
+    crop = face_crop_box(box, (200, 160))
+    assert Image.open(io.BytesIO(crop_square(base, crop, 256))).size == (256, 256)
+    out = Image.open(io.BytesIO(paste_faces(base, [(png(256, 256, (250, 250, 250)), box, crop)])))
+    assert out.size == (200, 160)
+    assert out.getpixel((100, 75))[0] > 200                    # face centre takes the refined face
+    left, top, side = crop
+    for point in [(left, top), (left + side - 1, top + side - 1), (5, 5)]:
+        assert out.getpixel(point) == (10, 10, 10)            # crop edges and the rest stay untouched
+
+
+# executor -------------------------------------------------------------------
+def test_couple_run_redraws_each_small_face_and_keeps_the_raw_image(env):  # noqa: F811
+    env.comfy.faces = [FACE, OTHER]
+    run = env.service.create(couple(seed=7), 'faces-1', {}, None)
+    assert run['settings']['face_detail'] is True
+    run = env.run_until(run['id'])
+    assert run['status'] == 'completed'
+    image = env.repo.tasks(run['id'], 'image')[0]
+    assert image['result']['detail'] == {'found': 2, 'refined': 2}
+    assert image['result']['raw_files'] != image['result']['files']
+    detect = env.repo.tasks(run['id'], 'face_detect')[0]
+    assert next(n for n in detect['graph'].values()
+                if n['class_type'] == 'MediaPipeFaceLandmarker')['inputs']['num_faces'] == 2
+    faces = env.repo.tasks(run['id'], 'face')
+    assert [t['position'] for t in faces] == [0, 1] and all(t['seed'] == 7 for t in faces)
+    graph = faces[0]['graph']
+    assert graph['42']['inputs']['denoise'] == face_detail.DENOISE
+    assert not any(n['class_type'] == 'LoraLoaderModelOnly' for n in graph.values())
+    statuses = [e['status'] for e in env.repo.events(run['id']) if e['type'] == 'status']
+    assert statuses == ['created', 'preparing', 'generating', 'detailing', 'completed']
+
+
+def test_no_face_found_keeps_the_image_as_generated(env):  # noqa: F811
+    run = env.run_until(env.service.create(couple(), 'faces-2', {}, None)['id'])
+    image = env.repo.tasks(run['id'], 'image')[0]
+    assert run['status'] == 'completed' and image['result']['detail'] == {'found': 0, 'refined': 0}
+    assert 'raw_files' not in image['result'] and env.repo.tasks(run['id'], 'face') == []
+
+
+def test_large_faces_are_left_alone(env):  # noqa: F811
+    env.comfy.faces = [{**FACE, 'width': face_detail.MAX_FACE + 1}]
+    run = env.run_until(env.service.create(couple(), 'faces-3', {}, None)['id'])
+    assert env.repo.tasks(run['id'], 'face') == []
+    assert env.repo.tasks(run['id'], 'image')[0]['result']['detail'] == {'found': 1, 'refined': 0}
+
+
+def test_single_person_skips_the_pass_unless_asked(env):  # noqa: F811
+    env.comfy.faces = [FACE]
+    run = env.run_until(env.service.create(single(), 'faces-4', {}, None)['id'])
+    assert run['settings']['face_detail'] is False and env.repo.tasks(run['id'], 'face_detect') == []
+    run = env.run_until(env.service.create(single(face_detail=True), 'faces-5', {}, None)['id'])
+    assert env.repo.tasks(run['id'], 'image')[0]['result']['detail']['refined'] == 1
+    off = env.service.create(couple(face_detail=False), 'faces-6', {}, None)
+    assert off['settings']['face_detail'] is False
+
+
+def test_a_failing_detection_never_fails_the_run(env):  # noqa: F811
+    upload = env.comfy.upload
+
+    def refuse(data, filename, mime):
+        raise ComfyRejected('no detector')
+    run = env.service.create(couple(), 'faces-7', {}, None)
+    env.run_until(run['id'], statuses=('detailing',))
+    env.comfy.upload = refuse
+    run = env.run_until(run['id'])
+    env.comfy.upload = upload
+    assert run['status'] == 'completed'
+    assert env.repo.tasks(run['id'], 'face_detect')[0]['status'] == 'failed'
+    assert env.repo.tasks(run['id'], 'image')[0]['result']['detail'] == {'found': 0, 'refined': 0}
+
+
+def test_deleting_the_run_removes_the_raw_image_too(env):  # noqa: F811
+    env.comfy.faces = [FACE]
+    run = env.run_until(env.service.create(couple(), 'faces-8', {}, None)['id'])
+    result = env.repo.tasks(run['id'], 'image')[0]['result']
+    assert result['raw_files'][0] in env.repo.referenced_files()        # never collected as an orphan
+    env.service.delete(run['id'])
+    assert not env.store.path(result['raw_files'][0]).exists() and not env.store.path(result['files'][0]).exists()
