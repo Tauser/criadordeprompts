@@ -29,6 +29,9 @@ const sortedOptions = (values: string[], labels: Record<string, string>) =>
 const compareCategoryThenLabel = (a: Item, b: Item) =>
   SORTED_CATEGORIES.indexOf(a.category) - SORTED_CATEGORIES.indexOf(b.category) || compareText(a.label, b.label);
 
+const LEVELS = [['conflict', 'Conflito', 'error'], ['ambiguity', 'Ambíguo', 'warning'], ['style', 'Redação', 'unknown']] as const;
+const levelOf = (level: TextFinding['level']) => LEVELS.find(l => l[0] === level) ?? LEVELS[2];
+
 const blank = (category: Category): Item => ({id: `user.${category}.${uuid().slice(0, 8)}`, category,
   label: '', prompt: '', prompt_pt: '', adult: false, enabled: true, requirements: {}, provides: {}});
 
@@ -66,10 +69,22 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
     return () => {current = false; window.clearTimeout(timer);};
   }, [draft]);
   useEffect(() => setDirty(dirty), [dirty, setDirty]);
+  // Review of every saved option at once; it only lists, nothing is changed. Refreshed after each save.
+  const [review, setReview] = useState(false);
+  const [report, setReport] = useState<Record<string, TextFinding[]> | null>(null);
+  const [reviewError, setReviewError] = useState('');
+  useEffect(() => {
+    if (!review) {setReport(null); setReviewError(''); return;}
+    let current = true;
+    api.auditLibrary().then(r => {if (current) {setReport(r); setReviewError('');}})
+      .catch(error => {if (current) setReviewError((error as Error).message || 'Não foi possível revisar a biblioteca.');});
+    return () => {current = false;};
+  }, [review, snapshot]);
 
   const matching = useMemo(() => snapshot.items.filter(item => (!incomplete || missingMetadata(item).length > 0)
+    && (!review || !!report?.[item.id]?.length)
     && (!query || (item.label + ' ' + item.prompt + ' ' + (item.prompt_pt ?? '')).toLowerCase().includes(query.toLowerCase()))),
-    [snapshot, query, incomplete]);
+    [snapshot, query, incomplete, review, report]);
   const items = useMemo(() => matching.filter(item => category === 'all' || item.category === category)
     .sort((a, b) => compareCategoryThenLabel(a, b)), [matching, category]);
   const perCategory = useMemo(() => {
@@ -100,7 +115,9 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
     for (const item of items) {if (on) next.add(item.id); else next.delete(item.id);}
     return next;
   });
-  const incompleteCount = useMemo(() => snapshot.items.filter(i => missingMetadata(i).length).length, [snapshot]);
+  const tagsOf = (item: Item) => [category === 'all' && CATEGORY_LABELS[item.category], item.adult && '+18',
+    !item.enabled && 'desativada', snapshot.origins[item.id] !== 'builtin' && 'sua'].filter(Boolean).join(' · ');
+  const incompleteCount =useMemo(() => snapshot.items.filter(i => missingMetadata(i).length).length, [snapshot]);
 
   const open = (item: Item | null) => {
     if (dirty && !confirm('Descartar as alterações não salvas?')) return;
@@ -246,6 +263,9 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
           <input type="search" placeholder="Buscar por nome ou descrição" value={query} onChange={e => setQuery(e.target.value)} aria-label="Buscar opções" /></label>
         <label className="check"><input type="checkbox" checked={incomplete} onChange={e => setIncomplete(e.target.checked)} />
           Só metadados incompletos ({incompleteCount})</label>
+        <label className="check" title="Revisa o texto de todas as opções salvas e mostra só as que têm avisos, agrupadas por nível. Nada é alterado.">
+          <input type="checkbox" checked={review} onChange={e => setReview(e.target.checked)} />
+          Revisar biblioteca{report ? ` (${Object.keys(report).length})` : ''}</label>
         <span className="muted small library-count">{items.length} opções</span>
       </div>
       <div className="chips category-chips" role="group" aria-label="Categoria">
@@ -271,7 +291,26 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
       {incomplete && <p className="help">Sem esses dados, as regras não verificam conflitos e o compilador não acrescenta as orientações de postura, olhar e apoio.</p>}
     <div className="library">
       <section className="card list-card">
-        <ul className="item-list">
+        {review ? <div className="review-groups" aria-label="Revisão da biblioteca">
+          {reviewError && <p className="issue error review-note">{reviewError}</p>}
+          {!report ? !reviewError && <p className="muted small review-note">Revisando a biblioteca…</p>
+            : !items.length ? <p className="muted small review-note">Nenhuma opção com avisos{query || category !== 'all' || incomplete ? ' neste filtro' : ''}.</p>
+            : LEVELS.map(([level, name, tone]) => {
+              const rows = items.filter(item => report[item.id]?.some(f => f.level === level));
+              return rows.length > 0 && <section key={level} aria-label={name}>
+                <h3 className={'review-level ' + tone}>{name}<span>{rows.length}</span></h3>
+                <ul className="item-list">{rows.map(item => (
+                  <li key={item.id} className="item-row">
+                    <button className={'item' + (draft?.id === item.id ? ' selected' : '')} onClick={() => open(item)}>
+                      <strong>{item.label}</strong>
+                      {tagsOf(item) && <span className="muted small">{tagsOf(item)}</span>}
+                      <span className="review-messages">{report[item.id].filter(f => f.level === level).map(f => (
+                        <span key={f.code} className={'issue ' + tone}>{f.message}</span>))}</span>
+                    </button>
+                  </li>))}</ul>
+              </section>;
+            })}
+        </div> : <ul className="item-list">
           {items.map((item, index) => (
             <li key={item.id} className={'item-row' + (selected.has(item.id) ? ' checked' : '')}>
               <input type="checkbox" checked={selected.has(item.id)} aria-label={`Selecionar ${item.label}`}
@@ -279,17 +318,13 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
                      onChange={() => {toggleOne(index, shiftHeld.current); shiftHeld.current = false;}} />
               <button className={'item' + (draft?.id === item.id ? ' selected' : '')} onClick={() => open(item)}>
                 <strong>{item.label}</strong>
-                {(() => {
-                  const tags = [category === 'all' && CATEGORY_LABELS[item.category], item.adult && '+18', !item.enabled && 'desativada',
-                    snapshot.origins[item.id] !== 'builtin' && 'sua'].filter(Boolean);
-                  return tags.length ? <span className="muted small">{tags.join(' · ')}</span> : null;
-                })()}
+                {tagsOf(item) && <span className="muted small">{tagsOf(item)}</span>}
                 {item.prompt_pt && <span className="item-pt">{item.prompt_pt}</span>}
                 {missingMetadata(item).length > 0 && <span className="missing-meta">Falta: {missingMetadata(item).map(metadataLabel).join(', ')}</span>}
               </button>
             </li>
           ))}
-        </ul>
+        </ul>}
       </section>
       {!draft && <section className="card editor-empty"><h2>Escolha uma opção</h2>
         <p className="muted">Selecione um item da lista para ver e editar o texto que vai para o modelo, ou crie uma opção nova.</p></section>}
@@ -335,8 +370,8 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
             <label className="check"><input type="checkbox" checked={draft.enabled} onChange={e => setDraft({...draft, enabled: e.target.checked})} /> Ativa</label>
           </div>
           {findings.length > 0 && <ul className="issues" aria-label="Revisão do texto">{findings.map(f => (
-            <li key={f.code} className={'issue ' + (f.level === 'conflict' ? 'error' : f.level === 'ambiguity' ? 'warning' : 'unknown')}>
-              <span className="level">{f.level === 'conflict' ? 'Conflito' : f.level === 'ambiguity' ? 'Ambíguo' : 'Redação'}</span>{f.message}</li>))}</ul>}
+            <li key={f.code} className={'issue ' + levelOf(f.level)[2]}>
+              <span className="level">{levelOf(f.level)[1]}</span>{f.message}</li>))}</ul>}
           {missingMetadata(draft).length > 0 && <p className="issue warning">Falta informar: {missingMetadata(draft).map(metadataLabel).join(', ')}.
             Use "qualquer" ou deixe os apoios vazios quando a opção não exigir nada.</p>}
           {['pose', 'action', 'expression', 'subject'].includes(draft.category) && (

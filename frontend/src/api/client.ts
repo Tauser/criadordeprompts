@@ -32,6 +32,7 @@ export const api = {
   library: () => call<LibrarySnapshot>('GET', '/api/library'),
   loras: () => call<{available: boolean; loras: string[]}>('GET', '/api/loras'),
   auditItem: (item: Item) => call<{findings: TextFinding[]}>('POST', '/api/library/audit', item),
+  auditLibrary: () => call<Record<string, TextFinding[]>>('GET', '/api/library/audit'),
   saveLibrary: (revision: number, items: unknown[]) => call<LibrarySnapshot>('PUT', '/api/library', {revision, items}),
   prepare: (request: StudioRequest) => call<Prepared>('POST', '/api/prepare', request),
   upload: (file: Blob, name: string) => {
