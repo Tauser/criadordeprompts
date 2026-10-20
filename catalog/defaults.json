@@ -4792,7 +4792,8 @@
         "gaze": "any",
         "orientation": "any",
         "support_any_of": ["floor"],
-        "minimum_framing": "full"
+        "minimum_framing": "full",
+        "children": true
       },
       "provides": {
         "supports": null,
@@ -4817,7 +4818,8 @@
         "gaze": "any",
         "orientation": "any",
         "support_any_of": ["floor"],
-        "minimum_framing": "full"
+        "minimum_framing": "full",
+        "children": true
       },
       "provides": {
         "supports": null,
@@ -4842,7 +4844,8 @@
         "gaze": "down",
         "orientation": "any",
         "support_any_of": ["seat"],
-        "minimum_framing": "half"
+        "minimum_framing": "half",
+        "children": true
       },
       "provides": {
         "supports": null,
@@ -4867,7 +4870,8 @@
         "gaze": "down",
         "orientation": "any",
         "support_any_of": ["table"],
-        "minimum_framing": "half"
+        "minimum_framing": "half",
+        "children": true
       },
       "provides": {
         "supports": null,
@@ -4892,7 +4896,8 @@
         "gaze": "closed",
         "orientation": "any",
         "support_any_of": [],
-        "minimum_framing": "half"
+        "minimum_framing": "half",
+        "children": true
       },
       "provides": {
         "supports": null,
@@ -4917,7 +4922,8 @@
         "gaze": "any",
         "orientation": "any",
         "support_any_of": ["seat"],
-        "minimum_framing": "full"
+        "minimum_framing": "full",
+        "children": true
       },
       "provides": {
         "supports": null,
@@ -4942,7 +4948,8 @@
         "gaze": "any",
         "orientation": "back",
         "support_any_of": ["floor"],
-        "minimum_framing": "full"
+        "minimum_framing": "full",
+        "children": true
       },
       "provides": {
         "supports": null,
@@ -5417,7 +5424,8 @@
         "gaze": "camera",
         "orientation": "front",
         "support_any_of": ["floor"],
-        "minimum_framing": "full"
+        "minimum_framing": "full",
+        "children": true
       },
       "provides": {
         "supports": null,

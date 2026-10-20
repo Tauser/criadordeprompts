@@ -151,6 +151,30 @@ def test_poses_carry_the_anatomy_guard(photo):
     assert 'exactly two arms' not in scene_only.text
 
 
+
+def test_scenes_with_children_ask_for_proportions_by_age():
+    family = Library(items=[
+        item('action.family', 'action', 'two adults walking with a small child between them, holding hands',
+             req={'participants': 3, 'posture': 'walking', 'gaze': 'any', 'children': True}),
+        item('action.couple', 'action', 'two adults walking side by side and holding hands',
+             req={'participants': 2, 'posture': 'walking', 'gaze': 'any'}),
+        item('action.sexy', 'action', 'two adults in a slow, intimate dance', adult=True,
+             req={'participants': 2, 'posture': 'standing', 'gaze': 'any'}),
+        item('pose.kids', 'pose', 'three people standing in a row, a child in the middle',
+             req={'participants': 3, 'posture': 'standing', 'gaze': 'any', 'children': True}),
+    ])
+    _, compiled = run(generate_request({'action': cat('action.family')}), family)
+    assert "proportions natural for that person's age" in compiled.text and 'adult proportions' not in compiled.text
+    assert "that person's age" in next(c.question for c in checklist(compiled.blocks) if c.id == 'guide.anatomy')
+    _, adults = run(generate_request({'action': cat('action.couple')}), family)
+    assert 'natural adult proportions' in adults.text
+    mixed, _ = run(generate_request({'action': cat('action.sexy'), 'pose': cat('pose.kids')}, content_mode='adult',
+                                    confirmations=['adults_only']), family)
+    assert 'adult_with_children' in codes(mixed, 'error')
+    with pytest.raises(ValueError):
+        item('action.bad', 'action', 'two adults dancing close together', adult=True,
+             req={'participants': 2, 'children': True})
+
 def test_edits_that_endanger_the_body_are_flagged(photo):
     request = edit_request({**KEEP_PERSON, 'style': cat('style.real'), 'wardrobe': cat('wardrobe.dress'),
                             'environment': cat('env.room'), 'lighting': cat('light.soft')})

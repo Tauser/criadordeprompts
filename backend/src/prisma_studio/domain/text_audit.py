@@ -30,6 +30,7 @@ COMPATIBLE_POSTURES = {
 BACK_WORDS = r'\b(?:from behind|back (?:to|toward|towards) the camera|seen from the back|view from behind)\b'
 FRONT_WORDS = r'\b(?:facing the camera|front (?:of the body )?(?:to|toward|towards) the camera)\b'
 CAMERA_GAZE = r'\b(?:looking (?:at|into) the (?:camera|lens)|eyes (?:on|at|directed at) the (?:camera|lens))\b'
+CHILD_WORDS = r'\b(?:child|children|kids?|toddlers?|baby|babies)\b'
 FIXED_HEAD = r'\bhead (?:in line with the spine|aligned with the (?:spine|body)|straight)\b'
 
 
@@ -97,6 +98,11 @@ def audit_item(item: Item) -> list[Finding]:
         add('fixed_head', 'conflict', 'O texto fixa a cabeça alinhada, mas a orientação ou o olhar pedem que ela gire.')
     if item.category in ('pose', 'action') and req.participants == 1 and re.search(r'\b(?:each other|two adults|partner)\b', low):
         add('people_words', 'conflict', 'O texto fala de duas pessoas, mas a opção declara uma.')
+    if re.search(CHILD_WORDS, low) and item.adult:
+        add('adult_with_children', 'conflict', 'O texto fala de crianças numa opção adulta.')
+    elif body and re.search(CHILD_WORDS, low) and not req.children:
+        add('children_not_declared', 'conflict', 'O texto fala de crianças, mas a opção não declara que a cena inclui '
+            'crianças: o compilador pediria proporções de adulto para todos.')
     return found
 
 

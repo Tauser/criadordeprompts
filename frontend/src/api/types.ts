@@ -59,7 +59,7 @@ export interface StudioRequest {
 
 export interface Requirements {
   participants?: number | null; posture?: Posture | null; gaze?: Gaze | null; orientation?: Orientation | null;
-  support_any_of?: Support[] | null; minimum_framing?: Framing | null;
+  support_any_of?: Support[] | null; minimum_framing?: Framing | null; children?: boolean | null;
 }
 export interface Item {
   id: string; category: Category; label: string; prompt: string; prompt_pt?: string | null; edit_prompt?: string | null;

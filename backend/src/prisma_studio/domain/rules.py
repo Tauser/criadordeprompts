@@ -111,6 +111,9 @@ def assess(request: Request, library: Library) -> Assessment:
             report('duplicate_character', where, 'Esta foto já está sendo usada para outro personagem.')
         seen_characters.add(character.reference_id)
 
+    if any(item.adult for item in resolved.values()) and any(i.requirements.children for i in resolved.values()):
+        report('adult_with_children', 'attributes', 'Uma opção adulta não pode ser combinada com uma cena que inclui '
+               'crianças.', kind='policy')
     if any(item.adult for item in resolved.values()):
         if 'adults_only' not in request.confirmations:
             report('confirm_adults', 'confirmations', 'Confirme que todas as pessoas retratadas são adultas.',

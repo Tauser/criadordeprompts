@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import unicodedata
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from .vocabulary import Category, Framing, Gaze, Orientation, Period, Place, Posture, Support
 
@@ -18,6 +18,7 @@ class Requirements(BaseModel):
     orientation: Orientation | None = None
     support_any_of: tuple[Support, ...] | None = None
     minimum_framing: Framing | None = None
+    children: bool | None = None              # the scene includes children: proportions follow each person's age
 
 
 class Provides(BaseModel):
@@ -49,6 +50,12 @@ class Item(BaseModel):
         if value is not None and not value.strip():
             raise ValueError('A instrução de edição não pode ficar vazia.')
         return value.strip() if value is not None else None
+
+    @model_validator(mode='after')
+    def _adult_without_children(self):
+        if self.adult and self.requirements.children:
+            raise ValueError('Uma opção adulta não pode incluir crianças.')
+        return self
 
 
 class Library(BaseModel):

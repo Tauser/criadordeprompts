@@ -110,7 +110,9 @@ def build_ir(request: Request, assessment: Assessment) -> list:
     if posture or orientation:
         body.append(ir.Guidance('head', 'natural'))
     if any(request.attribute(c).intent in ('set', 'transfer') for c in ('pose', 'action')):
-        body.append(ir.Guidance('anatomy', 'limbs'))      # complex poses are where extra legs and arms appear
+        # Complex poses are where extra legs and arms appear; with children in the scene, proportions follow each age.
+        ages = 'mixed_ages' if any(r.children for r in assessment.requirements) else 'limbs'
+        body.append(ir.Guidance('anatomy', ages))
     if (assessment.participants_total or 0) > 1:
         body.append(ir.Guidance('faces', 'eyes'))         # small faces in a group are where the eyes drift apart
     anchor = max((i for i, b in enumerate(blocks) if isinstance(b, ir.Operation)

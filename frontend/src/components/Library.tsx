@@ -317,7 +317,7 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
                              onTranslated={text => setDraft(d => d && d.id === draft.id ? {...d, edit_prompt: text} : d)} />
             <p className="help">Na edição, substitui a frase deste campo por uma instrução completa.
               Na criação de imagem nova, continua valendo a descrição acima. Os outros campos continuam sendo aplicados.</p>
-            <label className="check"><input type="checkbox" checked={draft.adult} onChange={e => setDraft({...draft, adult: e.target.checked})} /> Conteúdo adulto (+18)</label>
+            <label className="check"><input type="checkbox" checked={draft.adult} disabled={!draft.adult && !!draft.requirements.children} onChange={e => setDraft({...draft, adult: e.target.checked})} /> Conteúdo adulto (+18)</label>
             <label className="check"><input type="checkbox" checked={draft.enabled} onChange={e => setDraft({...draft, enabled: e.target.checked})} /> Ativa</label>
           </div>
           {findings.length > 0 && <ul className="issues" aria-label="Revisão do texto">{findings.map(f => (
@@ -347,6 +347,9 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
                       if (e.target.checked) now.add(s); else now.delete(s);
                       req('support_any_of', now.size ? [...now] : '');
                     }} /> {SUPPORT_LABEL[s]}</label>))}</div>
+                <label className="check" title="Com crianças na cena, o prompt pede proporções de acordo com a idade de cada pessoa. Opções adultas não podem incluir crianças.">
+                  <input type="checkbox" checked={!!draft.requirements.children} disabled={draft.adult && !draft.requirements.children}
+                    onChange={e => req('children', e.target.checked ? true : '')} /> A cena inclui crianças</label>
               </>}
             </fieldset>
           )}

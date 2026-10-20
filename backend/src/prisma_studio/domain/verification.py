@@ -6,7 +6,8 @@ import re
 from dataclasses import dataclass
 
 from . import ir
-from .render_qwen21 import ANATOMY, ASPECT_NAMES, FACES, FRAMINGS, GAZES, ORIENTATIONS, POSTURES, SUPPORTS
+from .render_qwen21 import (ANATOMY, ANATOMY_MIXED_AGES, ASPECT_NAMES, FACES, FRAMINGS, GAZES, ORIENTATIONS, POSTURES,
+                            SUPPORTS)
 from .rules import HIDDEN_FACE_GAZES
 
 VERDICTS = ('met', 'partial', 'unmet', 'unknown')
@@ -65,7 +66,8 @@ def checklist(blocks) -> list[Check]:
               and block.value in HIDDEN_FACE_GAZES):
             continue                                 # the face is out of view: the gaze cannot be judged
         elif isinstance(block, ir.Guidance) and block.key == 'anatomy':
-            checks.append(Check(block.id, ANATOMY.rstrip('.')))
+            anatomy = ANATOMY_MIXED_AGES if block.value == 'mixed_ages' else ANATOMY
+            checks.append(Check(block.id, anatomy.rstrip('.')))
         elif isinstance(block, ir.Guidance) and block.key == 'faces' and not hidden_face:
             checks.append(Check(block.id, f'{FACE_INTEGRITY}; {FACES[0].lower()}{FACES[1:].rstrip(".")}'))
         elif isinstance(block, ir.Guidance) and block.key == 'head':

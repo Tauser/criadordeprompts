@@ -35,6 +35,15 @@ def test_text_that_contradicts_its_metadata_is_flagged():
     assert not {'surface_not_declared', 'surface_narrower'} & found(chair)       # feet on the floor are expected
 
 
+
+def test_children_in_the_text_must_be_declared():
+    undeclared = item('action.k', 'action', 'two adults swinging a small child between them by the hands',
+                      req={'participants': 3}, prompt_pt='x')
+    assert 'children_not_declared' in found(undeclared)
+    declared = item('action.l', 'action', 'two adults swinging a small child between them by the hands',
+                    req={'participants': 3, 'children': True}, prompt_pt='x')
+    assert 'children_not_declared' not in found(declared)
+
 def test_wording_habits_from_other_models_are_flagged():
     style = item('style.x', 'style', 'photo, (masterpiece:1.2), best quality')
     assert 'sd_syntax' in found(style)

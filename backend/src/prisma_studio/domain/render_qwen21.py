@@ -60,6 +60,9 @@ GAZES = {
 HEAD = 'The neck stays natural: the head turns no further than over the shoulder.'
 ANATOMY = ('Each person has exactly two arms, two hands, two legs and two feet, with natural adult proportions: '
            'the head is in scale with the shoulders and torso, neither enlarged nor shrunk.')
+ANATOMY_MIXED_AGES = ('Each person has exactly two arms, two hands, two legs and two feet, with proportions natural '
+                      "for that person's age: each head is in scale with that person's own shoulders and torso, "
+                      'neither enlarged nor shrunk.')
 FACES = ("Every face is sharp and natural: each person's two eyes "
          'match in size, shape and color, are level with each other and look in the same direction.')
 ORIENTATIONS = {
@@ -232,7 +235,7 @@ def _guidance(block: ir.Guidance) -> str:
     if block.key == 'head':
         return HEAD
     if block.key == 'anatomy':
-        return ANATOMY
+        return ANATOMY_MIXED_AGES if block.value == 'mixed_ages' else ANATOMY
     if block.key == 'faces':
         return FACES
     if block.key == 'new_supports':
