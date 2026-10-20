@@ -34,6 +34,11 @@ class FakeComfy:
         if self.offline:
             raise ComfyNotSent('connection refused')
 
+    def system_stats(self):
+        self._check()
+        return {'system': {'comfyui_version': '0.0-fake', 'ram_total': 32 * 2**30, 'ram_free': 12 * 2**30},
+                'devices': [{'name': 'cuda:0 Fake GPU', 'vram_total': 12 * 2**30, 'vram_free': 3 * 2**30}]}
+
     def lora_names(self):
         self._check()
         return list(self.loras)

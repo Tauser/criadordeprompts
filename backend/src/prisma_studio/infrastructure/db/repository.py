@@ -81,6 +81,17 @@ class RunRepository:
     def list(self, limit: int = 30) -> list[dict]:
         return [_run(r) for r in self.db.query('SELECT * FROM runs ORDER BY created_at DESC LIMIT ?', (limit,))]
 
+    def usage(self, since: float) -> dict:
+        """Runs created since `since`: how many, how many failed, images made and seconds the GPU spent on them."""
+        runs = self.db.one("SELECT COUNT(*) AS total, SUM(status IN ('failed','lost')) AS failed FROM runs WHERE created_at>=?",
+                           (since,))
+        tasks = self.db.one("SELECT SUM(CASE WHEN t.kind='image' AND t.status='completed' THEN 1 ELSE 0 END) AS images, "
+                            "SUM(CASE WHEN t.started_at IS NOT NULL AND t.ended_at IS NOT NULL "
+                            "THEN MAX(t.ended_at - t.started_at, 0) ELSE 0 END) AS seconds "
+                            "FROM tasks t JOIN runs r ON r.id=t.run_id WHERE r.created_at>=?", (since,))
+        return {'runs': runs['total'] or 0, 'failed': runs['failed'] or 0, 'images': tasks['images'] or 0,
+                'gpu_seconds': round(tasks['seconds'] or 0.0, 1)}
+
     def open_runs(self) -> list[dict]:
         marks = ','.join('?' * len(TERMINAL))
         return [_run(r) for r in self.db.query(f'SELECT * FROM runs WHERE status NOT IN ({marks}) '

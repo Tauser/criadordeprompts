@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useState} from 'react';
 import {api} from './api/client';
-import type {Health, LibrarySnapshot} from './api/types';
-import {Diagnostics} from './components/Diagnostics';
+import type {Health, LibrarySnapshot, Stats} from './api/types';
+import {Diagnostics, gigabytes, level} from './components/Diagnostics';
 import {Library} from './components/Library';
 import {Icon} from './components/Icon';
 import {Studio} from './components/Studio';
@@ -17,6 +17,7 @@ export function App() {
   const [view, setView] = useState<View>('studio');
   const [library, setLibrary] = useState<LibrarySnapshot | null>(null);
   const [health, setHealth] = useState<Health | null>(null);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [message, setMessage] = useState<{text: string; error: boolean} | null>(null);
   const [libraryDirty, setLibraryDirty] = useState(false);
   const [theme, setTheme] = useState<Theme>(load<Theme>(THEME_KEY, 'system'));
@@ -31,7 +32,10 @@ export function App() {
     setMessage({text, error});
     window.setTimeout(() => setMessage(current => current?.text === text ? null : current), error ? 9000 : 4000);
   }, []);
-  const refreshHealth = useCallback(() => {api.health().then(setHealth).catch(() => setHealth(null));}, []);
+  const refreshHealth = useCallback(() => {
+    api.health().then(setHealth).catch(() => setHealth(null));
+    api.stats().then(setStats).catch(() => setStats(null));
+  }, []);
   useEffect(() => {
     api.library().then(setLibrary).catch(error => notify((error as Error).message, true));
     refreshHealth();
@@ -48,6 +52,8 @@ export function App() {
     setView(next);
   };
   const online = !!health?.comfy.available;
+  const device = stats?.comfy.devices?.[0];
+  const vram = device?.vram_total && device.vram_free != null ? {used: device.vram_total - device.vram_free, total: device.vram_total} : null;
   const nav: [View, string][] = [['studio', 'Criar'], ['library', 'Biblioteca'], ['diagnostics', 'Diagnóstico']];
 
   return (
@@ -62,6 +68,9 @@ export function App() {
           ))}
         </nav>
         <div className="topbar-end">
+          {online && vram && <button className={'vram-chip ' + level(vram.used / vram.total)} onClick={() => go('diagnostics')}
+            title="Memória de vídeo em uso na GPU (atualiza a cada 15 s)">
+            VRAM <span className="num">{gigabytes(vram.used)}/{Math.round(vram.total / 1024 ** 3)} GB</span></button>}
           <button className={'engine-status ' + (online ? 'ok' : 'off')} onClick={() => go('diagnostics')}
                   title={health?.comfy_url}><span className="dot" />{online ? 'ComfyUI conectado' : 'ComfyUI offline'}</button>
           <button className="icon-btn" onClick={() => setTheme(NEXT_THEME[theme])} aria-label={THEME_LABEL[theme]} title={THEME_LABEL[theme]}>

@@ -50,7 +50,7 @@ export function AttributeField({category, attribute, items, references, targetId
       </div>
       <div className="field-control">
         <select id={id} value={key} disabled={disabled} onChange={e => select(e.target.value)} className={defined ? '' : 'is-default'}
-                aria-describedby={description || issues.length ? tipId : undefined}>
+                aria-describedby={[description && tipId, issues.length && `${id}-issues`].filter(Boolean).join(' ') || undefined}>
           {mode === 'edit' && <option value="keep">Manter da foto</option>}
           <option value="free">Livre</option>
           <option value="text">Descrição personalizada…</option>
@@ -62,13 +62,9 @@ export function AttributeField({category, attribute, items, references, targetId
           </optgroup>}
           {!known.has(key) && <option value={key}>Seleção indisponível · revise</option>}
         </select>
-        {(description || issues.length > 0) && (
-          <span role="tooltip" id={tipId} className="tip field-tip">
-            {description && <span>{description}</span>}
-            {issues.length > 0 && <ul id={`${id}-issues`} className="field-issues">{issues.map(m => <li key={m}>{m}</li>)}</ul>}
-          </span>
-        )}
+        {description && <span role="tooltip" id={tipId} className="tip field-tip">{description}</span>}
       </div>
+      {issues.length > 0 && <ul id={`${id}-issues`} className="field-issues">{issues.map(m => <li key={m}>{m}</li>)}</ul>}
       {attribute.intent === 'set' && attribute.value?.kind === 'text' && (<>
         <textarea rows={2} value={attribute.value.text} disabled={disabled} placeholder="Descreva em inglês (ou em português e traduza)"
                   aria-label={`Descrição de ${CATEGORY_LABELS[category]} em inglês`}

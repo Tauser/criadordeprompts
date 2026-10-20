@@ -98,6 +98,17 @@ export interface Health {studio_version: string; data_dir: string; comfy_url: st
   comfy: {available: boolean; version?: string; devices?: string[]}; progress_live: boolean; lan_token: boolean;
   network_access?: {mode: 'local' | 'lan' | 'token'; allowed_networks: string[]; urls: string[]}}
 
+export interface GpuReading {name: string; utilization: number | null; temperature: number | null; power_draw: number | null;
+  power_limit: number | null; memory_used: number | null; memory_total: number | null}
+export interface Stats {
+  at: number;
+  comfy: {available: boolean; ram_total?: number | null; ram_free?: number | null;
+    devices?: {name: string; vram_total: number | null; vram_free: number | null}[]};
+  gpus: GpuReading[] | null;                            // null: nvidia-smi is not available
+  disk: {path: string; total: number; free: number; studio_bytes: number | null};
+  usage: {runs: number; failed: number; images: number; gpu_seconds: number; power_watts: number | null; energy_kwh: number | null};
+}
+
 export interface CoherenceIssue {severity: 'error' | 'warning'; quote: string; problem: string; suggestion: string}
 export interface CoherenceJob {
   id: string; status: 'queued' | 'running' | 'completed' | 'failed' | 'cancelled'; prompt?: string; error?: string | null;

@@ -6,6 +6,7 @@ import ipaddress
 import json
 import re
 import secrets
+import time
 from contextlib import asynccontextmanager
 from urllib.parse import urlsplit
 
@@ -33,6 +34,7 @@ from ..infrastructure.db.repository import InvalidTransition, LibraryRepository,
 from ..infrastructure.discovery import LocalDiscovery
 from ..infrastructure.instance_lock import InstanceLock
 from ..infrastructure.storage.files import FileStore
+from ..infrastructure.system_monitor import SystemMonitor
 from ..worker.executor import PHASES, Executor
 
 class Frontend(StaticFiles):
@@ -81,7 +83,7 @@ class TranslationCreate(BaseModel):
 
 
 class Container:
-    def __init__(self, config: Config, comfy=None, progress=None):
+    def __init__(self, config: Config, comfy=None, progress=None, monitor=None):
         self.config = config
         self.db = Database(config.data_dir / 'studio.db')
         self.store = FileStore(config.data_dir / 'files')
@@ -93,6 +95,7 @@ class Container:
         self.service = RunService(self.runs, self.library, self.store, self.executor)
         self.translation = TranslationService(self.comfy)
         self.coherence = CoherenceService(self.comfy)
+        self.monitor = monitor or SystemMonitor(config.data_dir)
 
 
 def create_app(config: Config | None = None, container: Container | None = None) -> FastAPI:
@@ -212,6 +215,25 @@ def create_app(config: Config | None = None, container: Container | None = None)
                                             (*config.lan_hosts, *((config.lan_alias,) if config.lan_alias else ()))],
                                    'mdns': {'name': config.lan_alias, 'status': discovery.status,
                                             'error': discovery.error}}}
+
+    @app.get('/api/stats')
+    def stats(since: float = 0.0):
+        """Machine readings and Studio usage since `since` (the client sends its own local midnight, week, month).
+        Energy is an estimate: GPU seconds times the board power limit."""
+        try:
+            system = c.comfy.system_stats()
+            info = system.get('system', {})
+            comfy = {'available': True, 'ram_total': info.get('ram_total'), 'ram_free': info.get('ram_free'),
+                     'devices': [{'name': d.get('name'), 'vram_total': d.get('vram_total'), 'vram_free': d.get('vram_free')}
+                                 for d in system.get('devices', [])]}
+        except (ComfyUnavailable, ComfyRejected):
+            comfy = {'available': False}
+        gpus = c.monitor.gpus()
+        usage = c.runs.usage(since)
+        limit = next((g['power_limit'] for g in gpus or [] if g.get('power_limit')), None)
+        usage['power_watts'] = limit
+        usage['energy_kwh'] = round(usage['gpu_seconds'] * limit / 3_600_000, 3) if limit else None
+        return {'at': time.time(), 'comfy': comfy, 'gpus': gpus, 'disk': c.monitor.disk(), 'usage': usage}
 
     @app.get('/api/contract')
     def contract():

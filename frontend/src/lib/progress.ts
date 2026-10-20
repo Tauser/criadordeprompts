@@ -15,7 +15,8 @@ const STATUS_STEP: Record<string, string> = {created: 'prepare', preparing: 'pre
 const live = (task: Task) => task.live?.value != null && task.live.maximum ? task.live.value / task.live.maximum : null;
 
 export const formatSeconds = (value: number) => value < 60 ? `${Math.round(value)} s`
-  : `${Math.floor(value / 60)} min ${String(Math.round(value % 60)).padStart(2, '0')} s`;
+  : value < 3600 ? `${Math.floor(value / 60)} min ${String(Math.floor(value % 60)).padStart(2, '0')} s`
+  : `${Math.floor(value / 3600)} h ${String(Math.floor(value % 3600 / 60)).padStart(2, '0')} min`;
 
 export function runProgress(run: Run, now: number): Progress {
   const tasks = run.tasks ?? [];

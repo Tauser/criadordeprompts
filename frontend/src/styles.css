@@ -196,7 +196,7 @@ pre { margin: 0; white-space: pre-wrap; font: 12.5px/1.6 var(--font); color: var
 .field-control { position: relative; }
 select.is-default { color: var(--faint); }
 select.is-default option { color: var(--ink); }
-.field-issues { margin: 6px 0 0; padding-left: 16px; color: var(--warn); }
+.field-issues { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; color: var(--warn); font-size: 12px; line-height: 1.4; }
 .field-extra { display: grid; gap: 6px; margin-top: 2px; }
 label.block { display: grid; gap: 6px; }
 select { height: 38px; }
@@ -347,9 +347,7 @@ select { height: 38px; }
 fieldset { border: 1px solid var(--line); border-radius: 14px; margin: 14px 0 0; padding: 14px; display: grid; gap: 10px; }
 legend { color: var(--muted); padding: 0 6px; font-size: 13px; }
 .checks { display: flex; flex-wrap: wrap; gap: 12px; }
-.diagnostics { max-width: 860px; margin: 0 auto; display: grid; gap: 14px; }
-.diagnostics dl { width: 100%; display: grid; grid-template-columns: max-content 1fr; gap: 10px 22px; margin: 0; }
-.diagnostics dt { color: var(--muted); } .diagnostics dd { margin: 0; }
+.diagnostics { margin: 0 auto; display: grid; gap: 14px; }
 code { font-size: 12.5px; padding: 1px 6px; border-radius: 6px; background: var(--surface-2); }
 .page .help { margin: 6px 0; }
 .page .issue { padding: 9px 12px; }
@@ -416,8 +414,6 @@ code { font-size: 12.5px; padding: 1px 6px; border-radius: 6px; background: var(
 .field-control:hover .tip, .field-control:has(select:focus-visible) .tip { display: block; animation: tip-in .12s ease-out .2s backwards; }
 @keyframes tip-in { from { opacity: 0; transform: translateY(-3px); } }
 .field-tip { left: 0; right: auto; max-width: 100%; }
-.field-tip .field-issues { color: #ffd38a; }
-:root[data-theme="light"] .field-tip .field-issues { color: #ffd38a; }
 
 /* segmented choices, switches, collapsible blocks */
 .segmented.choice { flex-wrap: wrap; max-width: 100%; }
@@ -589,3 +585,34 @@ details.tech h3 { margin: 6px 0; }
   .reference-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .side-column { max-height: none; overflow: visible; }
 }
+
+/* consumo no Diagnóstico (P9) */
+.diagnostics { max-width: 980px; }
+.diagnostics .page-head { align-items: center; }
+.diagnostics .page-head > div { flex: 1; }
+.meters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.page .card.meter { display: grid; gap: 7px; padding: 16px; align-content: start; }
+.meter-label { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.meter-value { font-size: 24px; font-weight: 650; letter-spacing: -.02em; line-height: 1.1; }
+.meter-value span { font-size: 13px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+.meter-bar { height: 6px; border-radius: 6px; background: var(--sunken); overflow: hidden; }
+.meter-bar i { display: block; height: 100%; border-radius: 6px; background: var(--prism); transition: width .6s ease; }
+.meter-bar.warn i { background: var(--warn); } .meter-bar.bad i { background: var(--bad); }
+.meter-detail { font-size: 12.5px; color: var(--muted); }
+.usage .section-title { margin-bottom: 14px; }
+.usage-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px 18px; margin: 0; }
+.usage-grid dt { display: flex; align-items: center; gap: 2px; font-size: 12.5px; color: var(--muted); }
+.usage-grid dd { margin: 4px 0 0; font-size: 20px; font-weight: 650; letter-spacing: -.015em; }
+.diagnostics .card-title { font-size: 16px; margin-bottom: 12px; }
+.diagnostics dl.facts { width: 100%; display: grid; grid-template-columns: max-content 1fr; gap: 10px 22px; margin: 0; }
+.diagnostics dl.facts dt { color: var(--muted); } .diagnostics dl.facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.vram-chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 99px; font-size: 12px; font-weight: 600;
+  color: var(--muted); box-shadow: inset 0 0 0 1px var(--line); }
+.vram-chip:hover { color: var(--ink); background: var(--surface-2); }
+.vram-chip.warn { color: var(--warn); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 45%, transparent); }
+.vram-chip.bad { color: var(--bad); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bad) 45%, transparent); }
+@media (max-width: 900px) {
+  .meters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .usage-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 680px) { .vram-chip { display: none; } .diagnostics .page-head { flex-wrap: wrap; } }
