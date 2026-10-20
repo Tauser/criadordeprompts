@@ -7,6 +7,7 @@ import {metadataLabel, missingMetadata} from '../lib/metadata';
 import {compareText, sortBy} from '../lib/sort';
 import {uuid} from '../lib/uuid';
 import {DescribeFromPhoto} from './DescribeFromPhoto';
+import {TestPose} from './TestPose';
 import {TranslateButton} from './Translate';
 
 const SORTED_CATEGORIES = sortBy(CATEGORIES, c => CATEGORY_LABELS[c]);
@@ -359,6 +360,7 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
               <textarea rows={4} value={draft.prompt} onChange={e => setDraft({...draft, prompt: e.target.value})} /></label>
             <TranslateButton key={`prompt-${draft.id}`} label="a descrição em inglês" text={draft.prompt}
                              onTranslated={text => setDraft(d => d && d.id === draft.id ? {...d, prompt: text} : d)} />
+            {(draft.category === 'pose' || draft.category === 'action') && <TestPose key={`test-${draft.id}`} item={draft} />}
             <label>Instrução completa para edição (opcional, em inglês)
               <textarea rows={3} maxLength={2000} value={draft.edit_prompt ?? ''}
                         onChange={e => setDraft({...draft, edit_prompt: e.target.value})} /></label>

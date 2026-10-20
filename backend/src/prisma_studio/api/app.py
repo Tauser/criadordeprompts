@@ -8,6 +8,7 @@ import re
 import secrets
 import time
 from contextlib import asynccontextmanager
+from typing import Literal
 from urllib.parse import urlsplit
 
 from fastapi import FastAPI, File, HTTPException, Request as HttpRequest, UploadFile
@@ -21,13 +22,14 @@ from ..application.runs import RequestRejected, RunService, prepare
 from ..application.coherence import CoherenceService, review_text
 from ..application.contract_errors import contract_issues
 from ..application.people_count import PeopleCounter
+from ..application.pose_test import PoseTester
 from ..application.reference_description import ReferenceDescriber
 from ..application.translation import TranslationService
 from ..config import Config
 from ..domain.catalog import Item
 from ..domain.request import Request
 from ..domain.text_audit import audit_item
-from ..domain.vocabulary import CATEGORIES
+from ..domain.vocabulary import CATEGORIES, Confirmation
 from ..infrastructure.comfy.client import ComfyClient, ComfyRejected, ComfyUnavailable
 from ..infrastructure.comfy.progress import ProgressTracker
 from ..infrastructure.comfy.workflows import PROFILES, generation_size
@@ -89,6 +91,13 @@ class DescriptionCreate(BaseModel):
     category: str
 
 
+class PoseTestCreate(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    item: dict
+    content_mode: Literal['standard', 'adult'] = 'standard'
+    confirmations: list[Confirmation] = []
+
+
 class Container:
     def __init__(self, config: Config, comfy=None, progress=None, monitor=None):
         self.config = config
@@ -104,6 +113,7 @@ class Container:
         self.people = PeopleCounter(self.comfy, self.store, self.runs.file)
         self.describer = ReferenceDescriber(self.comfy, self.store, self.runs.file)
         self.coherence = CoherenceService(self.comfy)
+        self.pose_tests = PoseTester(self.comfy)
         self.monitor = monitor or SystemMonitor(config.data_dir)
 
 
@@ -283,6 +293,23 @@ def create_app(config: Config | None = None, container: Container | None = None)
     @app.post('/api/library/descriptions/{job_id}/cancel')
     def cancel_reference_description(job_id: str):
         return c.describer.cancel(job_id)
+
+    @app.post('/api/library/pose-tests')
+    def test_pose(body: PoseTestCreate):
+        """Quick Turbo preview of the open draft's English text; nothing is saved, not even in the history."""
+        return c.pose_tests.start(Item.model_validate(body.item), body.content_mode, body.confirmations)
+
+    @app.get('/api/library/pose-tests/{job_id}')
+    def pose_test(job_id: str):
+        return c.pose_tests.status(job_id)
+
+    @app.get('/api/library/pose-tests/{job_id}/image')
+    def pose_test_image(job_id: str):
+        return Response(c.pose_tests.image(job_id), media_type='image/png', headers={'Cache-Control': 'no-store'})
+
+    @app.post('/api/library/pose-tests/{job_id}/cancel')
+    def cancel_pose_test(job_id: str):
+        return c.pose_tests.cancel(job_id)
 
     # files -----------------------------------------------------------------------
     @app.post('/api/files')
