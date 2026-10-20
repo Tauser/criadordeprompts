@@ -76,9 +76,10 @@ export interface Prepared {
   participants?: {total: number | null; automatic: number | null; reason: string | null};
   suggestions?: Suggestion[];
 }
-// The value that fits the chosen pose or action. `auto` ones are applied while the person has not touched the field.
+// The value that fits the chosen pose or action, or ends a clash between two chosen options (source 'scene': light ×
+// setting, lens × framing). `auto` ones, never 'scene', are applied while the person has not touched the field.
 export interface Suggestion {field: Category; attribute: Attribute | null; context: Partial<StudioRequest['context']>;
-  label: string; reason: string; source: 'pose' | 'action'; auto: boolean}
+  label: string; reason: string; source: 'pose' | 'action' | 'scene'; auto: boolean}
 export interface PeopleCount {id: string; status: string; count?: number; error?: string}
 
 export interface Verdict {verdict: 'met' | 'partial' | 'unmet' | 'unknown'; note: string}

@@ -2,7 +2,8 @@
 
 Nothing here changes the request. Each suggestion names a field, the attribute (and context switches) that fit the
 pose or action, and why. `auto` marks the ones the composer may apply by itself while the person has not touched that
-field; the others are only offered next to the field, one click away.
+field; the others are only offered next to the field, one click away. Conflicts between the chosen options themselves
+(light × setting, lens × framing) are only offered, with the source 'scene'.
 """
 from __future__ import annotations
 
@@ -32,6 +33,75 @@ def _source(resolved: dict) -> tuple[str, Item] | None:
 def suggest(request, library: Library, resolved: dict) -> list[dict]:
     if request.prompt_mode == 'manual':
         return []
+    out = _from_body(request, library, resolved)
+    return out + _from_scene(request, library, resolved, {s['field'] for s in out})
+
+
+PLACE_NAMES = {'indoor': 'interno', 'outdoor': 'externo'}
+PERIOD_NAMES = {'day': 'de dia', 'night': 'à noite', 'golden': 'na hora dourada', 'blue': 'na hora azul'}
+
+
+def _concrete(item: Item, key: str) -> str | None:
+    value = getattr(item.provides, key)
+    return None if value in (None, 'any') else value
+
+
+def _matching(candidates: list[Item], wanted: dict[str, str], current: Item) -> list[Item]:
+    """Items that clash with none of `wanted`, those that share its values first; only those when there are any."""
+    fitting = [i for i in candidates if i.id != current.id
+               and all(_concrete(i, k) in (None, v) for k, v in wanted.items())]
+    score = {i.id: sum(_concrete(i, k) == v for k, v in wanted.items()) for i in fitting}
+    if any(score.values()):
+        fitting = [i for i in fitting if score[i.id]]
+    return sorted(fitting, key=lambda i: (-score[i.id], i.label))[:MAX_CHOICES]
+
+
+def _from_scene(request, library: Library, resolved: dict, taken: set[str]) -> list[dict]:
+    """Offers for conflicts between the chosen options themselves (light × setting, lens × framing), never applied
+    alone. A field that already has an offer for the pose or action keeps only that one."""
+    out: list[dict] = []
+
+    def add(field: str, item: Item, reason: str) -> None:
+        out.append({'field': field, 'attribute': _catalog(item), 'context': {}, 'label': item.label,
+                    'reason': reason, 'source': 'scene', 'auto': False})
+
+    # Light and setting that point to another place or time of day (light_place, light_period, light_period_near).
+    light, scene = resolved.get('lighting'), resolved.get('environment')
+    if light and scene and any(_concrete(light, k) and _concrete(scene, k) not in (None, _concrete(light, k))
+                               for k in ('period', 'place')):
+        def wanted(item: Item) -> dict[str, str]:
+            return {k: _concrete(item, k) for k in ('place', 'period') if _concrete(item, k)}
+
+        def describe(values: dict[str, str]) -> str:
+            parts = [PLACE_NAMES[values['place']]] if 'place' in values else []
+            if 'period' in values:
+                parts.append(PERIOD_NAMES.get(values['period'], values['period']))
+            return ', '.join(parts)
+        if 'lighting' not in taken:
+            for item in _matching(available(library, request.content_mode, 'lighting'), wanted(scene), light):
+                add('lighting', item, f'Combina com o cenário: {describe(wanted(scene))}.')
+        if 'environment' not in taken:
+            for item in _matching(available(library, request.content_mode, 'environment'), wanted(light), scene):
+                add('environment', item, f'Combina com a luz: {describe(wanted(light))}.')
+
+    # Lens whose usual crop is two or more steps away from the chosen framing (camera_vs_framing).
+    camera, framing = resolved.get('camera'), resolved.get('framing')
+    usual = camera.provides.framing if camera else None
+    visible = framing.provides.framing if framing else None
+    if usual and visible and abs(FRAMING_ORDER[usual] - FRAMING_ORDER[visible]) >= 2 and 'camera' not in taken:
+        needs = [i.requirements.minimum_framing for i in resolved.values() if i.requirements.minimum_framing]
+        need = max((FRAMING_ORDER[n] for n in needs), default=None)
+        fitting = [i for i in available(library, request.content_mode, 'camera')
+                   if i.provides.framing and i.id != camera.id
+                   and abs(FRAMING_ORDER[i.provides.framing] - FRAMING_ORDER[visible]) < 2
+                   and (need is None or FRAMING_ORDER[i.provides.framing] >= need)]
+        fitting.sort(key=lambda i: (abs(FRAMING_ORDER[i.provides.framing] - FRAMING_ORDER[visible]), i.label))
+        for item in fitting[:MAX_CHOICES]:
+            add('camera', item, f'O enquadramento é {FRAMING_NAMES[visible]}.')
+    return out
+
+
+def _from_body(request, library: Library, resolved: dict) -> list[dict]:
     found = _source(resolved)
     if found is None:
         return []

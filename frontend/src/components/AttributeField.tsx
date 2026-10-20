@@ -16,7 +16,7 @@ interface Props {
   issues: string[];
   onChange: (attribute: Attribute) => void;
   auto?: 'pose' | 'action';                   // filled by the Studio for the pose or action
-  suggestions?: Suggestion[];                 // values that fit the pose or action, one click away
+  suggestions?: Suggestion[];                 // values that fit the pose, action or scene, one click away
   onSuggest?: (suggestion: Suggestion) => void;
   children?: ReactNode;
 }
