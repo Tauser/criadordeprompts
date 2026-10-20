@@ -1,5 +1,5 @@
-import type {CoherenceJob, Health, PeopleCount, Stats, Item, LibrarySnapshot, Prepared, ReferenceDescription, Run, StudioRequest,
-  TextFinding} from './types';
+import type {CoherenceJob, Health, PeopleCount, Stats, Item, LibrarySnapshot, PoseTest, Prepared, ReferenceDescription, Run,
+  StudioRequest, TextFinding} from './types';
 
 export class ApiError extends Error {
   constructor(public status: number, public body: {error?: string; issues?: unknown[]; details?: unknown[]}) {
@@ -63,7 +63,12 @@ export const api = {
     call<ReferenceDescription>('POST', '/api/library/descriptions', {file, category}),
   referenceDescription: (id: string) => call<ReferenceDescription>('GET', `/api/library/descriptions/${id}`),
   cancelReferenceDescription: (id: string) => call<unknown>('POST', `/api/library/descriptions/${id}/cancel`),
+  testPose: (item: Item, content_mode: 'standard' | 'adult', confirmations: string[]) =>
+    call<PoseTest>('POST', '/api/library/pose-tests', {item, content_mode, confirmations}),
+  poseTest: (id: string) => call<PoseTest>('GET', `/api/library/pose-tests/${id}`),
+  cancelPoseTest: (id: string) => call<unknown>('POST', `/api/library/pose-tests/${id}/cancel`),
   translation: (id: string) => call<{id: string; status: string; text?: string; error?: string}>('GET', `/api/translations/${id}`),
 };
 
 export const fileUrl = (hash: string) => `/api/files/${hash}`;
+export const poseTestUrl = (id: string) => `/api/library/pose-tests/${id}/image`;

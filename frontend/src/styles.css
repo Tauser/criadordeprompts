@@ -590,6 +590,10 @@ details.tech h3 { margin: 6px 0; }
 .describe-photo img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; background: var(--sunken); }
 .describe-photo-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
 .describe-photo .btn-link { font-size: 12.5px; }
+.test-pose { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.test-pose .btn-link { font-size: 12.5px; }
+.test-pose figure { margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.test-pose img { max-width: min(100%, 360px); border-radius: 8px; background: var(--sunken); }
 @media (max-width: 680px) {
   .reference-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .side-column { max-height: none; overflow: visible; }
