@@ -120,6 +120,9 @@ def render(blocks) -> list[tuple[str, str]]:
             target = ('both people in the scene' if block.total == 2 else f'all {block.total} people in the scene') \
                 if block.target == 'all' else 'the first person only'
             text = f'Apply the clothing instruction to {target}.'
+            if block.target == 'all' and edit:
+                text = (f'Apply the clothing instruction to {target}, starting with the first person, who is already in '
+                        f"{image(1)}: the first person's current clothing changes too and is not kept.")
             if block.target == 'all':
                 text += ' This includes any characters added from reference images.'
                 if cast:
@@ -154,12 +157,15 @@ def render(blocks) -> list[tuple[str, str]]:
                 scene = [n for n in names if n not in own]
                 parts = [f"the first person's {_join(own)}" if own else '', f'the {_join(scene)}' if scene else '']
                 listed = '; and '.join(p for p in parts if p)
+                # Spelled out, or "keep everything of the first person" wins over the new clothing.
+                dressed = any(isinstance(b, ir.Operation) and b.category == 'wardrobe' for b in blocks)
+                lead = 'Apart from the requested clothing, keep' if dressed else 'Keep'
                 if not block.everything_else:
                     text = f'Keep {listed} from {target} unchanged.'
                 elif listed:
-                    text = f'Keep everything else in {target} unchanged, including {listed}.'
+                    text = f'{lead} everything else in {target} unchanged, including {listed}.'
                 else:
-                    text = f'Keep everything else in {target} unchanged.'
+                    text = f'{lead} everything else in {target} unchanged.'
                 if block.widen:
                     text += ' Widen the framing only as much as needed to fit every person, with the same perspective.'
                 out.append((block.id, text))

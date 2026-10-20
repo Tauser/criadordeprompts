@@ -8,6 +8,7 @@ from prisma_studio.domain.catalog import Library
 from prisma_studio.domain.compiler import COMPILER_VERSION
 from prisma_studio.domain.request import Request
 from prisma_studio.domain.verification import checklist
+from prisma_studio.domain.vocabulary import CATEGORIES
 
 
 @pytest.mark.parametrize('mode', ['generate', 'edit'])
@@ -16,7 +17,9 @@ def test_clothing_can_explicitly_apply_to_both_people(mode, library):
     assessment, compiled = run(make({'wardrobe': text('a dark wool coat')}, wardrobe_scope='all',
                                     participants={'requested': 2}), library)
     assert assessment.valid
-    assert 'Apply the clothing instruction to both people in the scene.' in compiled.text
+    assert 'Apply the clothing instruction to both people in the scene' in compiled.text
+    # In an edit the person already in the photo is named, or the model keeps that person's outfit.
+    assert ("the first person's current clothing changes too and is not kept" in compiled.text) == (mode == 'edit')
     assert compiled.text.count('scope.wardrobe') == 0
     assert len([b for b, _ in compiled.segments if b == 'scope.wardrobe']) == 1
     checks = [c for c in checklist(compiled.blocks) if c.id.startswith('op.wardrobe')]
@@ -93,7 +96,9 @@ def test_added_character_gets_the_clothing_and_joins_the_group_action(library):
     assessment, compiled = run(request, library)
     assert assessment.valid
     order = [b for b, _ in compiled.segments]
-    assert order.index('character.2') < order.index('op.wardrobe') < order.index('op.action')
+    # The first person changes clothes before the new person is introduced.
+    assert order.index('op.wardrobe') < order.index('scope.wardrobe') < order.index('character.2') < order.index('op.action')
+    assert "Keep the first person's facial identity from <image1> unchanged." in compiled.text
     assert "use <image2> only for this person's identity" in compiled.text
     assert 'The second person wears the requested clothing, not the clothing from <image2>.' in compiled.text
     assert 'The second person takes part in the requested action together with the first person.' in compiled.text
@@ -153,3 +158,13 @@ def test_every_picture_of_people_checks_the_faces_for_deformities(library):
     checks = {c.id: c.question for c in checklist(group.blocks)}
     assert 'faces' not in checks and 'free of deformities' in checks['guide.faces']
     assert 'two eyes match' in checks['guide.faces']
+
+
+def test_scene_wide_keep_makes_way_for_the_new_clothing(library):
+    kept = {c: keep() for c in CATEGORIES if c != 'wardrobe'}         # as the edit form starts: everything kept
+    request = edit_request({**kept, 'wardrobe': text('beachwear')},
+                           references=(('t', 'target'), ('p', 'character')), wardrobe_scope='all',
+                           characters=[{'reference_id': 'p'}], participants={'existing': 1})
+    _, compiled = run(request, library)
+    assert "Apart from the requested clothing, keep everything else in <image1> unchanged, including the first " \
+        "person's facial identity" in compiled.text

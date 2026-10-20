@@ -8,7 +8,7 @@ from .request import CatalogValue, Request
 from .rules import Assessment, available_supports, body_gaze, effective_orientation, framing_already_there
 from .vocabulary import CATEGORIES, FRAMING_ORDER, SUPPORT_PRIORITY, agreed
 
-COMPILER_VERSION = '1.13.0'
+COMPILER_VERSION = '1.14.0'
 
 # Operation order: scene first, then person changes; style leads in generation.
 EDIT_ORDER = ('environment', 'lighting', 'style', 'camera', 'framing', 'subject', 'face', 'body', 'skin', 'hair',
@@ -70,6 +70,14 @@ def build_ir(request: Request, assessment: Assessment) -> list:
     cast = [ir.Character(assessment.slots[c.reference_id], i + 2, c.description.strip(), added=edit and i + 2 > present)
             for i, c in enumerate(request.characters)]
     at = next((i + 1 for i, b in enumerate(blocks) if isinstance(b, ir.Operation) and b.category == 'subject'), 1)
+    scope_all = next((i for i, b in enumerate(blocks) if isinstance(b, ir.WardrobeScope) and b.target == 'all'), None)
+    if edit and scope_all is not None:
+        # The person already in the photo changes clothes first: introduced after the new person, the clothing reads
+        # as something only the new person gets, and the first person keeps the outfit from the photo.
+        clothing = blocks[scope_all - 1:scope_all + 1]
+        del blocks[scope_all - 1:scope_all + 1]
+        blocks[at:at] = clothing
+        at += len(clothing)
     blocks[at:at] = cast
 
     if edit:
