@@ -61,7 +61,7 @@ def test_wording_the_rules_cannot_fix_goes_back_to_the_model_once(client):  # no
     comfy.text_answer = model
     job = describe(client)
     assert job['status'] == 'completed' and len(prompts) == 2
-    assert 'right or left' in prompts[1] and 'he, she, his or her' in prompts[1] and 'jeans' in prompts[1]
+    assert 'right or left' in prompts[1] and 'he, she, his or her' in prompts[1]
     repair = comfy.jobs[comfy.submits[-1]]['graph']
     assert any(n['class_type'] == 'LoadImage' for n in repair.values())
     assert 'jeans' not in job['draft']['prompt']
@@ -145,3 +145,45 @@ def test_a_group_is_made_of_adults_not_men_and_women():
                                          'both fists, two women laughing'}, 'action')
     assert draft['prompt'] == ('three adults standing in a row, the left adult and the right adult raising both fists, '
                                'two adults laughing')
+
+
+def test_sexual_anatomy_never_enters_the_draft():
+    draft = draft_from_answer({**HUG, 'participants': 1, 'support_any_of': ['bed'], 'adult': True,
+                               'prompt': 'lying on the back on a bed, the torso upright on the pillows, the genitals '
+                                         'exposed toward the camera, the right knee raised',
+                               'edit_prompt': 'Change the pose so that the person lies on the back on a bed, nipples '
+                                              'visible, the right knee raised.',
+                               'prompt_pt': 'deitado de costas na cama, o tronco ereto nos travesseiros, a vagina '
+                                            'à mostra, o joelho direito erguido'}, 'pose')
+    assert draft['prompt'] == 'lying on the back on a bed, the torso upright on the pillows, the right knee raised'
+    assert draft['edit_prompt'] == 'Change the pose so that the person lies on the back on a bed, the right knee raised.'
+    assert draft['prompt_pt'] == 'deitado de costas na cama, o tronco ereto nos travesseiros, o joelho direito erguido'
+
+
+def test_a_long_description_is_cut_after_a_whole_part():
+    long = 'standing upright, ' + ', '.join(f'detail number {i} of the right arm' for i in range(120))
+    draft = draft_from_answer({**HUG, 'participants': 1, 'prompt': long}, 'pose')
+    assert len(draft['prompt']) <= 2000 and draft['prompt'].endswith('of the right arm')
+
+
+def test_hair_clothing_and_background_are_left_out_of_the_detail():
+    draft = draft_from_answer({**HUG, 'participants': 2, 'support_any_of': ['floor'],
+                               'prompt': 'two adults standing side by side; the adult on the left with a short dark bob '
+                                         'haircut, head tilted back, right fist raised; the adult on the right with '
+                                         'cropped hair, left fist raised; both wearing striped jerseys and jeans, '
+                                         'standing against a plain studio backdrop with soft lighting',
+                               'prompt_pt': 'dois adultos em pé lado a lado; a pessoa da esquerda com cabelo chanel, '
+                                            'cabeça inclinada para trás; fundo cinza de estúdio'}, 'action')
+    assert draft['prompt'] == ('two adults standing side by side; the adult on the left, head tilted back, right fist '
+                               'raised; the adult on the right, left fist raised')
+    assert draft['prompt_pt'] == 'dois adultos em pé lado a lado; a pessoa da esquerda, cabeça inclinada para trás'
+
+
+def test_the_edit_instruction_loses_the_photo_and_what_to_keep_whole():
+    draft = draft_from_answer({**HUG, 'participants': 3, 'support_any_of': ['floor'],
+                               'prompt': 'three adults standing, a single adult man in the center',
+                               'edit_prompt': 'Change the pose of the three adults in the input photo so that they '
+                                              'stand in a row, fists raised; all three keep the faces unchanged.'},
+                              'action')
+    assert draft['edit_prompt'] == 'Change the pose of the three adults so that they stand in a row, fists raised.'
+    assert draft['prompt'] == 'three adults standing, a single adult in the center'
