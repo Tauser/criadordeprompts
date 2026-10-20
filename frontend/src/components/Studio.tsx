@@ -8,8 +8,8 @@ import {load, save} from '../lib/storage';
 import {usePeopleCount, type PeopleDetection} from '../lib/usePeopleCount';
 import {useRun} from '../lib/useRun';
 import {uuid} from '../lib/uuid';
-import {addReference, enterManual, filesForSubmit, initialWorkspace, leaveManual, removeReference, requestForSubmit,
-  setAttribute, setTarget, switchMode, type Workspace} from '../state/workspace';
+import {addReference, applySuggestion, enterManual, filesForSubmit, initialWorkspace, leaveManual, removeReference,
+  requestForSubmit, setAttribute, setTarget, switchMode, syncAuto, type Workspace} from '../state/workspace';
 import {AttributeField} from './AttributeField';
 import {CollapseButton} from './Collapse';
 import {Disclosure, Segmented, Switch, Tip} from './Controls';
@@ -54,6 +54,7 @@ export function Studio({library, comfyOnline, notify}: Props) {
   const [activeRun, setActiveRun] = useState<string | null>(load<string | null>(ACTIVE_KEY, null) ?? load<string | null>(LEGACY.active, null));
   const {run, connection} = useRun(activeRun);
   const epoch = useRef(0);
+  const autoMade = useRef<{ws: Workspace | null; count: number}>({ws: null, count: 0});
   const request = workspace.request;
 
   const update = useCallback((next: Workspace | ((ws: Workspace) => Workspace)) => {
@@ -99,6 +100,16 @@ export function Studio({library, comfyOnline, notify}: Props) {
         const result = await api.prepare(requestForSubmit(workspace));
         if (token !== epoch.current) return;
         setPrepared(result); setPreparedFor(workspace); setPrepareError(null);
+        // Fields still at their default take the values the pose or action needs; a newer edit wins.
+        // A chain of fills with no change by the person in between stops after three: never a loop.
+        update(ws => {
+          if (ws !== workspace) return ws;
+          const chain = autoMade.current.ws === ws ? autoMade.current.count : 0;
+          if (chain >= 3) return ws;
+          const next = syncAuto(ws, result.suggestions ?? []);
+          if (next !== ws) autoMade.current = {ws: next, count: chain + 1};
+          return next;
+        });
       } catch (error) {
         if (token !== epoch.current) return;
         const issues = error instanceof ApiError && error.status === 422 ? (error.body.issues ?? []) as Issue[] : [];
@@ -142,10 +153,15 @@ export function Studio({library, comfyOnline, notify}: Props) {
   };
   const itemsFor = (category: Category) => library.items.filter(i => i.category === category && i.enabled
     && (request.content_mode === 'adult' || !i.adult));
+  // Offered next to the field: what the pose or action needs, unless the Studio already filled it with that value.
+  const suggestionsFor = (category: Category) => (prepared?.suggestions ?? [])
+    .filter(s => s.field === category && !(s.auto && workspace.auto?.[category]));
   const field = (category: Category) => (
     <AttributeField key={category} category={category} mode={request.mode} targetId={request.target_id}
       attribute={request.attributes[category] ?? {intent: 'free'}} items={itemsFor(category)} references={request.references}
       disabled={request.prompt_mode === 'manual'} issues={issuesByField[`attributes.${category}`] ?? []}
+      auto={workspace.auto?.[category]} suggestions={suggestionsFor(category)}
+      onSuggest={suggestion => update(ws => applySuggestion(ws, suggestion))}
       onChange={(attribute: Attribute) => update(ws => setAttribute(ws, category, attribute))}>
       {category === 'wardrobe' && request.attributes.wardrobe?.intent === 'set' && (
         <div className="field-extra">

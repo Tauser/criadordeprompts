@@ -8,6 +8,7 @@ from ..domain import face_detail
 from ..domain.compiler import compile_request
 from ..domain.request import Request
 from ..domain.rules import assess, automatic_participants
+from ..domain.suggestions import suggest
 from ..domain.verification import checklist
 from ..infrastructure.comfy.workflows import generation_size
 from ..infrastructure.db.repository import TERMINAL, MissingFile
@@ -30,6 +31,7 @@ def prepare(request: Request, library) -> dict:
               'prompt': None, 'segments': [], 'checks': []}
     automatic, reason = automatic_participants(request, assessment.resolved)
     result['participants'] = {'total': assessment.participants_total, 'automatic': automatic, 'reason': reason}
+    result['suggestions'] = suggest(request, library, assessment.resolved)
     if assessment.valid:
         compiled = compile_request(request, assessment)
         result.update(prompt=compiled.text, segments=[{'block': b, 'text': t} for b, t in compiled.segments],

@@ -74,7 +74,11 @@ export interface Prepared {
   valid: boolean; status: string; issues: Issue[]; slots: Record<string, number>; prompt: string | null;
   segments: {block: string; text: string}[]; checks: {id: string; question: string}[];
   participants?: {total: number | null; automatic: number | null; reason: string | null};
+  suggestions?: Suggestion[];
 }
+// The value that fits the chosen pose or action. `auto` ones are applied while the person has not touched the field.
+export interface Suggestion {field: Category; attribute: Attribute | null; context: Partial<StudioRequest['context']>;
+  label: string; reason: string; source: 'pose' | 'action'; auto: boolean}
 export interface PeopleCount {id: string; status: string; count?: number; error?: string}
 
 export interface Verdict {verdict: 'met' | 'partial' | 'unmet' | 'unknown'; note: string}

@@ -1,5 +1,5 @@
 // Pure, serializable workspace logic. No DOM, no network: unit-tested in workspace.test.ts.
-import {CATEGORIES, type Attribute, type Category, type StudioRequest} from '../api/types';
+import {CATEGORIES, type Attribute, type Category, type StudioRequest, type Suggestion} from '../api/types';
 
 export interface FileInfo {hash: string; width: number; height: number; name: string}
 export interface Workspace {
@@ -8,6 +8,8 @@ export interface Workspace {
   restore: Record<string, Partial<Record<Category, Attribute | null>>>; // reference id -> attributes before it was applied
   maskHash: string | null;
   existingFrom?: string | null;     // hash of the photo whose detected people filled "Pessoas na foto"
+  auto?: Partial<Record<Category, 'pose' | 'action'>>;   // fields the Studio filled for the pose or action
+  touched?: Category[];             // fields the person chose: the Studio never fills them again
 }
 
 export const ROLES: Record<string, {label: string; categories: Category[]}> = {
@@ -44,11 +46,58 @@ export function initialWorkspace(mode: 'generate' | 'edit'): Workspace {
 
 const clone = <T>(value: T): T => structuredClone(value);
 
+const mark = (next: Workspace, category: Category) => {
+  next.touched = [...new Set([...(next.touched ?? []), category])];
+  if (next.auto) delete next.auto[category];
+};
+
 export function setAttribute(ws: Workspace, category: Category, attribute: Attribute): Workspace {
   const next = clone(ws);
   next.request.attributes[category] = attribute;
   if (category === 'wardrobe' && attribute.intent !== 'set') next.request.wardrobe_scope = 'primary';
   for (const restore of Object.values(next.restore)) delete restore[category];   // an explicit choice wins
+  mark(next, category);
+  return next;
+}
+
+const defaultAttribute = (mode: 'generate' | 'edit'): Attribute => mode === 'edit' ? {intent: 'keep'} : {intent: 'free'};
+const isDefault = (ws: Workspace, category: Category) => {
+  const current = ws.request.attributes[category];
+  return !current || current.intent === defaultAttribute(ws.request.mode).intent || current.intent === 'free';
+};
+const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+
+/** A suggestion the person clicked: it becomes their own choice, like any other change of the field. */
+export function applySuggestion(ws: Workspace, suggestion: Suggestion): Workspace {
+  const next = suggestion.attribute ? setAttribute(ws, suggestion.field, suggestion.attribute) : clone(ws);
+  Object.assign(next.request.context, suggestion.context);
+  if (!suggestion.attribute) mark(next, suggestion.field);
+  return next;
+}
+
+/** Fills the fields the person has not touched with the values the pose or action needs, and gives back the ones
+ * it filled before when the pose or action no longer needs them. Returns the same workspace when nothing changes. */
+export function syncAuto(ws: Workspace, suggestions: Suggestion[]): Workspace {
+  const touched = new Set(ws.touched ?? []);
+  const wanted = new Map<Category, Suggestion>();
+  for (const s of suggestions) {
+    if (s.auto && s.attribute && !touched.has(s.field) && !wanted.has(s.field) && !Object.keys(s.context).length
+        && (ws.auto?.[s.field] || isDefault(ws, s.field))) wanted.set(s.field, s);
+  }
+  const stale = (Object.keys(ws.auto ?? {}) as Category[]).filter(c => !wanted.has(c));
+  const changes = [...wanted.values()].filter(s => !same(ws.request.attributes[s.field], s.attribute)
+    || ws.auto?.[s.field] !== s.source);
+  if (!changes.length && !stale.length) return ws;
+  const next = clone(ws);
+  next.auto = {...next.auto};
+  for (const s of changes) {
+    next.request.attributes[s.field] = s.attribute!;
+    next.auto[s.field] = s.source;
+  }
+  for (const category of stale) {
+    next.request.attributes[category] = defaultAttribute(next.request.mode);
+    delete next.auto[category];
+  }
   return next;
 }
 

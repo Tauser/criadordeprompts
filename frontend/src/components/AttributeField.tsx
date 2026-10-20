@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react';
-import type {Attribute, Category, Item, Reference} from '../api/types';
+import type {Attribute, Category, Item, Reference, Suggestion} from '../api/types';
 import {CATEGORY_LABELS} from '../lib/labels';
 import {groupByPrefix} from '../lib/groups';
 import {sortBy} from '../lib/sort';
@@ -15,13 +15,19 @@ interface Props {
   disabled?: boolean;
   issues: string[];
   onChange: (attribute: Attribute) => void;
+  auto?: 'pose' | 'action';                   // filled by the Studio for the pose or action
+  suggestions?: Suggestion[];                 // values that fit the pose or action, one click away
+  onSuggest?: (suggestion: Suggestion) => void;
   children?: ReactNode;
 }
+
+const SOURCE = {pose: 'pela pose', action: 'pela ação'};
 
 const keyOf = (a: Attribute) => a.intent === 'set' ? (a.value?.kind === 'catalog' ? `catalog:${a.value.item_id}` : 'text')
   : a.intent === 'transfer' ? `ref:${a.reference_id}` : a.intent;
 
-export function AttributeField({category, attribute, items, references, targetId, mode, disabled, issues, onChange, children}: Props) {
+export function AttributeField({category, attribute, items, references, targetId, mode, disabled, issues, onChange, auto,
+  suggestions = [], onSuggest, children}: Props) {
   const key = keyOf(attribute);
   const id = `field-${category}`;
   const sources = sortBy(references.filter(r => r.id !== targetId), r => r.label);
@@ -43,11 +49,15 @@ export function AttributeField({category, attribute, items, references, targetId
     : item ? item.prompt_pt || item.prompt
     : source ? `Vem da imagem de referência “${source.label}”.` : null;
   const tipId = `${id}-tip`;
+  const offered = suggestions.filter(s => !s.attribute || keyOf(s.attribute) !== key);
   return (
     <div className={'field' + (issues.length ? ' has-issue' : '') + (defined ? ' is-set' : '')}>
       <div className="field-label">
         <label htmlFor={id}>{CATEGORY_LABELS[category]}</label>
         {issues.length ? <span className="dot warn" title="Com conflito" /> : defined ? <span className="dot set" title="Definido" /> : null}
+        {auto && <span className="auto-mark" tabIndex={0}
+          title={`Preenchido ${SOURCE[auto]} para evitar conflitos. Mude o campo para escolher outro valor; o Studio não volta a mexer nele.`}>
+          {SOURCE[auto]}</span>}
       </div>
       <div className="field-control">
         <select id={id} value={key} disabled={disabled} onChange={e => select(e.target.value)} className={defined ? '' : 'is-default'}
@@ -66,6 +76,11 @@ export function AttributeField({category, attribute, items, references, targetId
         {description && <span role="tooltip" id={tipId} className="tip field-tip">{description}</span>}
       </div>
       {issues.length > 0 && <ul id={`${id}-issues`} className="field-issues">{issues.map(m => <li key={m}>{m}</li>)}</ul>}
+      {offered.length > 0 && onSuggest && <div className="field-fixes" role="group" aria-label={`Sugestões para ${CATEGORY_LABELS[category]}`}>
+        <span className="field-fix-reason">{(offered.find(s => s.attribute) ?? offered[0]).reason}</span>
+        {offered.map(s => <button key={s.label} type="button" className="btn-link" disabled={disabled}
+          title={s.attribute ? undefined : s.reason} onClick={() => onSuggest(s)}>{s.label}</button>)}
+      </div>}
       {attribute.intent === 'set' && attribute.value?.kind === 'text' && (<>
         <textarea rows={2} value={attribute.value.text} disabled={disabled} placeholder="Descreva em inglês (ou em português e traduza)"
                   aria-label={`Descrição de ${CATEGORY_LABELS[category]} em inglês`}
