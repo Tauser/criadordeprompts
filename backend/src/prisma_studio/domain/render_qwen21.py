@@ -7,6 +7,7 @@ re-describing it; identity points at the reference image; affirmative wording;
 from __future__ import annotations
 
 from . import ir
+from .vocabulary import PERSON_ASPECTS
 
 ASPECT_NAMES = {
     'subject': 'person', 'face': 'facial identity', 'body': 'body shape and proportions', 'skin': 'skin tone and texture',
@@ -145,6 +146,24 @@ def render(blocks) -> list[tuple[str, str]]:
             if gaze_changes and 'facial expression' in names:
                 names[names.index('facial expression')] = 'facial expression, apart from the requested gaze direction'
             target = image(1)
+            if block.people_added:
+                # The identity of the people already there is kept per person: a scene-wide "keep the facial identity"
+                # lets the model paste the new person's face onto the first person instead of adding someone.
+                personal = {ASPECT_NAMES[a] for a in PERSON_ASPECTS} | {'identity of the person'}
+                own = [n for n in names if n.split(',')[0] in personal]
+                scene = [n for n in names if n not in own]
+                parts = [f"the first person's {_join(own)}" if own else '', f'the {_join(scene)}' if scene else '']
+                listed = '; and '.join(p for p in parts if p)
+                if not block.everything_else:
+                    text = f'Keep {listed} from {target} unchanged.'
+                elif listed:
+                    text = f'Keep everything else in {target} unchanged, including {listed}.'
+                else:
+                    text = f'Keep everything else in {target} unchanged.'
+                if block.widen:
+                    text += ' Widen the framing only as much as needed to fit every person, with the same perspective.'
+                out.append((block.id, text))
+                continue
             if block.everything_else and names:
                 text = f'Keep everything else in {target} unchanged, including the {_join(names)}.'
             elif block.everything_else:
@@ -213,8 +232,15 @@ def _people(count: int) -> str:
 def _character(block: ir.Character, source: str, blocks) -> str:
     """The reference lends only the identity: clothing and action come from the request when they cover this person."""
     ordinal = ORDINALS.get(block.ordinal, f'person number {block.ordinal}')
-    text = (f'The {ordinal} person has the {CHARACTER_ASPECTS} of the person in {source}; '
-            f'use {source} only for this person\'s identity.')
+    if block.added:
+        # Without an explicit "add", an edit model reads "has the face of <imageN>" as a face swap on the first person.
+        beside = 'the first person' if block.ordinal == 2 else 'the other people'
+        text = (f'Add a {ordinal} person to the scene, next to {beside}, with the {CHARACTER_ASPECTS} of the person in '
+                f'{source}; use {source} only for this person\'s identity. The first person keeps their own face and '
+                f'identity and takes no facial features from {source}.')
+    else:
+        text = (f'The {ordinal} person has the {CHARACTER_ASPECTS} of the person in {source}; '
+                f'use {source} only for this person\'s identity.')
     if any(isinstance(b, ir.WardrobeScope) and b.target == 'all' for b in blocks):
         text += f' The {ordinal} person wears the requested clothing, not the clothing from {source}.'
     action = next((b for b in blocks if isinstance(b, ir.Operation) and b.category == 'action'), None)

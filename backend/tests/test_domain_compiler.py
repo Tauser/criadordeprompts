@@ -250,11 +250,23 @@ def test_second_character_comes_from_its_own_reference(library):
 
 
 def test_second_character_in_an_edit_counts_as_a_change(library):
-    request = edit_request(dict(DEFAULT_KEEP), references=(('t', 'alvo'), ('b', 'Bia')), characters=[{'reference_id': 'b'}])
+    request = edit_request({**DEFAULT_KEEP, 'framing': keep()}, references=(('t', 'alvo'), ('b', 'Bia')),
+                           characters=[{'reference_id': 'b'}],
+                           context={'allow_reframing': True})
     assessment, compiled = run(request, library)
     assert 'missing_change' not in codes(assessment)
     assert assessment.slots == {'t': 1, 'b': 2}
-    assert 'The second person has the facial identity' in compiled.text
+    # Not in the photo yet: the person is added, never swapped onto the first person's face.
+    assert 'Add a second person to the scene, next to the first person' in compiled.text
+    assert 'takes no facial features from <image2>' in compiled.text
+    assert "the first person's facial identity" in compiled.text
+    assert 'Widen the framing only as much as needed' in compiled.text and 'framing and crop' not in compiled.text
+    # Both already in the photo: the character only gives the second person an identity.
+    present = request.model_copy(update={'participants': request.participants.model_copy(update={'existing': 2})})
+    _, compiled = run(present, library)
+    assert 'The second person has the facial identity' in compiled.text and 'Add a second' not in compiled.text
+    locked = request.model_copy(update={'context': request.context.model_copy(update={'allow_reframing': False})})
+    assert 'framing and crop' in run(locked, library)[1].text
 
 
 def test_character_reference_rules(library):

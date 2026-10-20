@@ -45,6 +45,7 @@ class Character:
     slot: int
     ordinal: int                          # 2 for the second person, 3 for the third...
     description: str = ''
+    added: bool = False                   # edit: this person is not in the photo yet and must be added
 
     @property
     def id(self) -> str:
@@ -56,6 +57,8 @@ class Keep:
     aspects: tuple[str, ...]
     everything_else: bool
     allow_action_movement: bool
+    people_added: bool = False            # the identity aspects belong to the first person only
+    widen: bool = False                   # added people need room: the crop may grow instead of being kept
     id: str = 'keep'
 
 

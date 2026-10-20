@@ -71,8 +71,8 @@ def test_added_character_is_included_without_changing_identity_or_scene():
     assert item.edit_prompt in compiled.text
     assert 'both people in the scene' in compiled.text
     assert 'includes any characters added from reference images' in compiled.text
-    assert 'The second person has the facial identity, body shape, skin tone and hairstyle' in compiled.text
-    assert 'facial identity and background and setting' in compiled.text
+    assert 'Add a second person to the scene, next to the first person, with the facial identity, body shape, skin '         'tone and hairstyle' in compiled.text
+    assert "the first person's facial identity; and the background and setting" in compiled.text
     assert compiled.version == COMPILER_VERSION
     without_confirmations = request.model_copy(update={'confirmations': frozenset()})
     denied, result = run(without_confirmations, library)

@@ -31,6 +31,7 @@ BACK_WORDS = r'\b(?:from behind|back (?:to|toward|towards) the camera|seen from 
 FRONT_WORDS = r'\b(?:facing the camera|front (?:of the body )?(?:to|toward|towards) the camera)\b'
 CAMERA_GAZE = r'\b(?:looking (?:at|into) the (?:camera|lens)|eyes (?:on|at|directed at) the (?:camera|lens))\b'
 CHILD_WORDS = r'\b(?:child|children|kids?|toddlers?|baby|babies)\b'
+SINGLE_PERSON = r'\bthe (?:adult |fictional |young |nude )*(?:character|person|model|subject|woman|man)\b'
 FIXED_HEAD = r'\bhead (?:in line with the spine|aligned with the (?:spine|body)|straight)\b'
 
 
@@ -98,6 +99,10 @@ def audit_item(item: Item) -> list[Finding]:
         add('fixed_head', 'conflict', 'O texto fixa a cabeça alinhada, mas a orientação ou o olhar pedem que ela gire.')
     if item.category in ('pose', 'action') and req.participants == 1 and re.search(r'\b(?:each other|two adults|partner)\b', low):
         add('people_words', 'conflict', 'O texto fala de duas pessoas, mas a opção declara uma.')
+    wording = ' '.join(t for t in (item.prompt, item.edit_prompt) if t).lower()
+    if item.category == 'wardrobe' and re.search(SINGLE_PERSON, wording):
+        add('single_person', 'ambiguity', 'A roupa fala de uma pessoa só ("the character", "the person"): com "Todas as '
+            'pessoas", o modelo tende a vestir só uma. Use um texto neutro, sem sujeito, ou no plural.')
     if re.search(CHILD_WORDS, low) and item.adult:
         add('adult_with_children', 'conflict', 'O texto fala de crianças numa opção adulta.')
     elif body and re.search(CHILD_WORDS, low) and not req.children:

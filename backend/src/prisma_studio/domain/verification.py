@@ -9,6 +9,7 @@ from . import ir
 from .render_qwen21 import (ANATOMY, ANATOMY_MIXED_AGES, ASPECT_NAMES, FACES, FRAMINGS, GAZES, ORIENTATIONS, POSTURES,
                             SUPPORTS)
 from .rules import HIDDEN_FACE_GAZES
+from .vocabulary import PERSON_ASPECTS
 
 VERDICTS = ('met', 'partial', 'unmet', 'unknown')
 SCORES = {'met': 1.0, 'partial': 0.5, 'unmet': 0.0, 'unknown': 0.0}
@@ -51,11 +52,18 @@ def checklist(blocks) -> list[Check]:
             aspects = ', '.join(ASPECT_NAMES[a] for a in block.aspects)
             checks.append(Check(block.id, f'The {aspects} match reference image {block.slot}'))
         elif isinstance(block, ir.Character):
-            checks.append(Check(block.id, f'Another distinct person in the image matches the appearance of reference '
-                                          f'image {block.slot}'))
+            question = f'Another distinct person in the image matches the appearance of reference image {block.slot}'
+            if block.added:
+                question += (f', and the first person still has their own face, with no facial features from '
+                             f'reference image {block.slot}')
+            checks.append(Check(block.id, question))
         elif isinstance(block, ir.Keep) and block.aspects:
-            aspects = ', '.join(ASPECT_NAMES[a] for a in block.aspects)
-            checks.append(Check(block.id, f'The {aspects} are unchanged from the original image 1'))
+            mine = [a for a in block.aspects if block.people_added and a in PERSON_ASPECTS]
+            own = ['identity' if a == 'subject' else ASPECT_NAMES[a] for a in mine]
+            scene = [ASPECT_NAMES[a] for a in block.aspects if a not in mine]
+            parts = ([f"the first person's {', '.join(own)}"] if own else []) + ([', '.join(scene)] if scene else [])
+            checks.append(Check(block.id, f'The {"; and the ".join(parts).removeprefix("the ")} are unchanged from the '
+                                          'original image 1'))
         elif isinstance(block, ir.Participants) and block.total == 1:
             checks.append(Check(block.id, 'The image shows exactly one person'))
         elif isinstance(block, ir.Participants):

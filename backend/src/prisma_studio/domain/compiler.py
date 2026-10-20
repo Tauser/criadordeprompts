@@ -8,7 +8,7 @@ from .request import CatalogValue, Request
 from .rules import Assessment, available_supports, body_gaze, effective_orientation, framing_already_there
 from .vocabulary import CATEGORIES, FRAMING_ORDER, SUPPORT_PRIORITY, agreed
 
-COMPILER_VERSION = '1.12.0'
+COMPILER_VERSION = '1.13.0'
 
 # Operation order: scene first, then person changes; style leads in generation.
 EDIT_ORDER = ('environment', 'lighting', 'style', 'camera', 'framing', 'subject', 'face', 'body', 'skin', 'hair',
@@ -64,7 +64,10 @@ def build_ir(request: Request, assessment: Assessment) -> list:
         blocks.append(ir.Transfer(slot, tuple(by_slot[slot])))
     # The cast is introduced before clothing and action, so "both people" and group actions have someone to point
     # at: right after the header in an edit, right after the subject when generating.
-    cast = [ir.Character(assessment.slots[c.reference_id], i + 2, c.description.strip())
+    # In an edit, a character beyond the people already in the photo is a new person: it must be added, not swapped
+    # onto the first person's face (unknown count: the photo is assumed to hold only the first person).
+    present = (request.participants.existing or 1) if edit else 0
+    cast = [ir.Character(assessment.slots[c.reference_id], i + 2, c.description.strip(), added=edit and i + 2 > present)
             for i, c in enumerate(request.characters)]
     at = next((i + 1 for i, b in enumerate(blocks) if isinstance(b, ir.Operation) and b.category == 'subject'), 1)
     blocks[at:at] = cast
@@ -78,9 +81,12 @@ def build_ir(request: Request, assessment: Assessment) -> list:
                      if (request.attribute(c).intent == 'keep' and not (c == 'pose' and action_posture))
                      or (c == 'framing' and same_framing))
         free = [c for c in CATEGORIES if request.attribute(c).intent == 'free']
+        added = any(c.added for c in cast) or (assessment.participants_total or 0) > present
+        widen = added and request.context.allow_reframing and 'framing' in kept
         if kept or not free:
-            blocks.append(ir.Keep(kept, everything_else=not free,
-                                  allow_action_movement=request.attribute('action').intent in ('set', 'transfer')))
+            blocks.append(ir.Keep(tuple(c for c in kept if not (widen and c == 'framing')), everything_else=not free,
+                                  allow_action_movement=request.attribute('action').intent in ('set', 'transfer'),
+                                  people_added=added, widen=widen))
 
     total = assessment.participants_total
     if total and (total > 1 or request.participants.requested == 1):   # an explicit "one person" is an instruction too

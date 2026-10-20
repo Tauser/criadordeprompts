@@ -79,3 +79,12 @@ def test_the_shipped_catalog_has_no_contradictory_or_ambiguous_wording():
     problems = {i.id: [f.code for f in audit_item(i) if f.level in ('conflict', 'ambiguity')]
                 for i in Library.model_validate(data).items}
     assert {k: v for k, v in problems.items() if v} == {}
+
+
+def test_clothing_written_for_one_person_is_flagged():
+    single = item('wardrobe.s', 'wardrobe', 'a long red dress', prompt_pt='x',
+                  edit_prompt='Dress the adult fictional character in a long red dress.')
+    assert 'single_person' in found(single)
+    neutral = item('wardrobe.n', 'wardrobe', 'a long red dress', prompt_pt='x',
+                   edit_prompt='Change the clothing to a long red dress.')
+    assert 'single_person' not in found(neutral)
