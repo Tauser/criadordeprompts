@@ -25,7 +25,7 @@ EDIT_OPERATIONS = {
     'body': 'Change the body build to: {}.',
     'skin': 'Change the skin to: {}.',
     'hair': 'Change the hair to: {}.',
-    'wardrobe': 'Change the clothing to {}.',
+    'wardrobe': 'Replace the current clothing with {}; the original outfit is no longer worn.',
     'pose': 'Change the body pose to {}.',
     'action': 'Show the person {}.',
     'expression': 'Change the facial expression to {}.',
@@ -60,6 +60,8 @@ GAZES = {
 HEAD = 'The neck stays natural: the head turns no further than over the shoulder.'
 ANATOMY = ('Each person has exactly two arms, two hands, two legs and two feet, with natural adult proportions: '
            'the head is in scale with the shoulders and torso, neither enlarged nor shrunk.')
+FACES = ("Every face is sharp and natural: each person's two eyes "
+         'match in size, shape and color, are level with each other and look in the same direction.')
 ORIENTATIONS = {
     'front': 'The front of the body faces the camera.',
     'back': 'The body is seen from behind, with the back toward the camera.',
@@ -116,6 +118,8 @@ def render(blocks) -> list[tuple[str, str]]:
             text = f'Apply the clothing instruction to {target}.'
             if block.target == 'all':
                 text += ' This includes any characters added from reference images.'
+                if cast:
+                    text += f' Every person wears it, {_people(block.total)}.'
             out.append((block.id, text))
         elif isinstance(block, ir.Transfer):
             aspects = _join(ASPECT_NAMES[a] for a in block.aspects)
@@ -127,9 +131,11 @@ def render(blocks) -> list[tuple[str, str]]:
                 whose = ' of the first person' if cast else ''
                 out.append((block.id, f'Use {image(block.slot)} as the reference for the {aspects}{whose}.'))
         elif isinstance(block, ir.Character):
-            out.append((block.id, _character(block, image(block.slot))))
+            out.append((block.id, _character(block, image(block.slot), blocks)))
         elif isinstance(block, ir.Keep):
-            names = [ASPECT_NAMES[a] for a in block.aspects]
+            # "Keep the person unchanged" would also freeze the clothing and pose being changed: name the identity.
+            names = [ASPECT_NAMES[a] if a != 'subject' else 'identity of the person' for a in block.aspects
+                     if not (a == 'subject' and 'face' in block.aspects)]
             if block.allow_action_movement and 'body pose' in names:
                 names[names.index('body pose')] = 'body pose, apart from the movement the action needs'
             gaze_changes = any(isinstance(b, ir.Guidance) and b.key == 'gaze' for b in blocks)
@@ -184,7 +190,10 @@ def _operation(block: ir.Operation, edit: bool, blocks) -> str:
         sentence = f'Show {subject}{text}' if edit else f'Action: {text}'
         if has_pose and not group:
             sentence += '; keep the requested pose for the torso and legs, and let the arms and hands follow this action'
-        return f'{sentence}. {BODY_EMPHASIS["action"]}'
+        sentence += '.'
+        if group and any(isinstance(b, ir.Character) for b in blocks):
+            sentence += f' The people performing this action are {_people(block.participants)}.'
+        return f'{sentence} {BODY_EMPHASIS["action"]}'
     if edit:
         sentence = EDIT_OPERATIONS[block.category].format(text)
     else:
@@ -194,10 +203,20 @@ def _operation(block: ir.Operation, edit: bool, blocks) -> str:
     return sentence
 
 
-def _character(block: ir.Character, source: str) -> str:
+def _people(count: int) -> str:
+    return _join(f'the {ORDINALS.get(n, f"person number {n}")} person' for n in range(1, count + 1))
+
+
+def _character(block: ir.Character, source: str, blocks) -> str:
+    """The reference lends only the identity: clothing and action come from the request when they cover this person."""
     ordinal = ORDINALS.get(block.ordinal, f'person number {block.ordinal}')
     text = (f'The {ordinal} person has the {CHARACTER_ASPECTS} of the person in {source}; '
-            f'use {source} only for this person\'s appearance.')
+            f'use {source} only for this person\'s identity.')
+    if any(isinstance(b, ir.WardrobeScope) and b.target == 'all' for b in blocks):
+        text += f' The {ordinal} person wears the requested clothing, not the clothing from {source}.'
+    action = next((b for b in blocks if isinstance(b, ir.Operation) and b.category == 'action'), None)
+    if action is not None and (action.participants or 1) >= block.ordinal:
+        text += f' The {ordinal} person takes part in the requested action together with the first person.'
     if block.description:
         text += f' The {ordinal} person: ' + _sentence(block.description)
     return text
@@ -214,6 +233,8 @@ def _guidance(block: ir.Guidance) -> str:
         return HEAD
     if block.key == 'anatomy':
         return ANATOMY
+    if block.key == 'faces':
+        return FACES
     if block.key == 'new_supports':
         return 'Add only the support surfaces the pose or action needs.'
     surface = SUPPORTS[block.value]

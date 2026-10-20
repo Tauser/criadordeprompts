@@ -245,7 +245,7 @@ def test_second_character_comes_from_its_own_reference(library):
     assert ir.Character(2, 2, 'standing on the left') in compiled.blocks
     assert 'Use <image1> as the reference for the facial identity of the first person.' in compiled.text
     assert ("The second person has the facial identity, body shape, skin tone and hairstyle of the person in <image2>; "
-            "use <image2> only for this person's appearance. The second person: standing on the left.") in compiled.text
+            "use <image2> only for this person's identity. The second person: standing on the left.") in compiled.text
     assert 'The scene contains 2 distinct people' in compiled.text
 
 

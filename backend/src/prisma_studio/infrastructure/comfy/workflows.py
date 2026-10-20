@@ -9,6 +9,7 @@ UNET = {'qwen21': 'qwen_image_2.1_int8_convrot.safetensors', 'turbo': 'qwen_imag
 TEXT_ENCODER = 'qwen3vl_8b_int8_convrot.safetensors'
 VAE = 'qwen_image_2.1_vae_bf16.safetensors'
 PE_MODEL = 'qwen3.5_9b_qwen_image_2.1_pe_i2i.int8_convrot.safetensors'
+FACE_MODEL = 'mediapipe_face_fp32.safetensors'   # ComfyUI models/detection: judge close-ups and face detail
 TURBO_SIGMAS = '1.0, 0.978453, 0.95418, 0.926626, 0.89508, 0.845148, 0.704534, 0.414568, 0.0'
 PROFILES = {
     'qwen21': {'label': 'Qwen Image 2.1 completo', 'steps': 40, 'cfg': 1.0, 'sampler': 'euler', 'scheduler': 'simple',
@@ -22,7 +23,6 @@ TEXT_OUTPUT_NODE = '92'
 LORA_NODES = 30                    # LoraLoaderModelOnly nodes of image graphs: 30, 31, 32
 IMAGE_INPUT_NODES = 200            # LoadImage nodes of image graphs: 201, 202...
 TEXT_IMAGE_NODES = 300             # LoadImage nodes of text graphs: 300, 301...
-FACE_MODEL = 'mediapipe_face_fp32.safetensors'
 FACE_SIZE = 1024                   # side of the square face crop sent back to the image model
 
 
@@ -60,6 +60,7 @@ class TextJob:
     sampling: dict | None = None      # None = greedy (deterministic)
     seed: int = 0
     extra: dict = field(default_factory=dict)
+    face_crops: int = 0               # faces to find in the first image and append as one enlarged close-up
 
 
 ASPECTS = {'3:4': (3, 4), '2:3': (2, 3), '1:1': (1, 1), '16:9': (16, 9), '9:16': (9, 16), '4:3': (4, 3), '3:2': (3, 2)}
@@ -213,6 +214,18 @@ def text_graph(job: TextJob) -> dict:
             node = str(TEXT_IMAGE_NODES + index)   # own range: never collides with the fixed nodes below 100
             g[node] = {'class_type': 'LoadImage', 'inputs': {'image': name}}
             g['85']['inputs'][f'images.image{index}'] = [node, 0]
+        if job.face_crops:
+            # The 'full' detector finds the small faces of full-body shots; keeping only the expected number of
+            # faces (highest scores first) drops the false hits on hands and chests. No face: the whole image.
+            first = [str(TEXT_IMAGE_NODES), 0]
+            g['86'] = {'class_type': 'LoadMediaPipeFaceLandmarker', 'inputs': {'model_name': FACE_MODEL}}
+            g['87'] = {'class_type': 'MediaPipeFaceLandmarker', 'inputs': {
+                'face_detection_model': ['86', 0], 'image': first, 'detector_variant': 'full',
+                'num_faces': min(job.face_crops, 16), 'min_confidence': 0.5, 'missing_frame_fallback': 'empty'}}
+            g['88'] = {'class_type': 'CropByBBoxes', 'inputs': {
+                'image': first, 'bboxes': ['87', 1], 'output_width': 1024, 'output_height': 1024, 'padding': 32,
+                'keep_aspect': 'pad'}}
+            g['85']['inputs'][f'images.image{len(job.images)}'] = ['88', 0]
         inputs['image'] = ['85', 0]
     g['90'] = {'class_type': 'TextGenerate', 'inputs': inputs}
     g[TEXT_OUTPUT_NODE] = {'class_type': 'PreviewAny', 'inputs': {'source': ['90', 0]}}

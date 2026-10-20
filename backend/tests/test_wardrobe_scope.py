@@ -84,3 +84,72 @@ def test_manual_prompt_remains_literal_and_legacy_requests_still_load(library):
                       wardrobe_scope='all')
     assert run(request, library)[1].text == request.manual_prompt
     assert Request.model_validate({'mode': 'generate'}).wardrobe_scope == 'primary'
+
+
+def test_added_character_gets_the_clothing_and_joins_the_group_action(library):
+    request = edit_request({'wardrobe': text('beachwear'), 'action': cat('action.hug'), 'face': keep()},
+                           references=(('t', 'target'), ('p', 'character')), wardrobe_scope='all',
+                           characters=[{'reference_id': 'p'}], participants={'existing': 1})
+    assessment, compiled = run(request, library)
+    assert assessment.valid
+    order = [b for b, _ in compiled.segments]
+    assert order.index('character.2') < order.index('op.wardrobe') < order.index('op.action')
+    assert "use <image2> only for this person's identity" in compiled.text
+    assert 'The second person wears the requested clothing, not the clothing from <image2>.' in compiled.text
+    assert 'The second person takes part in the requested action together with the first person.' in compiled.text
+    assert 'The people performing this action are the first person and the second person.' in compiled.text
+    assert 'Every person wears it, the first person and the second person.' in compiled.text
+
+
+def test_primary_scope_leaves_the_added_character_in_their_own_clothes(library):
+    request = edit_request({'wardrobe': text('beachwear'), 'action': cat('action.read')},
+                           references=(('t', 'target'), ('p', 'character')),
+                           characters=[{'reference_id': 'p'}], participants={'existing': 1})
+    _, compiled = run(request, library)
+    assert 'not the clothing from <image2>' not in compiled.text
+    assert 'takes part in the requested action' not in compiled.text
+
+
+def test_replacing_the_person_is_blocked_when_a_character_is_added(library):
+    request = edit_request({'subject': text('two adults'), 'action': cat('action.hug')},
+                           references=(('t', 'target'), ('p', 'character')), characters=[{'reference_id': 'p'}],
+                           participants={'existing': 1})
+    assessment, compiled = run(request, library)
+    assert compiled is None
+    assert 'replace_person_with_cast' in {i.code for i in assessment.issues}
+
+
+def test_an_action_with_its_own_posture_releases_the_kept_pose():
+    from prisma_studio.domain.catalog import Item
+    walk = Item.model_validate({'id': 'action.walk', 'category': 'action', 'label': 'walk', 'prompt': 'walking together',
+                                'requirements': {'participants': 2, 'posture': 'walking'}})
+    request = edit_request({'action': cat('action.walk'), 'pose': keep(), 'subject': keep(), 'face': keep(),
+                            'wardrobe': text('swimwear')}, references=(('t', 'target'), ('p', 'character')),
+                           wardrobe_scope='all', characters=[{'reference_id': 'p'}], participants={'existing': 1})
+    assessment, compiled = run(request, Library(items=[walk]))
+    assert 'pose_follows_action' in {i.code for i in assessment.issues}
+    keep_text = dict(compiled.segments)['keep']
+    assert 'body pose' not in keep_text and 'the person,' not in keep_text
+    assert 'the original outfit is no longer worn' in compiled.text
+    wardrobe = [c for c in checklist(compiled.blocks) if c.id.startswith('op.wardrobe')]
+    assert all('visibly different from the outfit in the original' in c.question for c in wardrobe)
+
+
+def test_groups_ask_for_matching_eyes_and_suggest_a_larger_size(library):
+    assessment, compiled = run(generate_request({'wardrobe': text('blue coats')}, participants={'requested': 2}),
+                               library)
+    assert 'each person\'s two eyes match in size, shape and color' in compiled.text
+    assert 'guide.faces' in {c.id for c in checklist(compiled.blocks)}
+    assert 'small_faces' in {i.code for i in assessment.issues}
+    single, compiled = run(generate_request({'wardrobe': text('a blue coat')}), library)
+    assert 'two eyes match' not in compiled.text and 'small_faces' not in {i.code for i in single.issues}
+
+
+def test_every_picture_of_people_checks_the_faces_for_deformities(library):
+    _, single = run(edit_request({'wardrobe': text('a blue coat')}), library)
+    face = [c for c in checklist(single.blocks) if c.id == 'faces']
+    assert len(face) == 1 and 'free of deformities' in face[0].question
+    _, group = run(generate_request({'wardrobe': text('blue coats')}, participants={'requested': 2}), library)
+    checks = {c.id: c.question for c in checklist(group.blocks)}
+    assert 'faces' not in checks and 'free of deformities' in checks['guide.faces']
+    assert 'two eyes match' in checks['guide.faces']

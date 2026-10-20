@@ -7,10 +7,10 @@ import uuid
 
 from ..application.enhancer import check, clean_output, system_prompt
 from ..domain import face_detail
-from ..domain.verification import JUDGE_SYSTEM, Check, judge_prompt, parse_verdicts, score
+from ..domain.verification import FACE_CHECKS, JUDGE_SYSTEM, Check, judge_prompt, parse_verdicts, score
 from ..infrastructure.comfy.client import ComfyNotSent, ComfyRejected, ComfyUnavailable
 from ..infrastructure.comfy.validation import validate_graph
-from ..infrastructure.comfy.workflows import (FACE_SIZE, MAX_EDIT_PIXELS, ImageJob, TextJob, face_boxes,
+from ..infrastructure.comfy.workflows import (FACE_MODEL, FACE_SIZE, MAX_EDIT_PIXELS, ImageJob, TextJob, face_boxes,
                                               face_detect_graph, image_graph, image_outputs, text_graph, text_output)
 from ..infrastructure.db.database import now
 from ..infrastructure.storage.files import (MAX_RESULT_BYTES, composite_on_original, crop_square, face_crop_box,
@@ -38,6 +38,7 @@ class Executor:
         self._wake, self._stop = threading.Event(), threading.Event()
         self._thread: threading.Thread | None = None
         self._object_info: dict | None = None
+        self._face_model: bool | None = None
         self._missing: dict[str, int] = {}
         self._errors: dict[str, int] = {}
         self.reachable: bool | None = None
@@ -297,6 +298,8 @@ class Executor:
     def _verifying(self, run: dict) -> None:
         checks = [Check(**c) for c in run['settings']['checks']]
         refs = run['settings']['uploaded']['images']
+        faces = (run['settings'].get('participants') or 1) if any(c.id in FACE_CHECKS for c in checks) else 0
+        faces = faces if faces and self._face_model_installed() else 0
         images = {t['position']: t for t in self.repository.tasks(run['id'], 'image') if t['status'] == 'completed'}
         judges = {t['position']: t for t in self.repository.tasks(run['id'], 'verify')}
         for position, image_task in images.items():
@@ -309,8 +312,9 @@ class Executor:
             def build(image_task=image_task):
                 file_hash = image_task['result']['files'][0]
                 name = self.comfy.upload(self.store.read(file_hash), f'prisma_{file_hash[:24]}.png', 'image/png')
-                return text_graph(TextJob(prompt=judge_prompt(checks), system_prompt=JUDGE_SYSTEM,
-                                          images=(name, *refs), max_length=1024))
+                return text_graph(TextJob(prompt=judge_prompt(checks, face_closeup=bool(faces)),
+                                          system_prompt=JUDGE_SYSTEM, images=(name, *refs), max_length=1024,
+                                          face_crops=faces))
             self._drive(judge, build)
         judges = {t['position']: t for t in self.repository.tasks(run['id'], 'verify')}
         if len(judges) < len(images) or not all(t['status'] in TASK_DONE for t in judges.values()):
@@ -426,6 +430,17 @@ class Executor:
                 self.repository.record_file(stored)
             files.append(stored.hash)
         self.repository.task_transition(task['id'], 'completed', result_json={**task['result'], 'files': files})
+
+    def _face_model_installed(self) -> bool:
+        """The face close-up is optional: without the detection model the judge sees only the full image."""
+        if self._face_model is None:                # asked once per Studio start
+            try:
+                if self._object_info is None:
+                    self._object_info = self.comfy.object_info()
+                self._face_model = FACE_MODEL in str(self._object_info.get('LoadMediaPipeFaceLandmarker', {}))
+            except Exception:                       # noqa: BLE001 - a missing close-up never blocks the verdict
+                return False
+        return self._face_model
 
     def _validate(self, graph: dict) -> None:
         if not self.validate:

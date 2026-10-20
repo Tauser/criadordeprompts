@@ -20,7 +20,7 @@ const BLOCK_LABEL = (block: string) => {
   if (block.startsWith('guide.')) {
     const key = block.slice(6).split(':')[0];
     return ({posture: 'Postura', support: 'Apoio', new_supports: 'Apoio', orientation: 'Orientação', gaze: 'Olhar',
-             head: 'Pescoço'} as Record<string, string>)[key] ?? 'Orientação';
+             head: 'Pescoço', anatomy: 'Anatomia', faces: 'Rostos'} as Record<string, string>)[key] ?? 'Orientação';
   }
   return ({header: 'Início', keep: 'Manter', participants: 'Pessoas', framing: 'Enquadramento', details: 'Detalhes',
            closing: 'Coerência', manual: 'Manual'} as Record<string, string>)[block] ?? block;

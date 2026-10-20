@@ -8,7 +8,7 @@ from .request import CatalogValue, Request
 from .rules import Assessment, available_supports, body_gaze, effective_orientation, framing_already_there
 from .vocabulary import CATEGORIES, FRAMING_ORDER, SUPPORT_PRIORITY, agreed
 
-COMPILER_VERSION = '1.9.0'
+COMPILER_VERSION = '1.12.0'
 
 # Operation order: scene first, then person changes; style leads in generation.
 EDIT_ORDER = ('environment', 'lighting', 'style', 'camera', 'framing', 'subject', 'face', 'body', 'skin', 'hair',
@@ -62,12 +62,21 @@ def build_ir(request: Request, assessment: Assessment) -> list:
             by_slot.setdefault(assessment.slots[attribute.reference_id], []).append(category)
     for slot in sorted(by_slot):
         blocks.append(ir.Transfer(slot, tuple(by_slot[slot])))
-    for index, character in enumerate(request.characters):
-        blocks.append(ir.Character(assessment.slots[character.reference_id], index + 2, character.description.strip()))
+    # The cast is introduced before clothing and action, so "both people" and group actions have someone to point
+    # at: right after the header in an edit, right after the subject when generating.
+    cast = [ir.Character(assessment.slots[c.reference_id], i + 2, c.description.strip())
+            for i, c in enumerate(request.characters)]
+    at = next((i + 1 for i, b in enumerate(blocks) if isinstance(b, ir.Operation) and b.category == 'subject'), 1)
+    blocks[at:at] = cast
 
     if edit:
+        # An action that needs its own posture (walking, sitting...) cannot keep the original pose: holding both
+        # leaves extra arms and hands, so the action wins.
+        action_posture = (request.attribute('action').intent == 'set' and 'action' in assessment.resolved
+                          and assessment.resolved['action'].requirements.posture not in (None, 'any'))
         kept = tuple(c for c in CATEGORIES
-                     if request.attribute(c).intent == 'keep' or (c == 'framing' and same_framing))
+                     if (request.attribute(c).intent == 'keep' and not (c == 'pose' and action_posture))
+                     or (c == 'framing' and same_framing))
         free = [c for c in CATEGORIES if request.attribute(c).intent == 'free']
         if kept or not free:
             blocks.append(ir.Keep(kept, everything_else=not free,
@@ -102,6 +111,8 @@ def build_ir(request: Request, assessment: Assessment) -> list:
         body.append(ir.Guidance('head', 'natural'))
     if any(request.attribute(c).intent in ('set', 'transfer') for c in ('pose', 'action')):
         body.append(ir.Guidance('anatomy', 'limbs'))      # complex poses are where extra legs and arms appear
+    if (assessment.participants_total or 0) > 1:
+        body.append(ir.Guidance('faces', 'eyes'))         # small faces in a group are where the eyes drift apart
     anchor = max((i for i, b in enumerate(blocks) if isinstance(b, ir.Operation)
                   and b.category in ('pose', 'action', 'expression')), default=len(blocks) - 1)
     blocks[anchor + 1:anchor + 1] = body
