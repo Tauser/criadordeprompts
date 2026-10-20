@@ -153,7 +153,7 @@ export function Studio({library, comfyOnline, notify}: Props) {
   };
   const itemsFor = (category: Category) => library.items.filter(i => i.category === category && i.enabled
     && (request.content_mode === 'adult' || !i.adult));
-  // Offered next to the field: what the pose or action needs, unless the Studio already filled it with that value.
+  // Offered next to the field: what the pose, action or scene needs, unless the Studio already filled it with that value.
   const suggestionsFor = (category: Category) => (prepared?.suggestions ?? [])
     .filter(s => s.field === category && !(s.auto && workspace.auto?.[category]));
   const field = (category: Category) => (

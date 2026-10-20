@@ -106,3 +106,39 @@ def test_a_pose_on_the_ground_keeps_its_automatic_frame_and_camera_once_applied(
     applied = edit_request({'pose': cat('pose.side'), 'framing': cat('framing.full'), 'camera': {'intent': 'free'}})
     auto = {s['field'] for s in suggestions(applied) if s['auto']}
     assert auto == {'framing', 'camera'}
+
+
+def test_a_light_for_another_time_and_place_offers_lights_and_settings_that_agree():
+    found = suggestions(generate_request({'lighting': cat('lighting.night'), 'environment': cat('environment.cafe')}))
+    lights = by_field(found, 'lighting')
+    assert [item_of(s) for s in lights] == ['lighting.window', 'lighting.soft']
+    assert lights[0]['reason'] == 'Combina com o cenário: interno, de dia.'
+    settings = [LIBRARY.index()[item_of(s)] for s in by_field(found, 'environment')]
+    assert len(settings) == 3 and all((i.provides.period, i.provides.place) == ('night', 'outdoor') for i in settings)
+    assert all(s['source'] == 'scene' and not s['auto'] and s['context'] == {} for s in found)
+
+
+def test_a_light_for_another_place_alone_is_enough():
+    found = suggestions(generate_request({'lighting': cat('lighting.window'), 'environment': cat('environment.beach')}))
+    lights = [LIBRARY.index()[item_of(s)] for s in by_field(found, 'lighting')]
+    assert lights and all(i.provides.place == 'outdoor' for i in lights)
+
+
+def test_light_and_setting_that_agree_get_nothing():
+    assert suggestions(generate_request({'lighting': cat('lighting.night'),
+                                         'environment': cat('environment.neon_alley')})) == []
+
+
+def test_a_lens_far_from_the_framing_offers_lenses_close_to_it():
+    found = suggestions(generate_request({'camera': cat('camera.macro'), 'framing': cat('framing.full')}))
+    offered = by_field(found, 'camera')
+    assert [item_of(s) for s in offered] == ['camera.lens_24', 'camera.lens_85']
+    assert all(s['source'] == 'scene' and not s['auto'] for s in offered)
+    assert offered[0]['reason'] == 'O enquadramento é corpo inteiro.'
+    assert suggestions(generate_request({'camera': cat('camera.lens_85'), 'framing': cat('framing.full')})) == []
+
+
+def test_a_lens_offer_respects_the_crop_the_pose_needs():
+    request = generate_request({'pose': cat('pose.side'), 'camera': cat('camera.macro'), 'framing': cat('framing.full')})
+    offered = by_field(suggestions(request), 'camera')
+    assert offered and all(s['source'] == 'pose' for s in offered)

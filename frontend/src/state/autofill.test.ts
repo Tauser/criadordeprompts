@@ -47,4 +47,14 @@ describe('filling fields for the pose or action', () => {
     expect(clicked.request.context.allow_new_supports).toBe(true);
     expect(clicked.touched).toEqual(['environment']);
   });
+
+  it('never applies a suggestion for a clash between two chosen options, even one marked auto', () => {
+    const lens: Suggestion = {field: 'camera', attribute: cat('camera.lens_24'), context: {}, label: 'Grande angular · 24 mm',
+      reason: 'O enquadramento é corpo inteiro.', source: 'scene', auto: true};
+    const ws = initialWorkspace('generate');
+    expect(syncAuto(ws, [lens])).toBe(ws);
+    const clicked = applySuggestion(ws, lens);
+    expect(clicked.request.attributes.camera).toEqual(cat('camera.lens_24'));
+    expect(clicked.auto ?? {}).toEqual({});
+  });
 });

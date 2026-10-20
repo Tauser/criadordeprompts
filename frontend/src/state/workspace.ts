@@ -81,7 +81,7 @@ export function syncAuto(ws: Workspace, suggestions: Suggestion[]): Workspace {
   const touched = new Set(ws.touched ?? []);
   const wanted = new Map<Category, Suggestion>();
   for (const s of suggestions) {
-    if (s.auto && s.attribute && !touched.has(s.field) && !wanted.has(s.field) && !Object.keys(s.context).length
+    if (s.auto && s.source !== 'scene' && s.attribute && !touched.has(s.field) && !wanted.has(s.field) && !Object.keys(s.context).length
         && (ws.auto?.[s.field] || isDefault(ws, s.field))) wanted.set(s.field, s);
   }
   const stale = (Object.keys(ws.auto ?? {}) as Category[]).filter(c => !wanted.has(c));
@@ -92,7 +92,7 @@ export function syncAuto(ws: Workspace, suggestions: Suggestion[]): Workspace {
   next.auto = {...next.auto};
   for (const s of changes) {
     next.request.attributes[s.field] = s.attribute!;
-    next.auto[s.field] = s.source;
+    if (s.source !== 'scene') next.auto[s.field] = s.source;
   }
   for (const category of stale) {
     next.request.attributes[category] = defaultAttribute(next.request.mode);
