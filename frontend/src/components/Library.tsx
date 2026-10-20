@@ -132,7 +132,8 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
     const cleaned = {...draft, prompt_pt: draft.prompt_pt || null, edit_prompt: draft.edit_prompt?.trim() || null};
     if (await persist([...others, cleaned])) {
       if (openId.current === draft.id) setOriginal(JSON.stringify(draft));
-      notify('Opção salva.');
+      notify(cleaned.adult ? 'Opção salva. Ela é +18: na tela Criar, só aparece com "Mostrar opções adultas (+18)" ligado em Conteúdo.'
+        : 'Opção salva.');
     }
   };
   const remove = async () => {

@@ -132,3 +132,15 @@ it('cancels a description when another item is opened, and offers none for exist
   expect(api.cancelReferenceDescription).toHaveBeenCalledWith('d2');
   expect(screen.queryByRole('group', {name: 'Descrever a partir da foto'})).toBeNull();
 });
+
+it('says where a saved +18 option shows up', async () => {
+  const snapshot: LibrarySnapshot = {revision: 6, origins: {'pose.x': 'builtin'}, items: [{id: 'pose.x', category: 'pose',
+    label: 'Deitado', prompt: 'lying on the back', adult: true, enabled: true, requirements: {}, provides: {}}]};
+  vi.mocked(api.saveLibrary).mockResolvedValue(snapshot);
+  const notify = vi.fn();
+  render(<Library snapshot={snapshot} onSaved={vi.fn()} notify={notify} setDirty={vi.fn()} />);
+  fireEvent.click(screen.getByRole('button', {name: /Deitado/}));
+  fireEvent.change(screen.getByLabelText('Nome'), {target: {value: 'Deitado de costas'}});
+  fireEvent.click(screen.getByRole('button', {name: 'Salvar'}));
+  await waitFor(() => expect(notify).toHaveBeenCalledWith(expect.stringMatching(/só aparece com "Mostrar opções adultas/)));
+});

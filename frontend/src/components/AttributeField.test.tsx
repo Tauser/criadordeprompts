@@ -28,3 +28,10 @@ it('marks a field the Studio filled, with the explanation on hover', () => {
   const mark = screen.getByText('pela ação');
   expect(mark.getAttribute('title')).toMatch(/não volta a mexer/);
 });
+
+it('says how many +18 options the standard mode hides, with the way to see them on hover', () => {
+  render(<AttributeField category="pose" mode="generate" items={[]} references={[]} issues={[]} hiddenAdult={3}
+    attribute={{intent: 'free'}} onChange={vi.fn()} />);
+  const hidden = screen.getByText('3 opções +18 ocultas');
+  expect(hidden.getAttribute('title')).toMatch(/Mostrar opções adultas/);
+});

@@ -159,6 +159,8 @@ export function Studio({library, comfyOnline, notify}: Props) {
   const field = (category: Category) => (
     <AttributeField key={category} category={category} mode={request.mode} targetId={request.target_id}
       attribute={request.attributes[category] ?? {intent: 'free'}} items={itemsFor(category)} references={request.references}
+      hiddenAdult={request.content_mode === 'adult' ? 0
+        : library.items.filter(i => i.category === category && i.enabled && i.adult).length}
       disabled={request.prompt_mode === 'manual'} issues={issuesByField[`attributes.${category}`] ?? []}
       auto={workspace.auto?.[category]} suggestions={suggestionsFor(category)}
       onSuggest={suggestion => update(ws => applySuggestion(ws, suggestion))}

@@ -18,6 +18,7 @@ interface Props {
   auto?: 'pose' | 'action';                   // filled by the Studio for the pose or action
   suggestions?: Suggestion[];                 // values that fit the pose or action, one click away
   onSuggest?: (suggestion: Suggestion) => void;
+  hiddenAdult?: number;                       // +18 options this field does not list in the standard mode
   children?: ReactNode;
 }
 
@@ -27,7 +28,7 @@ const keyOf = (a: Attribute) => a.intent === 'set' ? (a.value?.kind === 'catalog
   : a.intent === 'transfer' ? `ref:${a.reference_id}` : a.intent;
 
 export function AttributeField({category, attribute, items, references, targetId, mode, disabled, issues, onChange, auto,
-  suggestions = [], onSuggest, children}: Props) {
+  suggestions = [], onSuggest, hiddenAdult = 0, children}: Props) {
   const key = keyOf(attribute);
   const id = `field-${category}`;
   const sources = sortBy(references.filter(r => r.id !== targetId), r => r.label);
@@ -58,6 +59,9 @@ export function AttributeField({category, attribute, items, references, targetId
         {auto && <span className="auto-mark" tabIndex={0}
           title={`Preenchido ${SOURCE[auto]} para evitar conflitos. Mude o campo para escolher outro valor; o Studio não volta a mexer nele.`}>
           {SOURCE[auto]}</span>}
+        {hiddenAdult > 0 && <span className="auto-mark hidden-adult" tabIndex={0}
+          title='Ligue "Mostrar opções adultas (+18)" em Conteúdo para ver e escolher essas opções.'>
+          {hiddenAdult} {hiddenAdult === 1 ? 'opção +18 oculta' : 'opções +18 ocultas'}</span>}
       </div>
       <div className="field-control">
         <select id={id} value={key} disabled={disabled} onChange={e => select(e.target.value)} className={defined ? '' : 'is-default'}
