@@ -33,9 +33,11 @@ CLOTHING = re.compile(
     r'clothes|clothing|garments?|face paint|faces? painted|painted faces?|tattoos?|make-?up|jewel(?:le)?ry|necklaces?|earrings?|bracelets?|sunglasses)\b')
 BODY_PART = (r'(?:right |left |own )?(?:legs?|arms?|hands?|feet|foot|knees?|elbows?|forearms?|ankles?|shoulders?|'
              r'thighs?|hips?|head|face|chest|back|waist|body|torso|eyes|mouth|chin|neck|hair|cheeks?|forehead|lips|'
-             r'fingers?|fists?|wrists?|palms?|shins?|calves|toes|weight)\b')
+             r'fingers?|fists?|wrists?|palms?|shins?|calves|toes|weight|lap|gaze|smile)\b')
 # "his right hand" reads as "the right hand"; any other he/she/his/her goes back to the model.
 POSSESSIVE = re.compile(rf'\b(?:his|her|their)\s+(?={BODY_PART})', re.I)
+# "eyes meeting hers" -> "eyes meeting the other's": the reply names nobody's gender.
+STANDALONE_POSSESSIVE = re.compile(r'\b(?:hers|his)\b(?=\s*(?:[,;.]|$))', re.I)
 # A single person's pose opens with the posture and names nobody.
 SUBJECT = re.compile(r'^(?:a|an|the|one) (?:young |adult )?(?:man|woman|person|adult|model|guy|lady)\s+', re.I)
 SUBJECT_PT = re.compile(r'^(?:um|uma) (?:homem|mulher|pessoa|adult[oa]|modelo|rapaz|moça)\s+', re.I)
@@ -123,6 +125,22 @@ BACKGROUND_PT = re.compile(r'\b(?:luminárias?|abajur\w*|cortinas?|janelas?|plan
                            r'vasos?|velas?|papel de parede|decora\w*|móve(?:l|is))\b', re.I)
 
 
+# Words that cost length and give the image model nothing to draw.
+FILLER = [
+    (re.compile(r'\b(?:the )?(?:contact points|points of contact) (?:are|include)\s+', re.I), ''),
+    (re.compile(r',?\s*(?:with )?(?:an? )?(?:natural|visible|clear|even|evenly distributed) weight distribution\b', re.I),
+     ''),
+    (re.compile(r'[,;]?\s*(?:(?:the|their) (?:whole|entire) bod(?:y|ies)|everyone|all (?:two|three|four))?\s*'
+                r'(?:conveying|radiating|expressing|evoking|creating)\b[^,;.]*', re.I), ''),
+]
+
+
+def without_filler(text: str) -> str:
+    for pattern, replacement in FILLER:
+        text = pattern.sub(replacement, text)
+    return text.strip(' ,;')
+
+
 def generic_scene(text: str) -> str:
     text = without_explicit(ROOM.sub('', SCENE_ADJECTIVES.sub('', text)), BACKGROUND_OBJECTS)
     for pattern, generic in GENERIC_SURFACES:
@@ -152,22 +170,22 @@ DESCRIBE_SYSTEM = (
     '"label": short name in Brazilian Portuguese, starting with a capital letter. For two or more people, end it with '
     'who takes part, such as "Abraçar (dois adultos)" or "Balançar a criança (dois adultos e uma criança)". A playful '
     'scene may start with "Diversão · ", a romantic one with "Romance · ".\n'
-    '"prompt": English text for generating, in lower case, without a final period, of at most 220 words. It is as '
-    'detailed as possible about the body and leaves no part out, always in service of the pose or action: first the '
-    'overall posture and where the weight rests, then for each person, in this order, the head and its tilt and turn, '
-    'where the eyes look, the shoulders, the torso and its lean or twist, the hips, the right arm, elbow, hand and '
-    'fingers, the left arm, elbow, hand and fingers, the right leg, knee and foot, the left leg, knee and foot, and '
-    'finally every point of contact between the people and with the surfaces. Join the parts with commas and '
-    'semicolons; say each thing once, and when everyone does the same, say it once with "each". Single person: no '
-    'subject, start with the posture, as in "sitting on the floor with the weight on the buttocks, the back rounded and '
-    'leaning slightly forward, the head bowed with the chin resting near the knees and the eyes looking down, both '
-    'knees drawn up to the chest, the right forearm crossed over the left forearm around the shins, ...". Two or more '
-    'people: start with them, as in "two adults standing face to face in a hug, chests touching; the adult on the left '
-    'with the head turned to the right and resting on the right shoulder of the adult on the right, ...".\n'
-    '"edit_prompt": complete English instruction for editing a photo into this pose, with the same detail as "prompt", '
-    'starting with "Change the pose of ..." and ending with a period. Describe only the bodies: do not say what to '
-    'keep.\n'
-    '"prompt_pt": the same description as "prompt", in Brazilian Portuguese, with the same detail.\n'
+    '"prompt": English text for generating, in lower case, without a final period, of at most 130 words: short and '
+    'direct, yet complete about the body. First the overall posture and where the weight rests, then for each person '
+    'the head (tilt, turn, eyes), the torso (lean, twist), the right arm and hand, the left arm and hand, the right leg '
+    'and foot, the left leg and foot, and the contacts between the people and with the surfaces. Write short phrases '
+    'joined by commas and semicolons, not full sentences ("head tilted back, eyes closed; right arm raised, fist at head '
+    'height"); say each thing once, and when everyone does the same, say it once with "each". No filler: no mood, '
+    'energy or atmosphere, no "the contact points are", no weight "distribution", no repeated detail. Single person: no '
+    'subject, start with the posture, as in "sitting on the floor, weight on the buttocks, back rounded forward; head '
+    'bowed, chin near the knees, eyes down; both knees drawn up to the chest; right forearm crossed over the left '
+    'forearm around the shins". Two or more people: start with them, as in "two adults standing face to face in a hug, '
+    'chests touching; the adult on the left: head turned to the right, resting on the right shoulder of the adult on '
+    'the right; ...".\n'
+    '"edit_prompt": complete English instruction for editing a photo into this pose, with the same content as '
+    '"prompt" and at most 140 words, starting with "Change the pose of ..." and ending with a period. Describe only the '
+    'bodies: do not say what to keep.\n'
+    '"prompt_pt": the same description as "prompt", in Brazilian Portuguese, just as short.\n'
     '"participants": number of people. "children": true only when a child or baby is in the scene.\n'
     '"posture": one of ' + ', '.join(POSTURES) + ' (any when the people are in different postures).\n'
     '"gaze": one of ' + ', '.join(GAZES) + '. "orientation" (where the body faces, seen from the camera): one of '
@@ -287,8 +305,9 @@ def draft_from_answer(data: dict, category: str) -> dict:
         participants = min(10, max(1, int(data.get('participants') or 1)))
     except (TypeError, ValueError):
         participants = 1
-    prompt = POSSESSIVE.sub('the ', _sentence(data.get('prompt'))).rstrip(' .')
-    edit = POSSESSIVE.sub('the ', _sentence(data.get('edit_prompt')))
+    neutral = lambda t: STANDALONE_POSSESSIVE.sub("the other's", POSSESSIVE.sub('the ', _sentence(t)))  # noqa: E731
+    prompt = neutral(data.get('prompt')).rstrip(' .')
+    edit = neutral(data.get('edit_prompt'))
     edit = THE_PHOTO.sub('', KEEP_CLAUSE.sub('', STAY_CLAUSE.sub('', KEEP_LIST.sub('', edit))))
     edit = re.sub(r'\s+([,;.])', r'\1', edit).strip(' ,;:')
     if participants == 1:           # one person: the gender comes from the Pessoa field, so the text names nobody
@@ -308,7 +327,7 @@ def draft_from_answer(data: dict, category: str) -> dict:
                                  'descartado. Esse tipo de opção não pode ser criado.')
     pt = without_explicit(_sentence(data.get('prompt_pt')).rstrip(' .'), EXPLICIT_PT)
     pt = generic_scene_pt(without_explicit(pt, NOT_POSE_PT, 'com'))
-    prompt, edit = (generic_scene(without_explicit(without_explicit(t, EXPLICIT), NOT_POSE, 'with'))
+    prompt, edit = (without_filler(generic_scene(without_explicit(without_explicit(t, EXPLICIT), NOT_POSE, 'with')))
                     for t in (prompt, edit))
     wording = f'{prompt} {edit}'.lower()
     posture =_choice(data.get('posture'), POSTURES, 'any')

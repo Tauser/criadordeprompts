@@ -234,3 +234,21 @@ def test_a_list_of_what_to_keep_goes_as_a_whole_and_bare_words_are_read():
     assert draft['edit_prompt'] == 'Change the pose of the two adults on the seat so that they sit side by side, leaning in.'
     assert parse_answer('{"posture": standing, "gaze": any, "children": false}') == {
         'posture': 'standing', 'gaze': 'any', 'children': False}
+
+
+def test_filler_that_draws_nothing_is_cut():
+    draft = draft_from_answer({**HUG, 'participants': 3, 'support_any_of': ['floor'],
+                               'prompt': 'three adults standing, fists raised, feet on the floor with natural weight '
+                                         'distribution, the whole body conveying explosive energy; the contact points '
+                                         'are the shoulders of the adult in the center',
+                               'edit_prompt': 'Change the pose of the three adults so that they stand with fists '
+                                              'raised, conveying pure excitement.'}, 'action')
+    assert draft['prompt'] == ('three adults standing, fists raised, feet on the floor; the shoulders of the adult in '
+                               'the center')
+    assert draft['edit_prompt'] == 'Change the pose of the three adults so that they stand with fists raised.'
+
+
+def test_a_lap_and_a_glance_name_nobody():
+    draft = draft_from_answer({**HUG, 'participants': 2, 'posture': 'seated', 'support_any_of': ['seat'],
+                               'prompt': 'two adults seated on a seat, eyes meeting hers, a mug on her lap'}, 'action')
+    assert draft['prompt'] == "two adults seated on a seat, eyes meeting the other's, a mug on the lap"
