@@ -35,7 +35,7 @@ def test_generation_uses_description_instead_of_edit_instruction():
 def test_legacy_item_keeps_its_existing_edit_template():
     item = instruction_item().model_copy(update={'edit_prompt': None})
     _, compiled = run(edit_request({'wardrobe': cat(item.id)}), Library(items=[item]))
-    assert 'Change the clothing to a dark wool coat.' in compiled.text
+    assert 'Replace the current clothing with a dark wool coat; the original outfit is no longer worn.' in compiled.text
 
 
 def test_replacing_a_person_while_keeping_face_is_reported_without_silent_changes(library):

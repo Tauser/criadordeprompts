@@ -11,6 +11,8 @@ def test_checklist_and_parsing(library):
                            references=(('t', 'alvo'), ('p', 'ref')))
     _, compiled = run(request, library)
     checks = checklist(compiled.blocks)
+    assert checks[-1].id == 'faces'                  # every edit has a person whose face is judged
+    checks = checks[:-1]
     ids = [c.id for c in checks]
     assert ids == ['op.environment', 'transfer.2', 'keep']
     assert '[op.environment]' in judge_prompt(checks)

@@ -137,6 +137,9 @@ def assess(request: Request, library: Library) -> Assessment:
                    'Informe ao menos duas pessoas em Cena ou adicione outro personagem para aplicar a roupa a todos.')
 
     _check_output(request, report)
+    if (total or 0) > 1 and request.output.resolution == 1024:
+        report('small_faces', 'output.resolution', 'Com duas ou mais pessoas, cada rosto fica pequeno em 1024 px e os '
+               'olhos tendem a sair tortos ou de cores diferentes. Use 1536 para fotos em grupo.', 'warning')
     if request.details.strip():
         report('details_not_analyzed', 'details', 'Os detalhes adicionais são enviados literalmente, sem análise.',
                'unknown')
@@ -196,8 +199,13 @@ def _declared(request, resolved, key):
 
 
 def _check_conflicts(request, resolved, report) -> None:
-    if (request.mode == 'edit' and request.attribute('subject').intent in ('set', 'transfer')
-            and request.attribute('face').intent == 'keep'):
+    replaces_person = request.mode == 'edit' and request.attribute('subject').intent in ('set', 'transfer')
+    if replaces_person and request.characters:
+        # "Replace the person with two adults" invents new people, and the added character is never used.
+        report('replace_person_with_cast', 'attributes.subject',
+               'Trocar a pessoa da foto inventa pessoas novas e ignora o personagem adicionado. Para editar a foto '
+               'com outro personagem, escolha "Manter da foto" no campo Pessoa.')
+    elif replaces_person and request.attribute('face').intent == 'keep':
         report('replace_person_keep_identity', 'attributes.subject',
                'Trocar a pessoa e manter a identidade do rosto pode gerar instruções conflitantes. '
                'Para editar a mesma pessoa, escolha "Manter da foto" no campo Pessoa.', 'warning')
@@ -208,7 +216,11 @@ def _check_conflicts(request, resolved, report) -> None:
                 report(f'conflicting_{key}', f'attributes.{category}', f'As opções pedem {label} incompatíveis.')
     kept_pose = request.attribute('pose').intent == 'keep'
     kept_expression = request.attribute('expression').intent == 'keep'
-    if kept_pose and _declared(request, resolved, 'posture'):
+    action = resolved.get('action')
+    if kept_pose and action is not None and action.requirements.posture not in (None, 'any'):
+        report('pose_follows_action', 'attributes.pose', 'Esta ação define a postura do corpo, então a pose da foto '
+               'não será mantida. Manter as duas gera braços e mãos a mais.', 'warning')
+    elif kept_pose and _declared(request, resolved, 'posture'):
         report('posture_vs_kept_pose', 'attributes.pose', 'A postura original não é conhecida; a ação pode exigir '
                'outra postura.', 'unknown')
     if kept_pose and _declared(request, resolved, 'orientation'):

@@ -6,11 +6,16 @@ import re
 from dataclasses import dataclass
 
 from . import ir
-from .render_qwen21 import ANATOMY, ASPECT_NAMES, FRAMINGS, GAZES, ORIENTATIONS, POSTURES, SUPPORTS
+from .render_qwen21 import ANATOMY, ASPECT_NAMES, FACES, FRAMINGS, GAZES, ORIENTATIONS, POSTURES, SUPPORTS
 from .rules import HIDDEN_FACE_GAZES
 
 VERDICTS = ('met', 'partial', 'unmet', 'unknown')
 SCORES = {'met': 1.0, 'partial': 0.5, 'unmet': 0.0, 'unknown': 0.0}
+
+
+FACE_INTEGRITY = ('Every visible face is free of deformities: the eyes, eyebrows, nose, mouth, teeth and ears are complete '
+                  'and correctly placed, with no smeared, melted, doubled or lopsided features')
+IDENTITY_CATEGORIES = ('subject', 'face', 'body', 'skin', 'hair', 'expression')
 
 
 @dataclass(frozen=True)
@@ -30,6 +35,9 @@ def checklist(blocks) -> list[Check]:
         if isinstance(block, ir.Operation):
             question = (f'The image fulfills this edit instruction: {block.text}' if block.is_instruction
                         else f'The {ASPECT_NAMES[block.category]} matches: {block.text}')
+            if block.category == 'wardrobe' and edit and not block.is_instruction:
+                question = (f'The clothing is visibly different from the outfit in the original images and now '
+                            f'matches: {block.text}')
             if block.category == 'pose' and acting:
                 question += ' (the arms and hands may follow the action instead)'
             if block.category == 'wardrobe' and wardrobe_scope:
@@ -58,6 +66,8 @@ def checklist(blocks) -> list[Check]:
             continue                                 # the face is out of view: the gaze cannot be judged
         elif isinstance(block, ir.Guidance) and block.key == 'anatomy':
             checks.append(Check(block.id, ANATOMY.rstrip('.')))
+        elif isinstance(block, ir.Guidance) and block.key == 'faces' and not hidden_face:
+            checks.append(Check(block.id, f'{FACE_INTEGRITY}; {FACES[0].lower()}{FACES[1:].rstrip(".")}'))
         elif isinstance(block, ir.Guidance) and block.key == 'head':
             checks.append(Check(block.id, 'The head and neck look anatomically natural, turned no further than over '
                                           'the shoulder'))
@@ -68,6 +78,11 @@ def checklist(blocks) -> list[Check]:
             checks.append(Check(block.id, f'The body is supported by {SUPPORTS[block.value]}, not split between different surfaces'))
         elif isinstance(block, ir.Details):
             checks.append(Check(block.id, f'These details are present: {block.text}'))
+    # Faces are judged in every picture of people, not only in groups: deformities are what spoils a result most.
+    has_people = edit or any(isinstance(b, (ir.Character, ir.Participants)) or (isinstance(b, ir.Operation)
+                             and b.category in IDENTITY_CATEGORIES) for b in blocks)
+    if has_people and not hidden_face and not any(c.id == 'guide.faces' for c in checks):
+        checks.append(Check('faces', FACE_INTEGRITY))
     return checks
 
 
@@ -76,7 +91,9 @@ JUDGE_SYSTEM = (
     'and a checklist. For each item decide only from what is visible: "met", "partial", "unmet" or '
     '"unknown" when it cannot be judged. Answer with JSON only, as {"results": [{"id": "...", "verdict": "...", '
     '"note": "short reason"}]}, one entry per checklist item, in the same order. '
-    'Copy each id exactly from its square brackets; do not replace ids with sequential numbers.')
+    'Copy each id exactly from its square brackets; do not replace ids with sequential numbers. '
+    'Look at every face up close: small faces in a group often have uneven eyes or a deformed nose or mouth. When a '
+    'face is too small or blurry to confirm it is free of defects, answer "partial", not "met".')
 
 
 def _bare(value) -> str:
@@ -84,9 +101,14 @@ def _bare(value) -> str:
     return str(value).strip().strip('[]').strip()
 
 
-def judge_prompt(checks: list[Check]) -> str:
+FACE_CLOSEUP = ('The last image is an enlarged close-up of the faces in the generated image, not a reference: '
+                'judge the faces from it.')
+FACE_CHECKS = ('faces', 'guide.faces')
+
+
+def judge_prompt(checks: list[Check], face_closeup: bool = False) -> str:
     lines = [f'[{c.id}] {c.question}' for c in checks]
-    return 'Checklist:\n' + '\n'.join(lines)
+    return (FACE_CLOSEUP + '\n' if face_closeup else '') + 'Checklist:\n' + '\n'.join(lines)
 
 
 def parse_verdicts(text: str, checks: list[Check]) -> dict[str, dict]:
