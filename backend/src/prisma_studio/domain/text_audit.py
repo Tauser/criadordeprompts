@@ -32,7 +32,11 @@ FRONT_WORDS = r'\b(?:facing the camera|front (?:of the body )?(?:to|toward|towar
 CAMERA_GAZE = r'\b(?:looking (?:at|into) the (?:camera|lens)|eyes (?:on|at|directed at) the (?:camera|lens))\b'
 CHILD_WORDS = r'\b(?:child|children|kids?|toddlers?|baby|babies)\b'
 SINGLE_PERSON = r'\bthe (?:adult |fictional |young |nude )*(?:character|person|model|subject|woman|man)\b'
-FIXED_HEAD = r'\bhead (?:in line with the spine|aligned with the (?:spine|body)|straight)\b'
+# Colors and materials belong to the setting; in a pose they pull the reference photo's room into the image.
+SCENE_DETAILS = (r'\b(?:red|blue|green|yellow|orange|purple|pink|brown|black|white|gray|grey|beige|navy|teal|turquoise|'
+                 r'golden|silver|velvet|leather|wooden|linen|cotton|silk|satin|upholstered|tufted|plush|marble|wicker|'
+                 r'striped|checkered|floral|patterned)\b')
+FIXED_HEAD =r'\bhead (?:in line with the spine|aligned with the (?:spine|body)|straight)\b'
 
 
 @dataclass(frozen=True)
@@ -67,6 +71,10 @@ def audit_item(item: Item) -> list[Finding]:
         add('capitalized', 'style', 'Começa com maiúscula, mas entra no meio de uma frase do prompt.')
     if body and len(text) < 40:
         add('too_vague', 'ambiguity', 'Descrição curta demais para uma pose: diga onde ficam tronco, braços, pernas e cabeça.')
+    scene = sorted(set(re.findall(SCENE_DETAILS, low))) if body else []
+    if scene:
+        add('scene_details', 'style', 'O texto da pose cita cor ou material (' + ', '.join(scene) + '): isso briga '
+            'com o Cenário escolhido. Descreva só o corpo e o contato, com superfícies genéricas.')
     if not (item.prompt_pt or '').strip():
         add('missing_pt', 'style', 'Sem descrição em português.')
 

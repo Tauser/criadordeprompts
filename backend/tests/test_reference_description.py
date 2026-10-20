@@ -155,7 +155,7 @@ def test_sexual_anatomy_never_enters_the_draft():
                                               'visible, the right knee raised.',
                                'prompt_pt': 'deitado de costas na cama, o tronco ereto nos travesseiros, a vagina '
                                             'à mostra, o joelho direito erguido'}, 'pose')
-    assert draft['prompt'] == 'lying on the back on a bed, the torso upright on the pillows, the right knee raised'
+    assert draft['prompt'] == 'lying on the back on a bed, the torso upright on the bed, the right knee raised'
     assert draft['edit_prompt'] == 'Change the pose so that the person lies on the back on a bed, the right knee raised.'
     assert draft['prompt_pt'] == 'deitado de costas na cama, o tronco ereto nos travesseiros, o joelho direito erguido'
 
@@ -187,3 +187,50 @@ def test_the_edit_instruction_loses_the_photo_and_what_to_keep_whole():
                               'action')
     assert draft['edit_prompt'] == 'Change the pose of the three adults so that they stand in a row, fists raised.'
     assert draft['prompt'] == 'three adults standing, a single adult in the center'
+
+
+def test_the_setting_stays_out_of_the_pose():
+    draft = draft_from_answer({**HUG, 'participants': 2, 'posture': 'seated', 'support_any_of': ['seat'],
+                               'prompt': 'two adults sitting on a gray velvet sofa in a cozy living room, the adult on '
+                                         'the left resting the right elbow on the armrest, the adult on the right '
+                                         'holding a red mug with both hands, a floor lamp glowing behind them',
+                               'prompt_pt': 'dois adultos sentados numa poltrona de veludo cinza na sala de estar, o '
+                                            'adulto da esquerda com o cotovelo direito no braço do sofá'}, 'action')
+    assert draft['prompt'] == ('two adults sitting on a seat, the adult on the left resting the right elbow on the side '
+                               'of the seat, the adult on the right holding a mug with both hands')
+    assert draft['prompt_pt'] == ('dois adultos sentados num assento, o adulto da esquerda com o cotovelo direito na '
+                                  'lateral do assento')
+    assert draft['requirements']['support_any_of'] == ['seat']
+
+
+def test_the_auditor_points_out_colors_and_materials_in_a_pose():
+    from conftest import item
+    from prisma_studio.domain.text_audit import audit_item
+    pose = item('pose.x', 'pose', 'sitting on a leather seat with both hands on the knees and the back straight',
+                prompt_pt='x', req={'participants': 1, 'posture': 'seated', 'support_any_of': ['seat']})
+    assert 'scene_details' in {f.code for f in audit_item(pose)}
+
+
+def test_furniture_parts_lists_of_what_stays_and_the_label_are_generic():
+    draft = draft_from_answer({**HUG, 'participants': 2, 'posture': 'seated', 'support_any_of': ['seat', 'wall'],
+                               'label': 'Conversar no sofá',
+                               'prompt': 'two adults seated on a couch, the right arm along the sofa backrest',
+                               'edit_prompt': 'Change the pose so that the two adults sit on a couch, the right arm '
+                                              'along the backrest; the mug, the sofa, the wall remain unchanged.'},
+                              'action')
+    assert draft['label'] == 'Conversar (dois adultos)'
+    assert draft['prompt'] == 'two adults seated on a seat, the right arm along the back of the seat'
+    assert draft['edit_prompt'] == ('Change the pose so that the two adults sit on a seat, the right arm along the back '
+                                    'of the seat.')
+    assert draft['requirements']['support_any_of'] == ['seat']
+
+
+def test_a_list_of_what_to_keep_goes_as_a_whole_and_bare_words_are_read():
+    from prisma_studio.application.reference_description import parse_answer
+    draft = draft_from_answer({**HUG, 'participants': 2, 'posture': 'seated', 'support_any_of': ['seat'],
+                               'edit_prompt': 'Change the pose of the two adults on the sofa so that they sit side by '
+                                              'side, leaning in; keep the cream sweaters, the red mug, the white wall '
+                                              'and the soft lighting exactly as in the original photo.'}, 'action')
+    assert draft['edit_prompt'] == 'Change the pose of the two adults on the seat so that they sit side by side, leaning in.'
+    assert parse_answer('{"posture": standing, "gaze": any, "children": false}') == {
+        'posture': 'standing', 'gaze': 'any', 'children': False}
