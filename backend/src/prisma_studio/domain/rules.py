@@ -471,6 +471,23 @@ def _check_framing(request, resolved, report) -> None:
             report('framing_too_small', f'attributes.{category}', 'O enquadramento não mostra a pose pedida.')
 
 
+PARTICIPANT_SOURCES = {'action': 'pela ação', 'pose': 'pela pose', 'subject': 'pela pessoa escolhida'}
+
+
+def automatic_participants(request, resolved) -> tuple[int | None, str | None]:
+    """How many people the scene needs without the requested number, and what decides it (shown as the default)."""
+    sources = [(item.requirements.participants, PARTICIPANT_SOURCES.get(category, 'pelas opções escolhidas'))
+               for category, item in resolved.items() if item.requirements.participants]
+    if request.characters:
+        extra = len(request.characters)
+        sources.append((1 + extra, f'pela pessoa principal + {extra} ' + ('personagens' if extra > 1 else 'personagem')))
+    if request.mode == 'edit' and request.participants.existing:
+        sources.append((request.participants.existing, 'pelas pessoas da foto'))
+    if not sources:
+        return None, None
+    return max(sources, key=lambda source: source[0])
+
+
 def _participants(request, resolved, report):
     counts = [item.requirements.participants for item in resolved.values() if item.requirements.participants]
     if request.participants.requested:

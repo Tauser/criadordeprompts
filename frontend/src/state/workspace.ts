@@ -7,6 +7,7 @@ export interface Workspace {
   files: Record<string, FileInfo>;                                    // reference id -> stored file
   restore: Record<string, Partial<Record<Category, Attribute | null>>>; // reference id -> attributes before it was applied
   maskHash: string | null;
+  existingFrom?: string | null;     // hash of the photo whose detected people filled "Pessoas na foto"
 }
 
 export const ROLES: Record<string, {label: string; categories: Category[]}> = {
@@ -143,6 +144,7 @@ export function removeReference(ws: Workspace, id: string): Workspace {
     next.request.target_id = null;
     next.request.mask = false;
     next.maskHash = null;
+    next.request.participants.existing = null; next.existingFrom = null;
   }
   return next;
 }
@@ -151,6 +153,9 @@ export function setTarget(ws: Workspace, id: string): Workspace {
   const next = clone(ws);
   release(next, id);
   next.request.characters = (next.request.characters ?? []).filter(c => c.reference_id !== id);
+  if (next.request.target_id !== id) {     // another photo: its people are counted again
+    next.request.participants.existing = null; next.existingFrom = null;
+  }
   next.request.target_id = id;
   next.request.mask = false;
   next.maskHash = null;

@@ -53,7 +53,7 @@ describe('Studio', () => {
     fireEvent.click(screen.getByRole('radio', {name: 'Todas as pessoas'}));
     fireEvent.click(screen.getByRole('tab', {name: 'Avançado'}));
     fireEvent.click(screen.getByRole('button', {name: /^Cena/}));
-    fireEvent.change(screen.getByLabelText('Pessoas pedidas'), {target: {value: '2'}});
+    fireEvent.change(screen.getByLabelText('Pessoas no resultado'), {target: {value: '2'}});
     const generate = screen.getByRole('button', {name: 'Gerar imagem'});
     await waitFor(() => expect((generate as HTMLButtonElement).disabled).toBe(false));
     await act(async () => {fireEvent.click(generate);});

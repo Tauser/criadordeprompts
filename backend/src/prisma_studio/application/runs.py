@@ -7,7 +7,7 @@ from dataclasses import asdict
 from ..domain import face_detail
 from ..domain.compiler import compile_request
 from ..domain.request import Request
-from ..domain.rules import assess
+from ..domain.rules import assess, automatic_participants
 from ..domain.verification import checklist
 from ..infrastructure.comfy.workflows import generation_size
 from ..infrastructure.db.repository import TERMINAL, MissingFile
@@ -28,6 +28,8 @@ def prepare(request: Request, library) -> dict:
     result = {'valid': assessment.valid, 'status': assessment.status,
               'issues': [issue_dict(i) for i in assessment.issues], 'slots': assessment.slots,
               'prompt': None, 'segments': [], 'checks': []}
+    automatic, reason = automatic_participants(request, assessment.resolved)
+    result['participants'] = {'total': assessment.participants_total, 'automatic': automatic, 'reason': reason}
     if assessment.valid:
         compiled = compile_request(request, assessment)
         result.update(prompt=compiled.text, segments=[{'block': b, 'text': t} for b, t in compiled.segments],

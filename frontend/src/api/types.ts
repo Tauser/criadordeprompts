@@ -73,7 +73,9 @@ export interface Issue {code: string; level: 'error' | 'warning' | 'adjusted' | 
 export interface Prepared {
   valid: boolean; status: string; issues: Issue[]; slots: Record<string, number>; prompt: string | null;
   segments: {block: string; text: string}[]; checks: {id: string; question: string}[];
+  participants?: {total: number | null; automatic: number | null; reason: string | null};
 }
+export interface PeopleCount {id: string; status: string; count?: number; error?: string}
 
 export interface Verdict {verdict: 'met' | 'partial' | 'unmet' | 'unknown'; note: string}
 export interface RunImage {task_id: string; position: number; seed: number; status: string; files: string[];

@@ -5,6 +5,7 @@ import {ADVANCED, BASIC, FRAMING_LABELS, RUN_STATUS, TERMINAL} from '../lib/labe
 import {formatSeconds, runProgress} from '../lib/progress';
 import {useCollapsed} from '../lib/useCollapsed';
 import {load, save} from '../lib/storage';
+import {usePeopleCount, type PeopleDetection} from '../lib/usePeopleCount';
 import {useRun} from '../lib/useRun';
 import {uuid} from '../lib/uuid';
 import {addReference, enterManual, filesForSubmit, initialWorkspace, leaveManual, removeReference, requestForSubmit,
@@ -121,6 +122,17 @@ export function Studio({library, comfyOnline, notify}: Props) {
     for (const issue of prepared?.issues ?? []) (map[issue.field] ??= []).push(issue.message);
     return map;
   }, [prepared]);
+
+  // "Pessoas na foto" is filled from the faces found in the photo being edited, until the user types a number.
+  const targetHash = request.mode === 'edit' && request.target_id ? workspace.files[request.target_id]?.hash ?? null : null;
+  const detection = usePeopleCount(targetHash, request.participants.existing == null, comfyOnline, (hash, count) =>
+    update(ws => {
+      const current = ws.request.target_id ? ws.files[ws.request.target_id]?.hash : null;
+      if (current !== hash || ws.request.participants.existing != null) return ws;
+      const next = structuredClone(ws);
+      next.request.participants.existing = count; next.existingFrom = hash;
+      return next;
+    }));
 
   const busy = !!run && !TERMINAL.has(run.status);
   const changeMode = (mode: 'generate' | 'edit') => {
@@ -306,7 +318,13 @@ export function Studio({library, comfyOnline, notify}: Props) {
                 <h3 className="eyebrow">Câmera</h3>
                 <div className="fields two">{ADVANCED.slice(4).map(field)}</div>
                 <div className="disclosures">
-                  <SceneContext request={request} patch={patch} reveal={revealOf('scene')} alert={blockIssues(/^(participants|context)/)} />
+                  <SceneContext request={request} patch={patch} reveal={revealOf('scene')} alert={blockIssues(/^(participants|context)/)}
+                                people={prepared?.participants} detection={detection} detected={workspace.existingFrom === targetHash && !!targetHash}
+                                issues={issuesByField} setExisting={value => update(ws => {
+                                  const next = structuredClone(ws);
+                                  next.request.participants.existing = value; next.existingFrom = null;
+                                  return next;
+                                })} />
                   <Engine request={request} patch={patch} reveal={revealOf('engine')} alert={blockIssues(/^(engine|output\.(width|height|seed))/)} />
                   <Content request={request} patch={patch} library={library} update={update} reveal={revealOf('content')} alert={blockIssues(/^confirmations/)} />
                 </div>
@@ -406,21 +424,50 @@ function OutputCard({request, patch}: {request: StudioRequest; patch: Patch}) {
 
 interface BlockProps {request: StudioRequest; patch: Patch; reveal: number; alert: boolean}
 
-function SceneContext({request, patch, reveal, alert}: BlockProps) {
+function SceneContext({request, patch, reveal, alert, people, detection, detected, issues, setExisting}: BlockProps & {
+  people?: Prepared['participants']; detection: PeopleDetection | null; detected: boolean; issues: Record<string, string[]>;
+  setExisting: (value: number | null) => void;
+}) {
   const edit = request.mode === 'edit';
   const supports = request.context.supports;
-  const num = (v: string) => v === '' ? null : Math.max(0, Math.min(10, Number(v)));
   const requested = request.participants.requested, existing = request.participants.existing;
-  const summary = [requested ? `${requested} ${requested === 1 ? 'pessoa' : 'pessoas'}` : 'pessoas livres',
-    edit && existing != null ? `${existing} na foto` : null,
+  const automatic = people?.automatic ?? null, total = people?.total ?? requested ?? automatic;
+  const plural = (n: number) => `${n} ${n === 1 ? 'pessoa' : 'pessoas'}`;
+  // The photo's count matters only when the result has more than one person (people are added, never removed).
+  const showExisting = edit && ((total ?? 0) > 1 || (existing != null && existing !== 1) || !!issues['participants.existing']);
+  const summary = [total ? plural(total) + (requested ? '' : ' · automático') : 'pessoas livres',
+    showExisting && existing != null ? `${existing} na foto` : null,
     edit && request.context.original_framing ? FRAMING_LABELS[request.context.original_framing] : null].filter(Boolean).join(' · ');
+  const fieldIssues = (key: string) => issues[key]?.length
+    ? <ul className="field-issues">{issues[key].map(m => <li key={m}>{m}</li>)}</ul> : null;
+  const found = detection?.status === 'done' ? detection.count ?? 0 : null;
   return (
     <Disclosure title="Cena" summary={summary} reveal={reveal} alert={alert}>
       <div className="fields three">
-        <label>Pessoas pedidas<input type="number" min={1} max={10} value={requested ?? ''}
-          onChange={e => patch(r => {r.participants.requested = num(e.target.value) || null;})} /></label>
-        {edit && <label>Pessoas na foto<input type="number" min={0} max={10} value={existing ?? ''}
-          onChange={e => patch(r => {r.participants.existing = num(e.target.value);})} /></label>}
+        <div className="field">
+          <label htmlFor="people-requested" title={automatic ? `Automático: ${plural(automatic)}, ${people?.reason}. Digite um número só para pedir outro total.`
+            : 'Sem escolha que defina o número de pessoas: o modelo decide. Digite um número para fixar.'}>Pessoas no resultado</label>
+          <input id="people-requested" type="number" min={1} max={10} value={requested ?? ''}
+            placeholder={automatic ? `${automatic} · ${people?.reason}` : 'Automático'}
+            onChange={e => patch(r => {r.participants.requested = e.target.value === '' ? null : Math.max(1, Math.min(10, Number(e.target.value))) || null;})} />
+          {requested != null && <button type="button" className="quiet small" onClick={() => patch(r => {r.participants.requested = null;})}>
+            Voltar ao automático</button>}
+          {fieldIssues('participants.requested')}
+        </div>
+        {showExisting && <div className="field people-count">
+          <span className="field-label" title="Quantas pessoas já aparecem na foto que será editada. O Studio mantém essas pessoas e acrescenta só as que faltam.">
+            Pessoas na foto</span>
+          <Segmented small label="Pessoas na foto" value={existing ?? -1} onChange={value => setExisting(value === existing ? null : value)}
+            options={[0, 1, 2, 3, 4, 5, 6].map(n => ({value: n, label: String(n),
+              title: n === 0 ? 'Nenhuma pessoa na foto (por exemplo, uma paisagem onde as pessoas serão acrescentadas)' : undefined}))} />
+          {detection?.status === 'counting' && <span className="muted small">Contando os rostos da foto…</span>}
+          {detected && <span className="muted small">Detectado na foto · confira</span>}
+          {!detected && found != null && found > 0 && existing !== found && <button type="button" className="quiet small" onClick={() => setExisting(found)}>
+            Usar o detectado ({found})</button>}
+          {detection?.status === 'done' && found === 0 && existing == null && <span className="muted small">Nenhum rosto encontrado: escolha o número.</span>}
+          {detection?.status === 'failed' && existing == null && <span className="muted small">{detection.error}</span>}
+          {fieldIssues('participants.existing')}
+        </div>}
         {edit && <label>Enquadramento da foto<select value={request.context.original_framing ?? ''}
           onChange={e => patch(r => {r.context.original_framing = (e.target.value || null) as StudioRequest['context']['original_framing'];})}>
           <option value="">Não informado</option><option value="full">Corpo inteiro</option><option value="half">Meio corpo</option>

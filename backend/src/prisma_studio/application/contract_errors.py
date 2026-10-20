@@ -12,7 +12,7 @@ FIELD_LABELS = {
     'output.width': 'Largura', 'output.height': 'Altura', 'output.seed': 'Seed', 'output.variations': 'Variações',
     'output.resolution': 'Resolução', 'output.aspect': 'Formato', 'output.profile': 'Execução', 'output': 'Tamanho',
     'engine.steps': 'Passos', 'engine.cfg': 'CFG', 'engine.denoise': 'Denoise',
-    'engine.negative_prompt': 'Prompt negativo', 'participants.requested': 'Pessoas pedidas',
+    'engine.negative_prompt': 'Prompt negativo', 'participants.requested': 'Pessoas no resultado',
     'participants.existing': 'Pessoas na foto', 'context': 'Cena',
 }
 

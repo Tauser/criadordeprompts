@@ -20,6 +20,7 @@ from ..application.library import LibraryService
 from ..application.runs import RequestRejected, RunService, prepare
 from ..application.coherence import CoherenceService, review_text
 from ..application.contract_errors import contract_issues
+from ..application.people_count import PeopleCounter
 from ..application.translation import TranslationService
 from ..config import Config
 from ..domain.catalog import Item
@@ -94,6 +95,7 @@ class Container:
         self.executor = Executor(self.runs, self.comfy, self.store, self.progress)
         self.service = RunService(self.runs, self.library, self.store, self.executor)
         self.translation = TranslationService(self.comfy)
+        self.people = PeopleCounter(self.comfy, self.store, self.runs.file)
         self.coherence = CoherenceService(self.comfy)
         self.monitor = monitor or SystemMonitor(config.data_dir)
 
@@ -350,6 +352,19 @@ def create_app(config: Config | None = None, container: Container | None = None)
             return {'available': True, 'loras': sorted(c.comfy.lora_names(), key=str.lower)}
         except ComfyUnavailable:
             return {'available': False, 'loras': []}
+
+    # people count ------------------------------------------------------------------
+    @app.post('/api/files/{file_hash}/people')
+    def count_people(file_hash: str):
+        return c.people.start(file_hash)
+
+    @app.get('/api/people-counts/{job_id}')
+    def people_count(job_id: str):
+        return c.people.status(job_id)
+
+    @app.post('/api/people-counts/{job_id}/cancel')
+    def cancel_people_count(job_id: str):
+        return c.people.cancel(job_id)
 
     # translation -------------------------------------------------------------------
     @app.post('/api/translations')
