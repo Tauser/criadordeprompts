@@ -59,7 +59,7 @@ def tick(client, times=12):
 
 def test_catalog_import_is_valid_and_complete(client):
     items = client.get('/api/library').json()['items']
-    assert len(items) == 209
+    assert len(items) == 263
     common = [i for i in items if i['category'] in ('pose', 'action') and not i['adult']]
     assert all(i['requirements']['participants'] for i in common)
 

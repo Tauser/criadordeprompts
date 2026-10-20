@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -61,6 +62,10 @@ def test_empty_or_oversized_edit_instruction_is_rejected(value):
         Item.model_validate({**instruction_item().model_dump(), 'edit_prompt': value})
 
 
-def test_default_catalog_has_no_adult_options():
+def test_default_adult_options_are_only_between_adults():
     data = json.loads((Path(__file__).resolve().parents[2] / 'catalog/defaults.json').read_text(encoding='utf-8'))
-    assert not [item['id'] for item in Library.model_validate(data).items if item.adult]
+    adult = [item for item in Library.model_validate(data).items if item.adult]
+    young = re.compile(r'(?:child|children|kid|kids|toddler|baby|teen|teenager|minor|young girl|young boy|school)', re.I)
+    assert not [item.id for item in adult if young.search(item.prompt) or young.search(item.label)]
+    assert all(item.category == 'action' and 'adults' in item.prompt and (item.requirements.participants or 0) >= 2
+               for item in adult)

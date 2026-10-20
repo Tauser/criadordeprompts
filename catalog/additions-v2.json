@@ -1,0 +1,1074 @@
+{
+ "notes": "Opções para cenas com duas ou mais pessoas, criadas em 19/10/2026, por clima (diversão, sérias, animadas, família, descontraídas e sexy). As \"Sexy\" são sensuais e não explícitas, só entre adultos, e têm adult: true; as de família com crianças nunca são adultas.",
+ "items": [
+  {
+   "id": "action.fun_pillow_fight",
+   "category": "action",
+   "label": "Diversão · Guerra de travesseiros (dois adultos)",
+   "prompt": "two adults kneeling face to face on a bed in a playful pillow fight, each swinging a pillow overhead with both hands, laughing with mouths open and hair flying",
+   "prompt_pt": "dois adultos ajoelhados de frente um para o outro sobre a cama numa guerra de travesseiros, cada um erguendo um travesseiro acima da cabeça com as duas mãos, rindo de boca aberta e com o cabelo voando",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "kneeling",
+    "gaze": "any",
+    "orientation": "any",
+    "support_any_of": [
+     "bed"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.fun_piggyback",
+   "category": "action",
+   "label": "Diversão · Cavalinho nas costas (dois adultos)",
+   "prompt": "two adults laughing in a piggyback ride: the adult in front bends slightly forward and holds the back of the rider's knees, while the rider sits high on the front adult's back with both arms wrapped around the front adult's shoulders",
+   "prompt_pt": "dois adultos rindo numa brincadeira de cavalinho: o adulto da frente se inclina um pouco e segura a parte de trás dos joelhos de quem monta, que vai alto nas costas dele com os dois braços em volta dos ombros",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "any",
+    "gaze": "any",
+    "orientation": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.fun_selfie",
+   "category": "action",
+   "label": "Diversão · Selfie com caretas (dois adultos)",
+   "prompt": "two adults cheek to cheek making silly faces for a selfie, the adult on the right holding a phone up at arm's length with the right hand, the adult on the left sticking out the tongue and crossing the eyes",
+   "prompt_pt": "dois adultos de rosto colado fazendo caretas para uma selfie, o adulto da direita segurando o celular no alto com o braço direito esticado, o da esquerda mostrando a língua e vesgo de brincadeira",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "any",
+    "gaze": "any",
+    "orientation": "any",
+    "support_any_of": [],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.fun_water_fight",
+   "category": "action",
+   "label": "Diversão · Guerra de água (dois adultos)",
+   "prompt": "two adults standing a few steps apart and splashing water at each other, the adult on the left squeezing a water pistol with both hands and the adult on the right tossing water from a bucket held in both hands, both laughing, droplets frozen in the air",
+   "prompt_pt": "dois adultos em pé a alguns passos de distância jogando água um no outro, o da esquerda apertando uma pistola de água com as duas mãos e o da direita atirando água de um balde seguro com as duas mãos, os dois rindo, com gotas paradas no ar",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "standing",
+    "gaze": "any",
+    "orientation": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.fun_group_jump",
+   "category": "action",
+   "label": "Diversão · Pulo em grupo (três amigos)",
+   "prompt": "three adult friends jumping in the air side by side at the same moment, knees bent and feet off the ground, arms thrown up overhead, all laughing toward the camera",
+   "prompt_pt": "três amigos adultos pulando lado a lado no mesmo instante, joelhos dobrados e pés fora do chão, braços jogados para o alto, todos rindo para a câmera",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 3,
+    "posture": "any",
+    "gaze": "camera",
+    "orientation": "front",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.fun_board_game",
+   "category": "action",
+   "label": "Diversão · Jogo de tabuleiro (quatro amigos)",
+   "prompt": "four adult friends, each sitting on a chair around a table, playing a board game, the friend on the far right rolling dice with the right hand while the rest lean in and cheer with raised fists",
+   "prompt_pt": "quatro amigos adultos sentados em cadeiras em volta de uma mesa jogando um jogo de tabuleiro, o da ponta direita jogando os dados com a mão direita enquanto os outros se inclinam e comemoram de punhos erguidos",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 4,
+    "posture": "seated",
+    "gaze": "any",
+    "orientation": "any",
+    "support_any_of": [
+     "seat",
+     "table"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.fun_karaoke",
+   "category": "action",
+   "label": "Diversão · Karaokê (dois adultos)",
+   "prompt": "two adults standing side by side and singing karaoke, each holding a microphone in the right hand close to the mouth and the left arm raised high with fingers spread, eyes squeezed shut in an exaggerated rock star moment",
+   "prompt_pt": "dois adultos em pé lado a lado cantando karaokê, cada um com o microfone na mão direita perto da boca e o braço esquerdo erguido com os dedos abertos, olhos apertados num momento exagerado de estrela do rock",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "standing",
+    "gaze": "closed",
+    "orientation": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.serious_meeting",
+   "category": "action",
+   "label": "Sérias · Reunião de trabalho (três adultos)",
+   "prompt": "three adults in business attire each sitting on a chair at a meeting table, the adult in the middle speaking with both hands resting on a closed folder, the two adults at the sides listening attentively with straight backs",
+   "prompt_pt": "três adultos em roupa social sentados em cadeiras numa mesa de reunião, o do meio falando com as duas mãos sobre uma pasta fechada, os dois das pontas ouvindo com atenção e as costas retas",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 3,
+    "posture": "seated",
+    "gaze": "away",
+    "orientation": "any",
+    "support_any_of": [
+     "seat",
+     "table"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.serious_console",
+   "category": "action",
+   "label": "Sérias · Consolar (dois adultos)",
+   "prompt": "two adults sitting side by side, the adult on the left resting the forehead in both hands, the adult on the right leaning close with the left arm around the shoulders of the adult on the left, both quiet and somber",
+   "prompt_pt": "dois adultos sentados lado a lado, o da esquerda com a testa apoiada nas duas mãos, o da direita inclinado para perto com o braço esquerdo em volta dos ombros do outro, os dois quietos e sérios",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "seated",
+    "gaze": "down",
+    "orientation": "any",
+    "support_any_of": [
+     "seat"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.serious_map",
+   "category": "action",
+   "label": "Sérias · Analisar um mapa (dois adultos)",
+   "prompt": "two adults standing shoulder to shoulder at a table, both leaning forward with the hands flat on a large unfolded map, eyes fixed on the map, faces serious and concentrated",
+   "prompt_pt": "dois adultos em pé ombro a ombro junto a uma mesa, os dois inclinados para a frente com as mãos espalmadas sobre um mapa grande aberto, olhos fixos no mapa, rostos sérios e concentrados",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "standing",
+    "gaze": "down",
+    "orientation": "any",
+    "support_any_of": [
+     "table"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.serious_formal_portrait",
+   "category": "action",
+   "label": "Sérias · Retrato formal (dois adultos)",
+   "prompt": "two adults standing side by side in a formal portrait, shoulders almost touching, arms relaxed at the sides, chins level and expressions composed, both facing the camera with a steady gaze",
+   "prompt_pt": "dois adultos em pé lado a lado num retrato formal, ombros quase encostados, braços soltos ao lado do corpo, queixos nivelados e expressões contidas, os dois de frente para a câmera com o olhar firme",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "standing",
+    "gaze": "camera",
+    "orientation": "front",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.serious_argument",
+   "category": "action",
+   "label": "Sérias · Discussão tensa (dois adultos)",
+   "prompt": "two adults face to face at close distance in a tense argument, the adult on the left pointing the right index finger at the chest of the adult on the right, who keeps the arms crossed and the jaw clenched",
+   "prompt_pt": "dois adultos frente a frente, bem próximos, numa discussão tensa, o da esquerda apontando o indicador direito para o peito do da direita, que mantém os braços cruzados e o maxilar travado",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "standing",
+    "gaze": "away",
+    "orientation": "side",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.serious_tribute",
+   "category": "action",
+   "label": "Sérias · Homenagem silenciosa (três adultos)",
+   "prompt": "three adults standing in a row with heads slightly bowed, hands clasped in front of the body and eyes lowered in a moment of quiet remembrance",
+   "prompt_pt": "três adultos em pé, em fila, com a cabeça levemente baixa, mãos unidas na frente do corpo e olhos baixos num momento de homenagem silenciosa",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 3,
+    "posture": "standing",
+    "gaze": "down",
+    "orientation": "front",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.serious_interview",
+   "category": "action",
+   "label": "Sérias · Entrevista (dois adultos)",
+   "prompt": "two adults sitting in armchairs angled toward each other in an interview, the adult on the left holding a notebook on the lap and listening, the adult on the right speaking with the right hand open in a calm gesture",
+   "prompt_pt": "dois adultos sentados em poltronas viradas uma para a outra numa entrevista, o da esquerda com um caderno no colo, ouvindo, o da direita falando com a mão direita aberta num gesto calmo",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "seated",
+    "gaze": "away",
+    "orientation": "any",
+    "support_any_of": [
+     "seat"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.lively_jump_hug",
+   "category": "action",
+   "label": "Animadas · Abraço comemorando (dois adultos)",
+   "prompt": "two adults leaping into a celebratory hug, arms thrown around each other's shoulders, feet off the ground and mouths open in a joyful shout",
+   "prompt_pt": "dois adultos pulando num abraço de comemoração, braços jogados em volta dos ombros um do outro, pés fora do chão e bocas abertas num grito de alegria",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "any",
+    "gaze": "any",
+    "orientation": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.lively_dance_party",
+   "category": "action",
+   "label": "Animadas · Festa dançante (quatro amigos)",
+   "prompt": "four adult friends dancing energetically in a loose circle, arms raised overhead, hips swinging and hair in motion, all laughing and singing along",
+   "prompt_pt": "quatro amigos adultos dançando com energia numa roda solta, braços erguidos acima da cabeça, quadris balançando e cabelos em movimento, todos rindo e cantando junto",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 4,
+    "posture": "standing",
+    "gaze": "any",
+    "orientation": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.lively_run_hands",
+   "category": "action",
+   "label": "Animadas · Correr de mãos dadas (dois adultos)",
+   "prompt": "two adults running side by side and holding hands, the left adult's right hand gripping the right adult's left hand, the free arms pumping, both laughing with hair flying",
+   "prompt_pt": "dois adultos correndo lado a lado de mãos dadas, a mão direita do da esquerda segurando a mão esquerda do da direita, os braços livres balançando, os dois rindo com o cabelo voando",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "running",
+    "gaze": "any",
+    "orientation": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.lively_confetti",
+   "category": "action",
+   "label": "Animadas · Chuva de confete (três adultos)",
+   "prompt": "three adults standing close together and throwing handfuls of colorful confetti into the air above their heads, faces tilted up and arms stretched high, confetti falling all around",
+   "prompt_pt": "três adultos em pé bem juntos jogando punhados de confete colorido para o alto, rostos voltados para cima e braços esticados, confete caindo em volta",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 3,
+    "posture": "standing",
+    "gaze": "up",
+    "orientation": "front",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.lively_spin",
+   "category": "action",
+   "label": "Animadas · Girar de mãos dadas (dois adultos)",
+   "prompt": "two adults facing each other and spinning in a circle, arms stretched out and hands clasped across the gap, both leaning back against the pull, hair swinging outward and both laughing",
+   "prompt_pt": "dois adultos de frente um para o outro girando em círculo, braços esticados e mãos dadas no espaço entre eles, os dois inclinados para trás contra o puxão, cabelos voando para fora e os dois rindo",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "standing",
+    "gaze": "any",
+    "orientation": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.lively_cheer",
+   "category": "action",
+   "label": "Animadas · Torcida (três adultos)",
+   "prompt": "three adult fans standing shoulder to shoulder and cheering, fists pumped in the air, mouths wide open in a shout and faces painted in team colors",
+   "prompt_pt": "três torcedores adultos em pé ombro a ombro comemorando, punhos erguidos no ar, bocas bem abertas num grito e rostos pintados com as cores do time",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 3,
+    "posture": "standing",
+    "gaze": "any",
+    "orientation": "front",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.family_swing_child",
+   "category": "action",
+   "label": "Família · Balançar a criança (dois adultos e uma criança)",
+   "prompt": "two adults walking with a small child between them, each adult holding a hand of the child and lifting the child up in a playful swing, the child's feet off the ground and the child laughing",
+   "prompt_pt": "dois adultos caminhando com uma criança pequena entre eles, cada adulto segurando uma das mãos da criança e erguendo-a num balanço de brincadeira, os pés da criança fora do chão e a criança rindo",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 3,
+    "posture": "any",
+    "gaze": "any",
+    "orientation": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.family_picnic",
+   "category": "action",
+   "label": "Família · Piquenique (dois adultos e duas crianças)",
+   "prompt": "two adults and two children sitting together on a checkered blanket on the grass, sharing sandwiches and fruit from a wicker basket, everyone smiling",
+   "prompt_pt": "dois adultos e duas crianças sentados juntos numa toalha xadrez sobre a grama, dividindo sanduíches e frutas de uma cesta de vime, todos sorrindo",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 4,
+    "posture": "seated",
+    "gaze": "any",
+    "orientation": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.family_story",
+   "category": "action",
+   "label": "Família · Hora da história (dois adultos e uma criança)",
+   "prompt": "two adults sitting on a sofa with a child between them, the adult on the left holding an open picture book and reading aloud, the child pointing at the page and the adult on the right smiling at the child",
+   "prompt_pt": "dois adultos sentados num sofá com uma criança entre eles, o da esquerda segurando um livro ilustrado aberto e lendo em voz alta, a criança apontando para a página e o da direita sorrindo para a criança",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 3,
+    "posture": "seated",
+    "gaze": "down",
+    "orientation": "any",
+    "support_any_of": [
+     "seat"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.family_baking",
+   "category": "action",
+   "label": "Família · Fazer biscoitos (dois adultos e uma criança)",
+   "prompt": "two adults and a child standing at a kitchen table and rolling out cookie dough, the child pressing a cookie cutter into the dough with both hands, flour dusted on hands and aprons, all smiling",
+   "prompt_pt": "dois adultos e uma criança em pé junto à mesa da cozinha abrindo massa de biscoito, a criança apertando um cortador na massa com as duas mãos, farinha nas mãos e nos aventais, todos sorrindo",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 3,
+    "posture": "standing",
+    "gaze": "down",
+    "orientation": "any",
+    "support_any_of": [
+     "table"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.family_group_hug",
+   "category": "action",
+   "label": "Família · Abraço em grupo (quatro pessoas)",
+   "prompt": "four family members of different ages in a tight group hug, arms wrapped around each other's shoulders and backs, heads leaning together, all smiling with eyes closed",
+   "prompt_pt": "quatro pessoas da família, de idades diferentes, num abraço apertado em grupo, braços em volta dos ombros e das costas umas das outras, cabeças encostadas, todos sorrindo de olhos fechados",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 4,
+    "posture": "any",
+    "gaze": "closed",
+    "orientation": "any",
+    "support_any_of": [],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.family_grandparents",
+   "category": "action",
+   "label": "Família · Avós com o neto no colo (três pessoas)",
+   "prompt": "two grandparents sitting side by side on a bench with a toddler on the lap of the grandparent on the left, the grandparent on the right holding a small toy out to the toddler, all three smiling",
+   "prompt_pt": "dois avós sentados lado a lado num banco com uma criança pequena no colo do avô da esquerda, o da direita oferecendo um brinquedo pequeno à criança, os três sorrindo",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 3,
+    "posture": "seated",
+    "gaze": "any",
+    "orientation": "any",
+    "support_any_of": [
+     "seat"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.family_stroll",
+   "category": "action",
+   "label": "Família · Passeio de mãos dadas (quatro pessoas)",
+   "prompt": "a family of four walking in a row and holding hands, two adults at the ends and two children in the middle, seen from behind as they stroll away",
+   "prompt_pt": "uma família de quatro pessoas caminhando em fila de mãos dadas, dois adultos nas pontas e duas crianças no meio, vistos de costas enquanto se afastam",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 4,
+    "posture": "walking",
+    "gaze": "any",
+    "orientation": "back",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.relaxed_movie",
+   "category": "action",
+   "label": "Descontraídas · Filme no sofá (dois adultos)",
+   "prompt": "two adults sitting close together on a sofa under a soft blanket, sharing a bowl of popcorn held between them, legs tucked up and shoulders touching, eyes on a screen off to the side",
+   "prompt_pt": "dois adultos sentados bem juntos num sofá debaixo de uma manta macia, dividindo uma tigela de pipoca entre eles, pernas encolhidas e ombros encostados, olhos numa tela ao lado",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "seated",
+    "gaze": "away",
+    "orientation": "any",
+    "support_any_of": [
+     "seat"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.relaxed_coffee",
+   "category": "action",
+   "label": "Descontraídas · Café e conversa (dois adultos)",
+   "prompt": "two adults sitting across a small table from each other, each on a chair with a cup of coffee, both leaning back and laughing at a shared story",
+   "prompt_pt": "dois adultos sentados em cadeiras, um de frente para o outro numa mesa pequena, com xícaras de café, os dois recostados e rindo de uma história",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "seated",
+    "gaze": "any",
+    "orientation": "any",
+    "support_any_of": [
+     "seat",
+     "table"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.relaxed_cloud_gazing",
+   "category": "action",
+   "label": "Descontraídas · Deitados olhando o céu (dois adultos)",
+   "prompt": "two adults lying on their backs on a picnic blanket, heads close together and bodies pointing in opposite directions, gazing up at the sky with relaxed smiles",
+   "prompt_pt": "dois adultos deitados de costas numa toalha de piquenique, cabeças próximas e corpos em direções opostas, olhando para o céu com sorrisos tranquilos",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "supine",
+    "gaze": "up",
+    "orientation": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.relaxed_cooking",
+   "category": "action",
+   "label": "Descontraídas · Cozinhar juntos (dois adultos)",
+   "prompt": "two adults standing side by side at a kitchen counter, the adult on the left stirring a pot with a wooden spoon and the adult on the right chopping vegetables on a board, both chatting and smiling",
+   "prompt_pt": "dois adultos em pé lado a lado na bancada da cozinha, o da esquerda mexendo uma panela com colher de pau e o da direita picando legumes numa tábua, os dois conversando e sorrindo",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "standing",
+    "gaze": "any",
+    "orientation": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.relaxed_ice_cream",
+   "category": "action",
+   "label": "Descontraídas · Passeio com sorvete (dois adultos)",
+   "prompt": "two adults walking side by side at an easy pace, each holding an ice cream cone in the right hand, chatting and smiling at each other",
+   "prompt_pt": "dois adultos caminhando lado a lado sem pressa, cada um com uma casquinha de sorvete na mão direita, conversando e sorrindo um para o outro",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "walking",
+    "gaze": "any",
+    "orientation": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.relaxed_steps_chat",
+   "category": "action",
+   "label": "Descontraídas · Bate-papo na escadaria (três amigos)",
+   "prompt": "three adult friends sitting on wide outdoor steps, elbows resting on the knees, holding drinks and chatting casually with relaxed smiles",
+   "prompt_pt": "três amigos adultos sentados numa escadaria larga ao ar livre, cotovelos apoiados nos joelhos, segurando bebidas e conversando à vontade com sorrisos tranquilos",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 3,
+    "posture": "seated",
+    "gaze": "any",
+    "orientation": "any",
+    "support_any_of": [
+     "floor",
+     "seat"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.sexy_slow_dance",
+   "category": "action",
+   "label": "Sexy · Dança lenta colada (dois adultos)",
+   "prompt": "two adults in a slow, intimate dance with bodies pressed close, the adult on the left resting both hands low on the right adult's waist, the right adult's arms draped around the left adult's neck, foreheads touching and eyes closed",
+   "prompt_pt": "dois adultos numa dança lenta e íntima, corpos colados, o da esquerda com as duas mãos na parte baixa da cintura do outro, os braços do da direita em volta do pescoço do da esquerda, testas encostadas e olhos fechados",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "standing",
+    "gaze": "closed",
+    "orientation": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.sexy_neck_kiss",
+   "category": "action",
+   "label": "Sexy · Beijo no pescoço (dois adultos)",
+   "prompt": "two adults close together, the adult behind wrapping both arms around the waist of the adult in front and pressing a slow kiss to the side of the neck, the adult in front tilting the head aside with eyes closed and a soft smile",
+   "prompt_pt": "dois adultos bem juntos, o de trás envolvendo a cintura do da frente com os dois braços e dando um beijo lento na lateral do pescoço, o da frente inclinando a cabeça de lado com os olhos fechados e um sorriso suave",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "standing",
+    "gaze": "closed",
+    "orientation": "three_quarter",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.sexy_almost_kiss",
+   "category": "action",
+   "label": "Sexy · Quase beijo (dois adultos)",
+   "prompt": "two adults face to face with lips almost touching, the left adult's right hand cradling the right adult's jaw and the right adult's hands gripping the front of the left adult's shirt, eyes half closed in anticipation",
+   "prompt_pt": "dois adultos frente a frente com os lábios quase se tocando, a mão direita do da esquerda segurando o queixo do outro e as mãos do da direita agarrando a frente da camisa do da esquerda, olhos semicerrados de expectativa",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "any",
+    "gaze": "closed",
+    "orientation": "side",
+    "support_any_of": [],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.sexy_bed_gaze",
+   "category": "action",
+   "label": "Sexy · Olhares na cama (dois adultos)",
+   "prompt": "two adults in silk loungewear lying on their sides on a bed and facing each other, heads on the pillows, fingers lightly intertwined between them, gazing into each other's eyes with soft smiles",
+   "prompt_pt": "dois adultos de pijama de seda deitados de lado na cama, de frente um para o outro, cabeças nos travesseiros, dedos levemente entrelaçados entre eles, olhando nos olhos um do outro com sorrisos suaves",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "side_lying",
+    "gaze": "away",
+    "orientation": "any",
+    "support_any_of": [
+     "bed"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.sexy_whisper",
+   "category": "action",
+   "label": "Sexy · Sussurro ao ouvido (dois adultos)",
+   "prompt": "two adults standing close, the adult on the left leaning in to whisper into the right adult's ear with lips brushing the earlobe, the adult on the right biting the lower lip with a slow smile and eyes on the camera",
+   "prompt_pt": "dois adultos em pé bem próximos, o da esquerda se inclinando para sussurrar no ouvido do outro com os lábios roçando o lóbulo, o da direita mordendo o lábio inferior com um sorriso lento e o olhar na câmera",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "standing",
+    "gaze": "camera",
+    "orientation": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.sexy_collar_pull",
+   "category": "action",
+   "label": "Sexy · Puxar pela gola (dois adultos)",
+   "prompt": "two adults face to face, the adult on the left gripping the right adult's shirt collar with both hands and pulling the right adult closer, both holding an intense, playful gaze with faces a breath apart",
+   "prompt_pt": "dois adultos frente a frente, o da esquerda segurando a gola da camisa do outro com as duas mãos e puxando-o para perto, os dois num olhar intenso e provocante, rostos a um suspiro de distância",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "any",
+    "gaze": "away",
+    "orientation": "side",
+    "support_any_of": [],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "action.sexy_mirror_hug",
+   "category": "action",
+   "label": "Sexy · Abraço diante do espelho (dois adultos)",
+   "prompt": "two adults in front of a full-length mirror, the adult behind wrapping both arms around the waist of the adult in front and resting the chin on the shoulder of the adult in front, both watching their reflection with a sultry gaze",
+   "prompt_pt": "dois adultos diante de um espelho de corpo inteiro, o de trás envolvendo a cintura do da frente com os dois braços e apoiando o queixo no ombro dele, os dois olhando o próprio reflexo com olhar sedutor",
+   "adult": true,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "standing",
+    "gaze": "away",
+    "orientation": "any",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "pose.duo_back_to_back",
+   "category": "pose",
+   "label": "Dupla · Costas com costas",
+   "prompt": "two adults standing back to back with the shoulder blades touching, arms crossed over the chest, weight even on both feet and heads turned slightly toward the camera",
+   "prompt_pt": "dois adultos em pé costas com costas, escápulas encostadas, braços cruzados no peito, peso igual nos dois pés e cabeças viradas levemente para a câmera",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "standing",
+    "gaze": "camera",
+    "orientation": "side",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {}
+  },
+  {
+   "id": "pose.duo_forehead",
+   "category": "pose",
+   "label": "Dupla · Testa com testa",
+   "prompt": "two adults standing face to face with foreheads gently touching, eyes closed and hands resting on each other's upper arms",
+   "prompt_pt": "dois adultos em pé frente a frente com as testas encostadas de leve, olhos fechados e mãos apoiadas nos braços um do outro",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "standing",
+    "gaze": "closed",
+    "orientation": "side",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "pose.duo_shoulder_rest",
+   "category": "pose",
+   "label": "Dupla · Cabeça no ombro (sentados)",
+   "prompt": "two adults sitting side by side, the adult on the right resting the head on the left adult's shoulder and the left adult's arm around the right adult's shoulders, both relaxed",
+   "prompt_pt": "dois adultos sentados lado a lado, o da direita com a cabeça apoiada no ombro do da esquerda, que passa o braço em volta dos ombros do outro, os dois relaxados",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 2,
+    "posture": "seated",
+    "gaze": "any",
+    "orientation": "front",
+    "support_any_of": [
+     "seat",
+     "floor"
+    ],
+    "minimum_framing": "half"
+   },
+   "provides": {}
+  },
+  {
+   "id": "pose.trio_arms_shoulders",
+   "category": "pose",
+   "label": "Trio · Lado a lado, braços nos ombros",
+   "prompt": "three adults standing side by side in a row with arms around each other's shoulders, weight relaxed, facing the camera with easy smiles",
+   "prompt_pt": "três adultos em pé lado a lado, em fila, com os braços nos ombros uns dos outros, peso relaxado, de frente para a câmera com sorrisos tranquilos",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 3,
+    "posture": "standing",
+    "gaze": "camera",
+    "orientation": "front",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {}
+  },
+  {
+   "id": "pose.group_steps",
+   "category": "pose",
+   "label": "Grupo · Escada em dois níveis (quatro pessoas)",
+   "prompt": "four people sitting on a staircase in two staggered rows, two on the lower step and two on the step above, elbows resting on the knees and bodies angled toward the center",
+   "prompt_pt": "quatro pessoas sentadas numa escada em duas fileiras desencontradas, duas no degrau de baixo e duas no de cima, cotovelos apoiados nos joelhos e corpos virados para o centro",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 4,
+    "posture": "seated",
+    "gaze": "any",
+    "orientation": "front",
+    "support_any_of": [
+     "floor",
+     "seat"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {}
+  },
+  {
+   "id": "pose.family_child_hip",
+   "category": "pose",
+   "label": "Família · Criança no colo (três pessoas)",
+   "prompt": "two adults standing side by side with a small child held on the right hip of the adult on the left, the adult on the right with an arm around the waist of the adult on the left, all three facing the camera",
+   "prompt_pt": "dois adultos em pé lado a lado com uma criança pequena no quadril direito do adulto da esquerda, o da direita com o braço na cintura do da esquerda, os três de frente para a câmera",
+   "adult": false,
+   "enabled": true,
+   "requirements": {
+    "participants": 3,
+    "posture": "standing",
+    "gaze": "camera",
+    "orientation": "front",
+    "support_any_of": [
+     "floor"
+    ],
+    "minimum_framing": "full"
+   },
+   "provides": {}
+  },
+  {
+   "id": "environment.family_living_room",
+   "category": "environment",
+   "label": "Sala de estar familiar",
+   "prompt": "a cozy family living room with a large sectional sofa, a soft rug, a wooden coffee table, framed photos on the walls and toys in a basket",
+   "prompt_pt": "uma sala de estar aconchegante com sofá grande de canto, tapete macio, mesa de centro de madeira, fotos emolduradas nas paredes e brinquedos num cesto",
+   "adult": false,
+   "enabled": true,
+   "requirements": {},
+   "provides": {
+    "supports": [
+     "floor",
+     "seat",
+     "wall",
+     "table"
+    ],
+    "period": "any",
+    "place": "indoor"
+   }
+  },
+  {
+   "id": "environment.park_lawn",
+   "category": "environment",
+   "label": "Parque · gramado ensolarado",
+   "prompt": "a sunny city park lawn with soft green grass, tall shade trees and a winding path in the background",
+   "prompt_pt": "um gramado de parque ensolarado com grama verde e macia, árvores altas de sombra e um caminho sinuoso ao fundo",
+   "adult": false,
+   "enabled": true,
+   "requirements": {},
+   "provides": {
+    "supports": [
+     "floor"
+    ],
+    "period": "day",
+    "place": "outdoor"
+   }
+  },
+  {
+   "id": "environment.amusement_park",
+   "category": "environment",
+   "label": "Parque de diversões",
+   "prompt": "an amusement park with a lit ferris wheel, colorful game stalls, string lights and a paved walkway",
+   "prompt_pt": "um parque de diversões com roda-gigante iluminada, barracas de jogos coloridas, varais de luzes e um caminho pavimentado",
+   "adult": false,
+   "enabled": true,
+   "requirements": {},
+   "provides": {
+    "supports": [
+     "floor",
+     "wall"
+    ],
+    "period": "any",
+    "place": "outdoor"
+   }
+  },
+  {
+   "id": "environment.karaoke_bar",
+   "category": "environment",
+   "label": "Bar de karaokê",
+   "prompt": "a karaoke bar with a small stage, a screen showing lyrics, colored spotlights, booth seats and low tables",
+   "prompt_pt": "um bar de karaokê com palco pequeno, tela com a letra das músicas, refletores coloridos, cabines com bancos e mesas baixas",
+   "adult": false,
+   "enabled": true,
+   "requirements": {},
+   "provides": {
+    "supports": [
+     "floor",
+     "seat",
+     "wall",
+     "table"
+    ],
+    "period": "night",
+    "place": "indoor"
+   }
+  },
+  {
+   "id": "environment.meeting_room",
+   "category": "environment",
+   "label": "Sala de reunião",
+   "prompt": "a corporate meeting room with a long table, ergonomic chairs, a glass wall and a large screen",
+   "prompt_pt": "uma sala de reunião corporativa com mesa comprida, cadeiras ergonômicas, parede de vidro e uma tela grande",
+   "adult": false,
+   "enabled": true,
+   "requirements": {},
+   "provides": {
+    "supports": [
+     "floor",
+     "seat",
+     "wall",
+     "table"
+    ],
+    "period": "any",
+    "place": "indoor"
+   }
+  },
+  {
+   "id": "environment.campfire",
+   "category": "environment",
+   "label": "Acampamento · fogueira",
+   "prompt": "a campsite at night with a crackling campfire, log benches around it, tents and dark pine trees behind",
+   "prompt_pt": "um acampamento à noite com fogueira estalando, bancos de tronco em volta, barracas e pinheiros escuros ao fundo",
+   "adult": false,
+   "enabled": true,
+   "requirements": {},
+   "provides": {
+    "supports": [
+     "floor",
+     "seat"
+    ],
+    "period": "night",
+    "place": "outdoor"
+   }
+  },
+  {
+   "id": "environment.dance_club",
+   "category": "environment",
+   "label": "Pista de dança",
+   "prompt": "a dance club with colored lights, light haze, a DJ booth and mirrored walls around an open dance floor",
+   "prompt_pt": "uma casa noturna com luzes coloridas, névoa leve, cabine de DJ e paredes espelhadas em volta da pista",
+   "adult": false,
+   "enabled": true,
+   "requirements": {},
+   "provides": {
+    "supports": [
+     "floor",
+     "wall"
+    ],
+    "period": "night",
+    "place": "indoor"
+   }
+  },
+  {
+   "id": "environment.candle_suite",
+   "category": "environment",
+   "label": "Suíte à luz de velas",
+   "prompt": "a dim luxury suite with a large bed dressed in silk sheets, dozens of lit candles, a velvet armchair and heavy drapes",
+   "prompt_pt": "uma suíte luxuosa à meia-luz com cama grande de lençóis de seda, dezenas de velas acesas, poltrona de veludo e cortinas pesadas",
+   "adult": false,
+   "enabled": true,
+   "requirements": {},
+   "provides": {
+    "supports": [
+     "floor",
+     "seat",
+     "bed",
+     "wall"
+    ],
+    "period": "night",
+    "place": "indoor"
+   }
+  }
+ ]
+}
