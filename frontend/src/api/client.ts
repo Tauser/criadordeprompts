@@ -47,8 +47,9 @@ export const api = {
   runs: () => call<{runs: Run[]}>('GET', '/api/runs?limit=40'),
   deleteRuns: (ids: string[], keepFiles: string[]) =>
     call<{deleted: string[]; files_removed: number}>('POST', '/api/runs/delete', {ids, keep_files: keepFiles}),
-  repeat: (id: string, requestId: string, sameSeed: boolean) =>
-    call<Run>('POST', `/api/runs/${id}/repeat`, {request_id: requestId, same_seed: sameSeed}, 60000),
+  // `redo`: another quality and the seed of one chosen variation (a Turbo draft redone in full).
+  repeat: (id: string, requestId: string, sameSeed: boolean, redo?: {profile: 'qwen21' | 'turbo'; seed: number}) =>
+    call<Run>('POST', `/api/runs/${id}/repeat`, {request_id: requestId, same_seed: sameSeed, ...redo}, 60000),
   cancel: (id: string) => call<Run>('POST', `/api/runs/${id}/cancel`),
   resubmit: (id: string, taskId: string) => call<Run>('POST', `/api/runs/${id}/tasks/${taskId}/resubmit`),
   review: (id: string, choice: 'refined' | 'original') => call<Run>('POST', `/api/runs/${id}/review`, {choice}),

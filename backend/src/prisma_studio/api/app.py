@@ -70,6 +70,8 @@ class RunDelete(BaseModel):
 class RunRepeat(BaseModel):
     request_id: str = Field(pattern=REQUEST_ID.pattern)
     same_seed: bool = False
+    profile: Literal['qwen21', 'turbo'] | None = None    # another quality: a Turbo draft redone in full
+    seed: int | None = Field(default=None, ge=0, le=2**53 - 1)   # one chosen variation, alone
 
 
 class Review(BaseModel):
@@ -346,7 +348,7 @@ def create_app(config: Config | None = None, container: Container | None = None)
 
     @app.post('/api/runs/{run_id}/repeat')
     def repeat_run(run_id: str, body: RunRepeat):
-        return run_view(c.service.repeat(run_id, body.request_id, body.same_seed))
+        return run_view(c.service.repeat(run_id, body.request_id, body.same_seed, body.profile, body.seed))
 
     @app.post('/api/runs/{run_id}/tasks/{task_id}/resubmit')
     def resubmit_task(run_id: str, task_id: str):

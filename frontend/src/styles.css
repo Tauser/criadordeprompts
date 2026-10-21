@@ -468,6 +468,7 @@ code { font-size: 12.5px; padding: 1px 6px; border-radius: 6px; background: var(
 
 /* output card */
 .output-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 18px; }
+.draft-preset { align-self: flex-start; margin-top: 6px; font-size: 12.5px; }
 .output-card .switches { padding-top: 4px; border-top: 1px solid var(--line); padding-top: 14px; }
 
 /* references */

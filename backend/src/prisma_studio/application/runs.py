@@ -39,6 +39,9 @@ def prepare(request: Request, library) -> dict:
     return result
 
 
+DRAFT_REFINE_DENOISE = 0.55     # a draft redone in full: 0.45 and 0.65 both kept the person and clothes
+
+
 class RunService:
     def __init__(self, repository, library_service, store, executor=None):
         self.repository = repository
@@ -94,9 +97,11 @@ class RunService:
             self._wake()
         return run
 
-    def repeat(self, run_id: str, request_id: str, same_seed: bool = False) -> dict:
+    def repeat(self, run_id: str, request_id: str, same_seed: bool = False, profile: str | None = None,
+               seed: int | None = None) -> dict:
         """Run the frozen request again: same prompt actually used, settings and files; the library is not
-        consulted again, so later edits to its items do not leak into the repetition."""
+        consulted again, so later edits to its items do not leak into the repetition. `profile` redoes it in another
+        quality (a Turbo draft in full); `seed` redoes one chosen variation alone."""
         existing = self.repository.by_request(request_id)
         if existing:
             return existing
@@ -104,13 +109,32 @@ class RunService:
         if not original['effective_prompt']:
             raise RequestRejected('Este pedido não tem um prompt registrado para repetir.')
         settings = {k: v for k, v in original['settings'].items() if k != 'uploaded'}
-        if not same_seed:
+        files = dict(original['files'] or {})
+        if seed is not None:
+            settings['seed'], settings['variations'] = seed, 1
+        elif not same_seed:
             settings['seed'] = secrets.randbelow(2**32)
+        if profile is not None:
+            settings['profile'] = profile
+        draft = self._variation_file(original, seed) if profile and seed is not None else None
+        if draft and original['mode'] == 'generate':
+            # Measured: the same seed in another profile draws another person and other clothes; starting from
+            # the chosen draft keeps them and adds the full profile's detail. An edit is held by its photo.
+            files['init'] = draft
+            settings['width'] = settings['height'] = None
+            settings['engine'] = {**settings.get('engine', {}), 'denoise': DRAFT_REFINE_DENOISE}
         settings['refine'] = False             # the prompt that was approved (or the original) is reused as is
         settings['repeat_of'] = original['id']
-        return self._insert(request_id, original['mode'], original['request'], original['files'] or {}, settings,
+        return self._insert(request_id, original['mode'], original['request'], files, settings,
                             prompt=original['prompt'] or original['effective_prompt'],
                             effective_prompt=original['effective_prompt'], compiled=original['compiled'])
+
+    def _variation_file(self, run: dict, seed: int) -> str | None:
+        """The finished picture of the variation drawn with `seed`, if there is one."""
+        for task in self.repository.tasks(run['id'], 'image'):
+            if task['seed'] == seed and task['status'] == 'completed' and (task['result'] or {}).get('files'):
+                return task['result']['files'][0]
+        return None
 
     def approve(self, run_id: str, choice: str) -> dict:
         run = self._get(run_id)

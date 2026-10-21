@@ -276,7 +276,7 @@ class LibraryRepository:
 def _hashes(files: dict | None) -> list[str]:
     if not files:
         return []
-    return [h for h in [*(files.get('references') or {}).values(), files.get('mask')] if h]
+    return [h for h in [*(files.get('references') or {}).values(), files.get('mask'), files.get('init')] if h]
 
 
 def _run(row) -> dict:

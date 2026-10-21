@@ -8,7 +8,7 @@ import {relativeTime} from '../lib/time';
 import {Icon} from './Icon';
 
 interface Props {run: Run | null; connection: string; onReuse: (hash: string) => void; notify: (m: string, e?: boolean) => void;
-  onRepeat: (sameSeed: boolean) => Promise<void>}
+  onRepeat: (sameSeed: boolean, redo?: {profile: 'qwen21' | 'turbo'; seed: number}) => Promise<void>}
 
 export function useNow(active: boolean) {
   const [now, setNow] = useState(Date.now() / 1000);
@@ -55,7 +55,9 @@ export function RunPanel({run, connection, onReuse, notify, onRepeat}: Props) {
   const progress = runProgress(run, now);
   const verdicts = shown?.verdicts ? Object.entries(shown.verdicts) : [];
   const met = verdicts.filter(([, v]) => v.verdict === 'met').length;
-  const repeat = async (sameSeed: boolean) => {setRepeating(true); try {await onRepeat(sameSeed);} finally {setRepeating(false);}};
+  const repeat = async (sameSeed: boolean, redo?: {profile: 'qwen21' | 'turbo'; seed: number}) => {
+    setRepeating(true); try {await onRepeat(sameSeed, redo);} finally {setRepeating(false);}
+  };
   const settings = [run.settings.profile === 'turbo' ? 'Turbo' : 'Completa',
     run.settings.width ? `${run.settings.width}×${run.settings.height}` : run.settings.resolution ? String(run.settings.resolution) : 'Original',
     `${run.settings.variations} ${run.settings.variations === 1 ? 'variação' : 'variações'}`].join(' · ');
@@ -140,6 +142,12 @@ export function RunPanel({run, connection, onReuse, notify, onRepeat}: Props) {
             <a className="button secondary" title={`seed ${shown.seed}`} href={fileUrl(shown.files[0])} download={`prisma-${shown.seed}.png`}><Icon name="download" size={15} />Baixar</a>
           </>}
           <span className="spacer" />
+          {!active && shown && run.settings.profile === 'turbo' && (
+            <button className="secondary" disabled={repeating} onClick={() => repeat(true, {profile: 'qwen21', seed: shown.seed})}
+                    title={run.mode === 'generate'
+                      ? 'Refaz esta variação no perfil Completo a partir dela mesma: a pessoa, a roupa e a composição ficam, e entra o detalhe do Completo.'
+                      : `Refaz esta edição no perfil Completo com a mesma seed (${shown.seed}); a foto original segura a pessoa e a composição.`}>
+              <Icon name="refresh" size={15} />Refazer no Completo</button>)}
           {!active && <>
             <button className="quiet" disabled={repeating} title="Mesmo pedido, nova seed" onClick={() => repeat(false)}>
               <Icon name="refresh" size={15} />{repeating ? 'Enviando…' : 'Nova seed'}</button>

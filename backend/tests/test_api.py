@@ -179,6 +179,47 @@ def test_repeat_run_with_new_or_same_seed(client):
     assert client.get(f'/api/runs/{same["id"]}').json()['status'] == 'completed'
 
 
+def test_a_turbo_draft_is_redone_in_full_from_the_chosen_variation(client):
+    request = {'mode': 'generate', 'attributes': {
+        'environment': {'intent': 'set', 'value': {'kind': 'catalog', 'item_id': 'environment.garden'}}},
+        'output': {'seed': 100, 'profile': 'turbo', 'variations': 4}}
+    draft = client.post('/api/runs', json={'request_id': 'redo-test-0000001', 'request': request}).json()
+    tick(client, 30)
+    chosen = client.get(f'/api/runs/{draft["id"]}').json()['images'][2]
+    full = client.post(f'/api/runs/{draft["id"]}/repeat', json={'request_id': 'redo-test-0000002', 'profile': 'qwen21',
+                                                                 'seed': chosen['seed']}).json()
+    assert full['settings']['profile'] == 'qwen21' and full['settings']['seed'] == chosen['seed'] == 102
+    assert full['settings']['variations'] == 1 and full['prompt'] == draft['prompt']
+    tick(client)
+    done = client.get(f'/api/runs/{full["id"]}').json()
+    assert done['status'] == 'completed'
+    graph = next(t for t in client.container.runs.tasks(full['id'], 'image'))['graph']
+    assert graph['42']['class_type'] == 'KSampler' and graph['42']['inputs']['steps'] == 40   # the full profile
+    assert graph['42']['inputs']['seed'] == 102
+    # A generation starts from the chosen draft, so the person and the clothes stay; only detail is added.
+    assert full['files']['init'] == chosen['files'][0]
+    assert graph['42']['inputs']['latent_image'] == ['13', 0] and graph['42']['inputs']['denoise'] == 0.55
+    assert graph['12']['class_type'] == 'LoadImage'
+
+
+def test_an_edit_draft_is_redone_in_full_with_the_same_seed(client):
+    from fakes import png
+    target = client.post('/api/files', files={'file': ('foto.png', png(320, 240), 'image/png')}).json()['hash']
+    request = {'mode': 'edit', 'target_id': 't', 'references': [{'id': 't', 'label': 'foto.png'}],
+               'attributes': {'environment': {'intent': 'set', 'value': {'kind': 'catalog',
+                                                                        'item_id': 'environment.beach'}}},
+               'output': {'seed': 7, 'profile': 'turbo', 'resolution': 0}}
+    draft = client.post('/api/runs', json={'request_id': 'redo-edit-000001', 'request': request,
+                                           'files': {'t': target}}).json()
+    tick(client)
+    full = client.post(f'/api/runs/{draft["id"]}/repeat', json={'request_id': 'redo-edit-000002', 'profile': 'qwen21',
+                                                                 'seed': 7}).json()
+    assert 'init' not in full['files'] and full['settings']['seed'] == 7    # the photo already holds the person
+    tick(client)
+    graph = next(t for t in client.container.runs.tasks(full['id'], 'image'))['graph']
+    assert graph['42']['inputs']['steps'] == 40 and '12' not in graph
+
+
 def test_every_category_offers_common_options_with_complete_metadata(client):
     from prisma_studio.domain.vocabulary import CATEGORIES
     items = client.get('/api/library').json()['items']

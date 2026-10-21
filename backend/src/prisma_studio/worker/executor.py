@@ -152,7 +152,11 @@ class Executor:
         if settings['mask']:
             data = normalized_png(self.store.read(settings['mask']), size, mask=True)
             mask = self.comfy.upload(data, f'prisma_mask_{settings["mask"][:24]}_{size[0]}x{size[1]}.png', 'image/png')
-        return {'images': names, 'mask': mask, 'target_size': size}
+        init = None
+        start = (run.get('files') or {}).get('init')
+        if start:                                   # a draft redone in full starts from the chosen picture
+            init = self.comfy.upload(self.store.read(start), f'prisma_{start[:24]}.png', 'image/png')
+        return {'images': names, 'mask': mask, 'target_size': size, 'init': init}
 
     def _create_image_tasks(self, run: dict) -> None:
         """Idempotent: creates whichever of the requested variations are still missing, in one transaction."""
@@ -192,7 +196,7 @@ class Executor:
                     images=tuple(uploaded['images']), mask=uploaded['mask'],
                     negative_prompt=engine.get('negative_prompt', ''), steps=engine.get('steps'),
                     cfg=engine.get('cfg'), sampler=engine.get('sampler'), scheduler=engine.get('scheduler'),
-                    denoise=engine.get('denoise'), prefix=f'prisma/{run["id"][:8]}',
+                    denoise=engine.get('denoise'), prefix=f'prisma/{run["id"][:8]}', init_image=uploaded.get('init'),
                     loras=tuple((lora['name'], lora['strength']) for lora in engine.get('loras') or ())))
             self._drive(task, build)
         tasks = self.repository.tasks(run['id'], 'image')

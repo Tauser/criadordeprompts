@@ -209,10 +209,12 @@ export function Studio({library, comfyOnline, notify}: Props) {
     const body = {request: requestForSubmit(workspace), files: filesForSubmit(workspace), mask: request.mask ? workspace.maskHash : null};
     await send(JSON.stringify(body), requestId => api.createRun({request_id: requestId, ...body}));
   };
-  const repeat = async (sameSeed: boolean) => {
+  const repeat = async (sameSeed: boolean, redo?: {profile: 'qwen21' | 'turbo'; seed: number}) => {
     if (!run) return;
-    await send(`repeat:${run.id}:${sameSeed}`, requestId => api.repeat(run.id, requestId, sameSeed),
-      sameSeed ? 'Repetindo com a mesma seed.' : 'Gerando de novo com uma nova seed.');
+    await send(`repeat:${run.id}:${sameSeed}:${redo ? `${redo.profile}:${redo.seed}` : ''}`,
+      requestId => api.repeat(run.id, requestId, sameSeed, redo),
+      redo ? 'Refazendo esta variação no perfil Completo.'
+        : sameSeed ? 'Repetindo com a mesma seed.' : 'Gerando de novo com uma nova seed.');
   };
   const stop = async () => {
     if (!activeRun) return;
@@ -410,7 +412,11 @@ function OutputCard({request, patch}: {request: StudioRequest; patch: Patch}) {
       {!collapsed && <div id="output-body" className="output-grid">
         <div className="control"><span className="control-label">Qualidade</span>
           <Segmented label="Qualidade" value={output.profile} onChange={value => patch(r => {r.output.profile = value; if (value === 'turbo') r.output.refine = false;})}
-            options={[{value: 'qwen21', label: 'Completa · 40 passos'}, {value: 'turbo', label: 'Turbo · 8 passos'}]} /></div>
+            options={[{value: 'qwen21', label: 'Completa · 40 passos'}, {value: 'turbo', label: 'Turbo · 8 passos'}]} />
+          {!(turbo && output.variations === 4) && <button type="button" className="btn-link draft-preset"
+            title="Gera 4 variações rápidas no Turbo para achar a direção; depois use Refazer no Completo na que ficar melhor."
+            onClick={() => patch(r => {r.output.profile = 'turbo'; r.output.variations = 4; r.output.refine = false;})}>
+            Rascunho: Turbo com 4 variações</button>}</div>
         <div className="control"><span className="control-label">Variações</span>
           <Segmented label="Variações" value={output.variations} onChange={value => patch(r => {r.output.variations = value;})}
             options={[1, 2, 3, 4].map(v => ({value: v, label: String(v)}))} /></div>
