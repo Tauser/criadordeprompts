@@ -595,10 +595,7 @@ details.tech h3 { margin: 6px 0; }
 .editor-head h2 { font-size: 16px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 50%; }
 .page .card.editor { max-height: calc(100vh - 230px); overflow: auto; }
 .library-page .translate .btn-link { font-size: 12.5px; }
-.describe-photo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
-.describe-photo img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; background: var(--sunken); }
-.describe-photo-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
-.describe-photo .btn-link { font-size: 12.5px; }
+.test-pose-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
 .test-pose { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
 .test-pose .btn-link { font-size: 12.5px; }
 .test-pose figure { margin: 0; display: flex; flex-direction: column; gap: 4px; }

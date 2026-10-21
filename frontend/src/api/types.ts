@@ -124,9 +124,5 @@ export interface CoherenceJob {
 }
 
 export interface TextFinding {code: string; level: 'conflict' | 'ambiguity' | 'style'; message: string}
-// A pose or action drafted from a reference photo by the local model; it is only a draft, never saved by the server.
-export type ReferenceDraft = Pick<Item, 'category' | 'label' | 'prompt' | 'edit_prompt' | 'adult' | 'requirements'>;
-export interface ReferenceDescription {id: string; status: string; stage?: 'describe' | 'repair'; draft?: ReferenceDraft;
-  findings?: TextFinding[]; error?: string; warning?: string}
 // A quick Turbo preview of a pose or action draft; the image is kept only in the server's memory.
 export interface PoseTest {id: string; status: string; prompt?: string; has_image?: boolean; error?: string | null; warning?: string}

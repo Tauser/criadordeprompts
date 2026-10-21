@@ -23,7 +23,6 @@ from ..application.coherence import CoherenceService, review_text
 from ..application.contract_errors import contract_issues
 from ..application.people_count import PeopleCounter
 from ..application.pose_test import PoseTester
-from ..application.reference_description import ReferenceDescriber
 from ..application.translation import TranslationService
 from ..config import Config
 from ..domain.catalog import Item
@@ -86,11 +85,6 @@ class TranslationCreate(BaseModel):
     text: str
 
 
-class DescriptionCreate(BaseModel):
-    file: str
-    category: str
-
-
 class PoseTestCreate(BaseModel):
     model_config = ConfigDict(extra='forbid')
     item: dict
@@ -111,7 +105,6 @@ class Container:
         self.service = RunService(self.runs, self.library, self.store, self.executor)
         self.translation = TranslationService(self.comfy)
         self.people = PeopleCounter(self.comfy, self.store, self.runs.file)
-        self.describer = ReferenceDescriber(self.comfy, self.store, self.runs.file)
         self.coherence = CoherenceService(self.comfy)
         self.pose_tests = PoseTester(self.comfy)
         self.monitor = monitor or SystemMonitor(config.data_dir)
@@ -280,19 +273,6 @@ def create_app(config: Config | None = None, container: Container | None = None)
     def audit_library_item(body: dict):
         """Wording review of one item while it is being edited; nothing is saved."""
         return {'findings': [f.__dict__ for f in audit_item(Item.model_validate(body))]}
-
-    @app.post('/api/library/descriptions')
-    def describe_reference(body: DescriptionCreate):
-        """Drafts a pose or action from a reference photo; the draft is only returned, never saved."""
-        return c.describer.start(body.file, body.category)
-
-    @app.get('/api/library/descriptions/{job_id}')
-    def reference_description(job_id: str):
-        return c.describer.status(job_id)
-
-    @app.post('/api/library/descriptions/{job_id}/cancel')
-    def cancel_reference_description(job_id: str):
-        return c.describer.cancel(job_id)
 
     @app.post('/api/library/pose-tests')
     def test_pose(body: PoseTestCreate):

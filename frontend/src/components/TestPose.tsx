@@ -65,7 +65,7 @@ export function TestPose({item}: {item: Item}) {
         <label className="check"><input type="checkbox" checked={adultsOnly} onChange={e => setAdultsOnly(e.target.checked)} />
           Confirmo que todas as pessoas retratadas são adultas.</label>
       </>}
-      <div className="describe-photo-actions">
+      <div className="test-pose-actions">
         {state === 'working' ? <>
           <span className="muted small">Gerando a prévia (Turbo)…</span>
           <button type="button" className="btn-link" onClick={cancel}>Cancelar</button>
