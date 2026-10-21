@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 from dataclasses import dataclass, field
 
 UNET = {'qwen21': 'qwen_image_2.1_int8_convrot.safetensors', 'turbo': 'qwen_image_2.1_turbo_int8_convrot.safetensors'}
@@ -192,6 +193,49 @@ def face_boxes(text: str | None) -> list[dict]:
         if values['width'] > 0 and values['height'] > 0:
             boxes.append({**values, 'score': float(box.get('score') or 0)})
     return boxes
+
+
+def face_pose_graph(image: str, faces: int, min_confidence: float = 0.5) -> dict:
+    """Like `face_detect_graph`, but the text output is the landmarks, which carry each head's rotation."""
+    graph = face_detect_graph(image, faces, min_confidence)
+    graph[TEXT_OUTPUT_NODE] = {'class_type': 'PreviewAny', 'inputs': {'source': ['72', 0]}}
+    return graph
+
+
+_NUMBER = r'(-?\d+(?:\.\d*)?(?:e[-+]?\d+)?)'
+_FACE_START = re.compile(r"'bbox_xyxy': array\(\[([^\]]*)\]")
+_SCORE = re.compile(r"'score': " + _NUMBER)
+_MATRIX = re.compile(r"'transformation_matrix': array\(\[\[([^\]]*)\],\s*\[([^\]]*)\],\s*\[([^\]]*)\]")
+
+
+def face_poses(text: str | None) -> list[dict]:
+    """Faces from the landmarks output as {x, y, width, height, score, yaw, pitch}. The output is the repr of a Python
+    object (numpy arrays), not JSON, so only the few fields needed are read. Yaw is 0 for a face looking at the camera
+    and about 90 in profile; a face whose rotation cannot be read gets yaw None."""
+    text = text or ''
+    starts = [m for m in _FACE_START.finditer(text)]
+    faces = []
+    for i, start in enumerate(starts):
+        chunk = text[start.start():starts[i + 1].start() if i + 1 < len(starts) else len(text)]
+        try:
+            x0, y0, x1, y1 = (float(v) for v in start.group(1).replace(',', ' ').split())
+        except ValueError:
+            continue
+        if x1 <= x0 or y1 <= y0:
+            continue
+        score = _SCORE.search(chunk)
+        face = {'x': x0, 'y': y0, 'width': x1 - x0, 'height': y1 - y0,
+                'score': float(score.group(1)) if score else 0.0, 'yaw': None, 'pitch': None}
+        matrix = _MATRIX.search(chunk)
+        if matrix:
+            try:
+                rows = [[float(v) for v in row.replace(',', ' ').split()] for row in matrix.groups()]
+                face['yaw'] = math.degrees(math.atan2(rows[0][2], rows[2][2]))
+                face['pitch'] = math.degrees(math.asin(max(-1.0, min(1.0, -rows[1][2]))))
+            except (ValueError, IndexError):
+                pass
+        faces.append(face)
+    return faces
 
 
 def text_graph(job: TextJob) -> dict:

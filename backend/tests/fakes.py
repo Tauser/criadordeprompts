@@ -7,6 +7,25 @@ from prisma_studio.infrastructure.comfy.client import ComfyNotSent, ComfyRejecte
 from prisma_studio.infrastructure.comfy.workflows import IMAGE_OUTPUT_NODE, TEXT_OUTPUT_NODE
 
 
+def landmarks_text(faces):
+    """The landmarks output as ComfyUI prints it: the repr of a dict with numpy arrays, one entry per face.
+    Each face may carry 'yaw' in degrees (0 = looking at the camera)."""
+    import math
+    entries = []
+    for face in faces:
+        x0, y0 = face['x'], face['y']
+        x1, y1 = x0 + face['width'], y0 + face['height']
+        yaw = math.radians(face.get('yaw', 0))
+        rows = [[math.cos(yaw), 0.0, math.sin(yaw), 0.1], [0.0, 1.0, 0.0, 4.5], [-math.sin(yaw), 0.0, math.cos(yaw), -40.0]]
+        matrix = ',\n       '.join('[' + ', '.join(f'{v: .7f}' for v in row) + ']' for row in rows)
+        entries.append(f"{{'bbox_xyxy': array([{x0:.4f}, {y0:.4f}, {x1:.4f}, {y1:.4f}], dtype=float32), "
+                       f"'blendshapes': {{'_neutral': 1e-06, 'browDownLeft': 0.3}}, 'landmarks_xy': array([[1., 2.],\n"
+                       f"       [3., 4.]], shape=(478, 2), dtype=float32), 'presence': 4.5, "
+                       f"'score': {face.get('score', 0.9)}, 'transformation_matrix': array([{matrix},\n"
+                       f"       [ 0.,  0.,  0.,  1.]], dtype=float32)}}")
+    return "{'frames': [[" + ', '.join(entries) + "]], 'image_size': (640, 480)}"
+
+
 def png(width=64, height=48, color=(200, 30, 30), mode='RGB'):
     buffer = io.BytesIO()
     Image.new(mode, (width, height), color).save(buffer, format='PNG')
@@ -80,6 +99,8 @@ class FakeComfy:
         graph = self.jobs[prompt_id]['graph']
         if IMAGE_OUTPUT_NODE in graph:
             return {IMAGE_OUTPUT_NODE: {'images': [{'filename': f'{prompt_id}.png', 'subfolder': 'prisma', 'type': 'output'}]}}
+        if graph.get(TEXT_OUTPUT_NODE, {}).get('inputs', {}).get('source') == ['72', 0]:
+            return {TEXT_OUTPUT_NODE: {'text': [landmarks_text(self.faces)]}}
         if any(node['class_type'] == 'MediaPipeFaceLandmarker' for node in graph.values()):
             return {TEXT_OUTPUT_NODE: {'text': [json.dumps([self.faces])]}}
         prompt = graph['90']['inputs']['prompt']

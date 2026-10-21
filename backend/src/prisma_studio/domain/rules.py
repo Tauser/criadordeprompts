@@ -110,6 +110,7 @@ def assess(request: Request, library: Library) -> Assessment:
         elif character.reference_id in seen_characters:
             report('duplicate_character', where, 'Esta foto já está sendo usada para outro personagem.')
         seen_characters.add(character.reference_id)
+    _check_swaps(request, refs, report)
 
     if any(item.adult for item in resolved.values()) and any(i.requirements.children for i in resolved.values()):
         report('adult_with_children', 'attributes', 'Uma opção adulta não pode ser combinada com uma cena que inclui '
@@ -147,7 +148,8 @@ def assess(request: Request, library: Library) -> Assessment:
         report('details_not_analyzed', 'details', 'Os detalhes adicionais são enviados literalmente, sem análise.',
                'unknown')
     changes = [c for c in CATEGORIES if request.attribute(c).intent in ('set', 'transfer')]
-    if request.mode == 'edit' and not changes and not request.characters and not request.details.strip():
+    if (request.mode == 'edit' and not changes and not request.characters and not request.swaps
+            and not request.details.strip()):
         report('missing_change', 'attributes', 'Nenhuma alteração foi pedida para a foto.')
     for ref in request.references:
         if ref.id not in slots:
@@ -167,6 +169,7 @@ def _slots(request: Request) -> dict[str, int]:
     known = {ref.id for ref in request.references}
     used = {a.reference_id for a in request.attributes.values() if a.intent == 'transfer'}
     used |= {c.reference_id for c in request.characters}
+    used |= {s.reference_id for s in request.swaps}
     if request.prompt_mode == 'manual':
         used = known
     for ref in request.references:
@@ -182,6 +185,42 @@ def uses_person_photos(request: Request) -> bool:
     """True when a photo supplies a person: the edited photo, another character or an identity reference."""
     return (request.mode == 'edit' or bool(request.characters)
             or any(request.attribute(c).intent == 'transfer' for c in IDENTITY_CATEGORIES))
+
+
+def _check_swaps(request, refs, report) -> None:
+    """Swapping people by position needs the edited photo, the number of people in it and one photo per person."""
+    if not request.swaps:
+        return
+    if request.mode != 'edit':
+        report('swap_requires_edit', 'swaps', 'Trocar pessoas existe só na edição de uma foto.')
+        return
+    existing = request.participants.existing
+    if not existing:
+        report('swap_requires_count', 'swaps', 'Informe quantas pessoas há na foto (Pessoas na foto) para trocar cada '
+               'uma pela posição.')
+    if request.characters:
+        report('swap_with_characters', 'swaps', 'Trocar pessoas e acrescentar personagens não combinam no mesmo pedido: '
+               'use um dos dois.')
+    transferred = [c for c in IDENTITY_CATEGORIES if request.attribute(c).intent == 'transfer']
+    if transferred:
+        report('swap_with_identity_transfer', 'swaps', 'A troca já traz o rosto, o cabelo e a pele de cada pessoa: '
+               'deixe Pessoa, Rosto, Corpo, Pele e Cabelo sem imagem de referência.')
+    positions, photos = set(), set()
+    for i, swap in enumerate(request.swaps):
+        where = f'swaps.{i}'
+        if existing and swap.position > existing:
+            report('swap_position', where, f'A foto tem {existing} {"pessoa" if existing == 1 else "pessoas"}; não há a '
+                   f'pessoa {swap.position}.')
+        if swap.position in positions:
+            report('swap_duplicate_position', where, f'A pessoa {swap.position} já tem uma foto escolhida.')
+        if swap.reference_id not in refs:
+            report('missing_reference', where, 'A foto da pessoa nova não foi anexada.')
+        elif swap.reference_id == request.target_id:
+            report('swap_is_target', where, 'A foto editada não pode ser também a da pessoa nova.')
+        elif swap.reference_id in photos:
+            report('swap_duplicate_photo', where, 'Esta foto já está sendo usada para outra pessoa.')
+        positions.add(swap.position)
+        photos.add(swap.reference_id)
 
 
 def _check_target(request, refs, report) -> None:

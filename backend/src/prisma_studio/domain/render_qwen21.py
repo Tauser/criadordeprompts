@@ -139,6 +139,8 @@ def render(blocks) -> list[tuple[str, str]]:
                 out.append((block.id, f'Use {image(block.slot)} as the reference for the {aspects}{whose}.'))
         elif isinstance(block, ir.Character):
             out.append((block.id, _character(block, image(block.slot), blocks)))
+        elif isinstance(block, ir.Swap):
+            out.append((block.id, _swap(block, image)))
         elif isinstance(block, ir.Keep):
             # "Keep the person unchanged" would also freeze the clothing and pose being changed: name the identity.
             names = [ASPECT_NAMES[a] if a != 'subject' else 'identity of the person' for a in block.aspects
@@ -177,6 +179,9 @@ def render(blocks) -> list[tuple[str, str]]:
             else:
                 text = f'Keep the {_join(names)} from {target} unchanged.'
             out.append((block.id, text))
+        elif isinstance(block, ir.Participants) and block.exact:
+            out.append((block.id, 'The result shows exactly one person.' if block.total == 1
+                        else f'The result shows exactly {block.total} people, the same people count as {image(1)}.'))
         elif isinstance(block, ir.Participants) and block.total == 1:
             out.append((block.id, 'The result shows exactly one person.' if block.edit
                         else 'The scene contains exactly one person.'))
@@ -255,6 +260,57 @@ def _character(block: ir.Character, source: str, blocks) -> str:
     if block.description:
         text += f' The {ordinal} person: ' + _sentence(block.description)
     return text
+
+
+SWAP_PLACES = {2: ('on the left', 'on the right'), 3: ('on the left', 'in the center', 'on the right')}
+
+
+def _place(position: int, total: int, target: str) -> str:
+    """How the prompt points at one person of the photo: by place, counted from the left."""
+    if total <= 1:
+        return f'the person in {target}'
+    if total in SWAP_PLACES:
+        return f'the person {SWAP_PLACES[total][position - 1]} of {target}'
+    return f'the {ORDINALS.get(position, f"number {position}")} person from the left in {target}'
+
+
+def _swap(block: ir.Swap, image) -> str:
+    """Measured on Qwen Image 2.1 edit: by place, with head-and-shoulders references, the identity moves to the right
+    person; without the 'never copy' and 'every pose comes from' sentences the references get pasted in as extra people
+    with their own poses, and the head angle and expression of the reference leak into the scene."""
+    target = image(1)
+    lead = f'{target} shows exactly {block.total} {"person" if block.total == 1 else "people"}.'
+    parts = [lead, 'Change who the chosen people are, nothing else.' if block.total > 1 else 'Change who this person is, '
+             'nothing else.']
+    sources = []
+    for person in block.people:
+        source = image(person.slot)
+        sources.append(source)
+        place = _place(person.position, block.total, target)
+        if person.body:
+            parts.append(f'{place[0].upper() + place[1:]} becomes the person shown in {source}: the face, hair and skin '
+                         f'tone come from {source}, and the body build is {person.body.rstrip(".")}.')
+        else:
+            parts.append(f'{place[0].upper() + place[1:]} becomes the person shown in {source}: the face, hair, skin '
+                         f'tone and body build come from {source}.')
+    one = len(sources) == 1
+    parts.append(f'{_join(sources)} {"is" if one else "are"} only {"an identity reference" if one else "identity references"}: '
+                 f'never copy {"its" if one else "their"} pose, posture, position, head angle, expression, clothing or '
+                 f'background, and never add {"it as an extra person" if one else "them as extra people"}.')
+    if block.keep_pose:
+        same = 'the same arms and hands, the same points of contact, the same head angle and gaze'
+        if block.keep_expression:
+            same += ' and the same facial expression'
+        parts.append(f'Every pose comes only from {target}: each person stays exactly where and how they are in '
+                     f'{target}, with {same}.')
+    else:
+        parts.append(f'Each person stays in the same place as in {target}.')
+    swapped = {p.position for p in block.people}
+    for position in range(1, block.total + 1):
+        if position not in swapped:
+            place = _place(position, block.total, target)
+            parts.append(f'{place[0].upper() + place[1:]} stays exactly the same person, unchanged.')
+    return ' '.join(parts)
 
 
 def _guidance(block: ir.Guidance) -> str:

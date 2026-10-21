@@ -8,11 +8,12 @@ from .request import CatalogValue, Request
 from .rules import Assessment, available_supports, body_gaze, effective_orientation, framing_already_there
 from .vocabulary import CATEGORIES, FRAMING_ORDER, SUPPORT_PRIORITY, agreed
 
-COMPILER_VERSION = '1.14.0'
+COMPILER_VERSION = '1.15.0'
 
 # Operation order: scene first, then person changes; style leads in generation.
 EDIT_ORDER = ('environment', 'lighting', 'style', 'camera', 'framing', 'subject', 'face', 'body', 'skin', 'hair',
               'wardrobe', 'pose', 'action', 'expression')
+IDENTITY = ('subject', 'face', 'body', 'skin', 'hair')
 GENERATE_ORDER = ('style', 'subject', 'face', 'body', 'skin', 'hair', 'wardrobe', 'pose', 'action', 'expression',
                   'environment', 'lighting', 'camera', 'framing')
 
@@ -79,6 +80,13 @@ def build_ir(request: Request, assessment: Assessment) -> list:
         blocks[at:at] = clothing
         at += len(clothing)
     blocks[at:at] = cast
+    if edit and request.swaps:
+        # Who the people are changes first, so every later instruction speaks about the new people.
+        changes_body = any(request.attribute(c).intent in ('set', 'transfer') for c in ('pose', 'action'))
+        people = tuple(ir.SwapPerson(s.position, assessment.slots[s.reference_id], s.body.strip())
+                       for s in sorted(request.swaps, key=lambda s: s.position))
+        blocks.insert(1, ir.Swap(request.participants.existing or len(people), people, keep_pose=not changes_body,
+                                 keep_expression=request.attribute('expression').intent not in ('set', 'transfer')))
 
     if edit:
         # An action that needs its own posture (walking, sitting...) cannot keep the original pose: holding both
@@ -88,6 +96,8 @@ def build_ir(request: Request, assessment: Assessment) -> list:
         kept = tuple(c for c in CATEGORIES
                      if (request.attribute(c).intent == 'keep' and not (c == 'pose' and action_posture))
                      or (c == 'framing' and same_framing))
+        if request.swaps:              # the swap changes who the people are; everything else stays
+            kept = tuple(c for c in kept if c not in IDENTITY)
         free = [c for c in CATEGORIES if request.attribute(c).intent == 'free']
         added = any(c.added for c in cast) or (assessment.participants_total or 0) > present
         widen = added and request.context.allow_reframing and 'framing' in kept
@@ -97,7 +107,9 @@ def build_ir(request: Request, assessment: Assessment) -> list:
                                   people_added=added, widen=widen))
 
     total = assessment.participants_total
-    if total and (total > 1 or request.participants.requested == 1):   # an explicit "one person" is an instruction too
+    if edit and request.swaps and total:
+        blocks.append(ir.Participants(total, edit, exact=True))
+    elif total and (total > 1 or request.participants.requested == 1):   # an explicit "one person" is an instruction too
         blocks.append(ir.Participants(total, edit))
 
     minimums = [r.minimum_framing for r in assessment.requirements if r.minimum_framing]

@@ -62,6 +62,14 @@ class Character(_Strict):
     description: str = Field(default='', max_length=500)
 
 
+class Swap(_Strict):
+    """Edit: the person at `position` in the photo (1 = leftmost face) becomes the person of a reference photo,
+    keeping pose, contacts, head angle and expression. The reference should be a head-and-shoulders crop."""
+    position: int = Field(ge=1, le=4)
+    reference_id: str = Field(pattern=REF_ID)
+    body: str = Field(default='', max_length=300)       # body build in words; photos do not carry it reliably
+
+
 class Participants(_Strict):
     requested: int | None = Field(default=None, ge=1, le=10)
     existing: int | None = Field(default=None, ge=0, le=10)
@@ -127,6 +135,7 @@ class Request(_Strict):
     target_id: str | None = Field(default=None, pattern=REF_ID)
     mask: bool = False
     characters: tuple[Character, ...] = Field(default=(), max_length=3)
+    swaps: tuple[Swap, ...] = Field(default=(), max_length=4)
     participants: Participants = Participants()
     context: SceneContext = SceneContext()
     details: str = Field(default='', max_length=4000)
