@@ -1,4 +1,4 @@
-import type {Bust, CoherenceJob, Health, PeopleCount, Stats, Item, LibrarySnapshot, PoseTest, Prepared, Run,
+import type {CoherenceJob, Health, PeopleCount, Stats, Item, LibrarySnapshot, PoseTest, Prepared, Run,
   StudioRequest, TextFinding} from './types';
 
 export class ApiError extends Error {
@@ -52,9 +52,6 @@ export const api = {
   cancel: (id: string) => call<Run>('POST', `/api/runs/${id}/cancel`),
   resubmit: (id: string, taskId: string) => call<Run>('POST', `/api/runs/${id}/tasks/${taskId}/resubmit`),
   review: (id: string, choice: 'refined' | 'original') => call<Run>('POST', `/api/runs/${id}/review`, {choice}),
-  cropBust: (hash: string) => call<Bust>('POST', `/api/files/${hash}/bust`),
-  bust: (id: string) => call<Bust>('GET', `/api/busts/${id}`),
-  cancelBust: (id: string) => call<unknown>('POST', `/api/busts/${id}/cancel`),
   countPeople: (hash: string) => call<PeopleCount>('POST', `/api/files/${hash}/people`),
   peopleCount: (id: string) => call<PeopleCount>('GET', `/api/people-counts/${id}`),
   cancelPeopleCount: (id: string) => call<unknown>('POST', `/api/people-counts/${id}/cancel`),

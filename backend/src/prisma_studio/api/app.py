@@ -21,7 +21,6 @@ from ..application.library import LibraryService
 from ..application.runs import RequestRejected, RunService, prepare
 from ..application.coherence import CoherenceService, review_text
 from ..application.contract_errors import contract_issues
-from ..application.cast_swap import BustService
 from ..application.people_count import PeopleCounter
 from ..application.pose_test import PoseTester
 from ..application.translation import TranslationService
@@ -106,17 +105,9 @@ class Container:
         self.service = RunService(self.runs, self.library, self.store, self.executor)
         self.translation = TranslationService(self.comfy)
         self.people = PeopleCounter(self.comfy, self.store, self.runs.file)
-        self.busts = BustService(self.comfy, self.store, self.runs.file, self.keep_file)
         self.coherence = CoherenceService(self.comfy)
         self.pose_tests = PoseTester(self.comfy)
         self.monitor = monitor or SystemMonitor(config.data_dir)
-
-    def keep_file(self, data: bytes):
-        """Stores a picture the Studio made itself (a crop) like an upload."""
-        with self.db.write_lock:
-            stored = self.store.put(data)
-            self.runs.record_file(stored)
-        return stored
 
 
 def create_app(config: Config | None = None, container: Container | None = None) -> FastAPI:
@@ -395,20 +386,6 @@ def create_app(config: Config | None = None, container: Container | None = None)
         except ComfyUnavailable:
             return {'available': False, 'loras': []}
 
-    # person swap: reference crops ----------------------------------------------------
-    @app.post('/api/files/{file_hash}/bust')
-    def crop_bust(file_hash: str):
-        """Head, neck and shoulders of the person in a photo, as a new file, and whether the face is frontal."""
-        return c.busts.start(file_hash)
-
-    @app.get('/api/busts/{job_id}')
-    def bust(job_id: str):
-        return c.busts.status(job_id)
-
-    @app.post('/api/busts/{job_id}/cancel')
-    def cancel_bust(job_id: str):
-        return c.busts.cancel(job_id)
-
     # people count ------------------------------------------------------------------
     @app.post('/api/files/{file_hash}/people')
     def count_people(file_hash: str):
@@ -465,8 +442,7 @@ def create_app(config: Config | None = None, container: Container | None = None)
         view['images'] = [{'task_id': t['id'], 'position': t['position'], 'seed': t['seed'], 'status': t['status'],
                            'files': (t['result'] or {}).get('files', []), 'score': (t['result'] or {}).get('score'),
                            'verdicts': (t['result'] or {}).get('verdicts'), 'detail': (t['result'] or {}).get('detail'),
-                           'raw_files': (t['result'] or {}).get('raw_files', []),
-                           'restore': (t['result'] or {}).get('restore')} for t in tasks if t['kind'] == 'image']
+                           'raw_files': (t['result'] or {}).get('raw_files', [])} for t in tasks if t['kind'] == 'image']
         if detail:
             view['request'] = run['request']
             view['files'] = run['files']

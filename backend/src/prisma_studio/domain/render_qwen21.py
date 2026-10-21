@@ -139,8 +139,6 @@ def render(blocks) -> list[tuple[str, str]]:
                 out.append((block.id, f'Use {image(block.slot)} as the reference for the {aspects}{whose}.'))
         elif isinstance(block, ir.Character):
             out.append((block.id, _character(block, image(block.slot), blocks)))
-        elif isinstance(block, ir.Swap):
-            out.append((block.id, _swap(block, image)))
         elif isinstance(block, ir.Keep):
             # "Keep the person unchanged" would also freeze the clothing and pose being changed: name the identity.
             names = [ASPECT_NAMES[a] if a != 'subject' else 'identity of the person' for a in block.aspects
@@ -179,9 +177,6 @@ def render(blocks) -> list[tuple[str, str]]:
             else:
                 text = f'Keep the {_join(names)} from {target} unchanged.'
             out.append((block.id, text))
-        elif isinstance(block, ir.Participants) and block.exact:
-            out.append((block.id, 'The result shows exactly one person.' if block.total == 1
-                        else f'The result shows exactly {block.total} people, the same people count as {image(1)}.'))
         elif isinstance(block, ir.Participants) and block.total == 1:
             out.append((block.id, 'The result shows exactly one person.' if block.edit
                         else 'The scene contains exactly one person.'))
@@ -260,83 +255,6 @@ def _character(block: ir.Character, source: str, blocks) -> str:
     if block.description:
         text += f' The {ordinal} person: ' + _sentence(block.description)
     return text
-
-
-SWAP_PLACES = {2: ('on the left', 'on the right'), 3: ('on the left', 'in the center', 'on the right')}
-
-
-def _place(position: int, total: int, target: str) -> str:
-    """How the prompt points at one person of the photo: by place, counted from the left."""
-    if total <= 1:
-        return f'the person in {target}'
-    if total in SWAP_PLACES:
-        return f'the person {SWAP_PLACES[total][position - 1]} of {target}'
-    return f'the {ORDINALS.get(position, f"number {position}")} person from the left in {target}'
-
-
-def _swap(block: ir.Swap, image) -> str:
-    """Measured on Qwen Image 2.1 edit: by place, with head-and-shoulders references, the identity moves to the right
-    person; without the 'never copy' and 'every pose comes from' sentences the references get pasted in as extra people
-    with their own poses, and the head angle and expression of the reference leak into the scene."""
-    target = image(1)
-    lead = f'{target} shows exactly {block.total} {"person" if block.total == 1 else "people"}.'
-    parts = [lead, 'Change who the chosen people are, nothing else.' if block.total > 1 else 'Change who this person is, '
-             'nothing else.']
-    sources = []
-    for person in block.people:
-        source = image(person.slot)
-        sources.append(source)
-        place = _place(person.position, block.total, target)
-        lead = f'{place[0].upper() + place[1:]} becomes the person shown in {source}: '
-        build = f', and the body build is {person.body.rstrip(".")}' if person.body else ''
-        if person.mode == 'face':
-            parts.append(lead + f'the face, hair and skin tone come from {source}{build}; the body, clothing and '
-                         f'accessories stay as in {target}.')
-        elif person.body:
-            parts.append(lead + f'the face, hair and skin tone come from {source}{build}.')
-        else:
-            parts.append(lead + f'the face, hair, skin tone, body shape, build, weight and proportions come from {source}.')
-    one = len(sources) == 1
-    # A whole-person reference brings its clothing anyway (measured): only a face-only swap forbids it.
-    never = ['pose', 'posture', 'position', 'head angle', 'expression']
-    never += ['clothing'] if all(p.mode == 'face' for p in block.people) else []
-    parts.append(f'{_join(sources)} {"is" if one else "are"} only {"an identity reference" if one else "identity references"}: '
-                 f'never copy {"its" if one else "their"} {", ".join(never)} or background, and never add '
-                 f'{"it as an extra person" if one else "them as extra people"}.')
-    if block.keep_pose:
-        same = 'the same arms and hands, the same points of contact, the same head angle and gaze'
-        if block.keep_expression:
-            same += ' and the same facial expression'
-        parts.append(f'Every pose comes only from {target}: each person stays exactly where and how they are in '
-                     f'{target}, with {same}.')
-    else:
-        parts.append(f'Each person stays in the same place as in {target}.')
-    swapped = {p.position for p in block.people}
-    for position in range(1, block.total + 1):
-        if position not in swapped:
-            place = _place(position, block.total, target)
-            parts.append(f'{place[0].upper() + place[1:]} stays exactly the same person, unchanged.')
-    return ' '.join(parts)
-
-
-def restore_prompt(total: int, swapped: dict[int, str], expressions: dict[int, str | None]) -> str:
-    """Second edit of a person swap: <image1> is the swap result, <image2> the original photo. Measured: the identity
-    reference brings its smile or open mouth and drops eyewear; this pass gives back each person's expression, named in
-    words, and the accessories of the original, while keeping the new people. `swapped` maps position -> mode."""
-    target, original = '<image1>', '<image2>'
-    count = f'exactly {total} {"person" if total == 1 else "people"}'
-    parts = [f'Edit {target}. {target} shows {count}. Keep each person in {target} exactly who they are: the same face, '
-             f'facial features, hair, skin, body shape and build.']
-    faces = [f'{_place(p, total, target)} has {expressions[p]}' for p in sorted(expressions) if expressions[p]]
-    if faces:
-        parts.append('Change only their facial expressions: ' + '; '.join(faces) + '.')
-    if any(mode == 'face' for mode in swapped.values()):
-        parts.append(f'Eyewear, earrings, necklaces and other accessories come only from the person in the same place '
-                     f'in {original}, and only if that person wears them there: add nothing that is not in {original}.')
-    parts.append(f'Keep the pose, the arms and hands, the clothing, the background, the light, the sharpness and the '
-                 f'framing of {target}. {original} gives only the expressions and the accessories, never the identity '
-                 f'or the body of the people. The result shows {count}.')
-    return ' '.join(parts)
 
 
 def _guidance(block: ir.Guidance) -> str:

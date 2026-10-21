@@ -28,13 +28,3 @@ it('does not fill the field when no face is found or ComfyUI is offline', async 
   renderHook(() => usePeopleCount('ghi', true, false, onCount));
   expect(api.countPeople).toHaveBeenCalledTimes(1);
 });
-
-it('finds where the people are even when the count was typed, without changing it', async () => {
-  vi.mocked(api.countPeople).mockResolvedValue({id: 'j3', status: 'completed', count: 2,
-    people: [{x: 0.1, y: 0.2, width: 0.1, height: 0.1}, {x: 0.6, y: 0.2, width: 0.1, height: 0.1}]});
-  const onCount = vi.fn();
-  const {result} = renderHook(() => usePeopleCount('jkl', false, true, onCount));
-  await waitFor(() => expect(result.current?.status).toBe('done'));
-  expect(result.current?.people).toHaveLength(2);
-  expect(onCount).not.toHaveBeenCalled();
-});

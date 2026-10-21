@@ -4,7 +4,7 @@ import {CATEGORY_LABELS} from '../lib/labels';
 import {sortBy} from '../lib/sort';
 import {uuid} from '../lib/uuid';
 import {MAX_CHARACTERS, ROLES, addCharacter, addReference, applyReference, characterNumber, describeCharacter, referenceRoles,
-  removeCharacter, removeReference, setTarget, swapReferenceIds, type Workspace} from '../state/workspace';
+  removeCharacter, removeReference, setTarget, type Workspace} from '../state/workspace';
 import {Switch, Tip} from './Controls';
 import {Icon} from './Icon';
 import {MaskEditor} from './MaskEditor';
@@ -80,9 +80,7 @@ export function References({workspace, slots, disabled, update, notify}: Props) 
     } catch (error) {notify((error as Error).message, true);}
   };
 
-  const swapped = swapReferenceIds(workspace);           // crops used only by "Trocar pessoas", shown there
-  const shown = request.references.filter(ref => !swapped.has(ref.id));
-  const empty = shown.length === 0;
+  const empty = request.references.length === 0;
   const characters = request.references.flatMap(ref => {
     const person = characterNumber(workspace, ref.id);
     const character = (request.characters ?? []).find(c => c.reference_id === ref.id);
@@ -114,7 +112,7 @@ export function References({workspace, slots, disabled, update, notify}: Props) 
         </label>
       )}
       {!empty && <ul className="reference-grid">
-        {shown.map(ref => {
+        {request.references.map(ref => {
           const file = workspace.files[ref.id];
           const isTarget = ref.id === request.target_id;
           const roles = referenceRoles(workspace, ref.id);

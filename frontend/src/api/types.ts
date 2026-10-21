@@ -37,8 +37,6 @@ export interface Engine {
   loras?: LoraChoice[];
 }
 
-// Edit: the person at `position` in the photo (1 = leftmost) becomes the person of a reference photo.
-export interface Swap {position: number; reference_id: string; body: string}
 export interface StudioRequest {
   schema_version: 1;
   mode: 'generate' | 'edit';
@@ -51,7 +49,6 @@ export interface StudioRequest {
   target_id?: string | null;
   mask: boolean;
   characters?: Character[];
-  swaps?: Swap[];
   participants: {requested?: number | null; existing?: number | null};
   context: {supports?: Support[] | null; allow_new_supports: boolean; allow_reframing: boolean; original_framing?: Framing | null};
   details: string;
@@ -83,12 +80,7 @@ export interface Prepared {
 // setting, lens × framing). `auto` ones, never 'scene', are applied while the person has not touched the field.
 export interface Suggestion {field: Category; attribute: Attribute | null; context: Partial<StudioRequest['context']>;
   label: string; reason: string; source: 'pose' | 'action' | 'scene'; auto: boolean}
-// Where a person's face is in a photo, as fractions of its width and height (0 to 1).
-export interface PersonBox {x: number; y: number; width: number; height: number}
-export interface PeopleCount {id: string; status: string; count?: number; people?: PersonBox[]; error?: string}
-// A head-and-shoulders crop of a person-swap reference, and how far the face turns from the camera (degrees).
-export interface Bust {id: string; status: string; hash?: string; width?: number; height?: number;
-  turn?: number | null; frontal?: boolean; faces?: number; error?: string | null; warning?: string}
+export interface PeopleCount {id: string; status: string; count?: number; error?: string}
 
 export interface Verdict {verdict: 'met' | 'partial' | 'unmet' | 'unknown'; note: string}
 export interface RunImage {task_id: string; position: number; seed: number; status: string; files: string[];

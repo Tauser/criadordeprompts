@@ -53,24 +53,6 @@ class Character:
 
 
 @dataclass(frozen=True)
-class SwapPerson:
-    position: int                         # 1 = leftmost person in the photo
-    slot: int
-    body: str = ''
-    mode: str = 'body'                    # 'body': face and body from the reference; 'face': face and hair only
-
-
-@dataclass(frozen=True)
-class Swap:
-    """Edit: people of the photo become the people of reference photos, everything else stays."""
-    total: int                            # people in the photo
-    people: tuple[SwapPerson, ...]
-    keep_pose: bool = True                # false when a pose or action changes the bodies too
-    keep_expression: bool = True          # false when an expression is requested
-    id: str = 'swap'
-
-
-@dataclass(frozen=True)
 class Keep:
     aspects: tuple[str, ...]
     everything_else: bool
@@ -84,7 +66,6 @@ class Keep:
 class Participants:
     total: int
     edit: bool
-    exact: bool = False                   # edit with swaps: the same people count, nobody is added
     id: str = 'participants'
 
 

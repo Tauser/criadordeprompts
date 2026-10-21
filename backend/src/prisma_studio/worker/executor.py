@@ -6,15 +6,12 @@ import threading
 import uuid
 
 from ..application.enhancer import check, clean_output, system_prompt
-from ..application.people_count import people_faces
-from ..domain import expression, face_detail
-from ..domain.render_qwen21 import restore_prompt
+from ..domain import face_detail
 from ..domain.verification import FACE_CHECKS, JUDGE_SYSTEM, Check, judge_prompt, parse_verdicts, score
 from ..infrastructure.comfy.client import ComfyNotSent, ComfyRejected, ComfyUnavailable
 from ..infrastructure.comfy.validation import validate_graph
 from ..infrastructure.comfy.workflows import (FACE_MODEL, FACE_SIZE, MAX_EDIT_PIXELS, ImageJob, TextJob, face_boxes,
-                                              face_detect_graph, face_pose_graph, face_poses, image_graph,
-                                              image_outputs, text_graph, text_output)
+                                              face_detect_graph, image_graph, image_outputs, text_graph, text_output)
 from ..infrastructure.db.database import now
 from ..infrastructure.storage.files import (MAX_RESULT_BYTES, composite_on_original, crop_square, face_crop_box,
                                             fit_multiple_of_32, normalized_png, oriented_size, paste_faces)
@@ -24,7 +21,7 @@ TASK_DONE = {'completed', 'failed', 'cancelled', 'lost'}
 MAX_UNEXPECTED_ERRORS = 3
 MASK_FEATHER = 12                         # pixels of soft transition, always inside the drawn area
 FACE_SLOTS = 16                           # face task position = image position * FACE_SLOTS + face index
-IMAGE_KINDS = {'image', 'face', 'restore'}
+IMAGE_KINDS = {'image', 'face'}
 PHASES = {'UNETLoader': 'loading_models', 'CLIPLoader': 'loading_models', 'VAELoader': 'loading_models',
           'QwenImage21Cache': 'loading_models', 'LoadImage': 'loading_images', 'LoadImageMask': 'loading_images',
           'TextEncodeQwenImage21': 'encoding', 'KSampler': 'sampling', 'SamplerCustom': 'sampling',
@@ -117,8 +114,6 @@ class Executor:
                 self._refining(run)
             elif status == 'generating':
                 self._generating(run)
-            elif status == 'restoring':
-                self._restoring(run)
             elif status == 'detailing':
                 self._detailing(run)
             elif status == 'verifying':
@@ -209,95 +204,9 @@ class Executor:
         if not done:
             self.repository.transition(run['id'], 'failed', error=next((t['error'] for t in tasks if t['error']),
                                                                        'Nenhuma imagem foi gerada.'))
-        elif settings.get('swap') and not settings.get('mask'):
-            self.repository.transition(run['id'], 'restoring')
         elif settings.get('face_detail'):
             self.repository.transition(run['id'], 'detailing')
         else:
-            self._images_ready(run, done)
-
-    def _restoring(self, run: dict) -> None:
-        """Person swap, second edit: each person's expression, measured on the original photo and named in words,
-        and (face-only swaps) its accessories come back; then the result is measured again. A failure only leaves
-        the first edit as it was: the pass improves a result, it never loses one."""
-        settings = run['settings']
-        swap, uploaded = settings['swap'], settings['uploaded']
-        total = swap['total']
-        modes = {p['position']: p['mode'] for p in swap['people']}
-        scene = next(iter(self.repository.tasks(run['id'], 'scene_faces')), None) \
-            or self.repository.add_task(run['id'], 'scene_faces', 0)
-        scene = self._drive_optional(scene, lambda: face_pose_graph(uploaded['images'][0], max(1, total)))
-        if scene['status'] not in TASK_DONE:
-            return
-        found = people_faces(face_poses(scene['result'].get('text'))) if scene['status'] == 'completed' else []
-        shapes = {i + 1: f['blendshapes'] for i, f in enumerate(found)} if len(found) == total else {}
-        words = {p: expression.describe(shapes.get(p)) for p in range(1, total + 1)}
-        if not any(words.values()) and all(mode != 'face' for mode in modes.values()):
-            self._after_restore(run)                # nothing measured and nothing else to give back
-            return
-        restores = {t['position']: t for t in self.repository.tasks(run['id'], 'restore')}
-        checks = {t['position']: t for t in self.repository.tasks(run['id'], 'restore_check')}
-        waiting = False
-        for image in self.repository.tasks(run['id'], 'image'):
-            if self._stop.is_set():
-                return
-            if image['status'] != 'completed' or 'restore' in image['result']:
-                continue
-            file_hash = image['result']['files'][0]
-            task = restores.get(image['position']) or self.repository.add_task(run['id'], 'restore', image['position'],
-                                                                               seed=image['seed'])
-
-            def restore_graph(task=task, file_hash=file_hash):
-                name = self.comfy.upload(self.store.read(file_hash), f'prisma_{file_hash[:24]}.png', 'image/png')
-                engine = settings['engine']
-                return image_graph(ImageJob(
-                    mode='edit', prompt=restore_prompt(total, modes, words), profile=settings['profile'],
-                    seed=task['seed'], resolution=0, images=(name, uploaded['images'][0]),
-                    negative_prompt=engine.get('negative_prompt', ''), steps=engine.get('steps'),
-                    sampler=engine.get('sampler'), scheduler=engine.get('scheduler'),
-                    prefix=f'prisma/{run["id"][:8]}_restore'))
-            task = self._drive_optional(task, restore_graph)
-            if task['status'] not in TASK_DONE:
-                waiting = True
-                continue
-            if task['status'] != 'completed':
-                self.repository.task_transition(image['id'], 'completed', result_json={
-                    **image['result'], 'restore': {'failed': task['error'] or 'O ajuste não terminou.'}})
-                continue
-            if 'restored' not in task['result']:
-                output = task['result']['images'][0]
-                data = self.comfy.view(output['filename'], output.get('subfolder', ''), output['type'])
-                with self.repository.db.write_lock:
-                    stored = self.store.put(data, MAX_RESULT_BYTES)
-                    self.repository.record_file(stored)
-                task = self.repository.task_transition(task['id'], 'completed',
-                                                       result_json={**task['result'], 'restored': stored.hash})
-            restored = task['result']['restored']
-            check = checks.get(image['position']) or self.repository.add_task(run['id'], 'restore_check',
-                                                                              image['position'])
-
-            def check_graph(restored=restored):
-                name = self.comfy.upload(self.store.read(restored), f'prisma_{restored[:24]}.png', 'image/png')
-                return face_pose_graph(name, max(1, total))
-            check = self._drive_optional(check, check_graph)
-            if check['status'] not in TASK_DONE:
-                waiting = True
-                continue
-            after = people_faces(face_poses(check['result'].get('text'))) if check['status'] == 'completed' else []
-            measured = len(after) == total and bool(shapes)
-            mismatch = [i + 1 for i, face in enumerate(after)
-                        if measured and expression.differs(shapes.get(i + 1), face['blendshapes'])]
-            self.repository.task_transition(image['id'], 'completed', result_json={
-                **image['result'], 'files': [restored], 'raw_files': image['result']['files'],
-                'restore': {'expressions': words, 'checked': measured, 'mismatch': mismatch}})
-        if not waiting:
-            self._after_restore(run)
-
-    def _after_restore(self, run: dict) -> None:
-        if run['settings'].get('face_detail'):
-            self.repository.transition(run['id'], 'detailing')
-        else:
-            done = [t for t in self.repository.tasks(run['id'], 'image') if t['status'] == 'completed']
             self._images_ready(run, done)
 
     def _images_ready(self, run: dict, done: list[dict]) -> None:

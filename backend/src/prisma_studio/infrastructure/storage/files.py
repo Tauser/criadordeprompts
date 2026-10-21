@@ -140,31 +140,6 @@ def face_crop_box(box: dict, image_size: tuple[int, int], scale: float = 1.6) ->
     return left, top, side
 
 
-def bust_box(box: dict, image_size: tuple[int, int]) -> tuple[int, int, int, int]:
-    """(left, top, right, bottom) of the head, neck and top of the shoulders around a detected face. Tight on
-    purpose: a person-swap reference that shows the arms or the pose gets copied into the scene."""
-    width, height = image_size
-    cx = box['x'] + box['width'] / 2
-    half = box['width'] * 1.15                     # a selfie's hand at the chin stays out
-    left, right = max(0, round(cx - half)), min(width, round(cx + half))
-    top = max(0, round(box['y'] - box['height'] * 0.5))
-    bottom = min(height, round(box['y'] + box['height'] * 1.7))
-    return left, top, right, bottom
-
-
-def bust_png(data: bytes, crop: tuple[int, int, int, int], shortest: int = 512, longest: int = 1024) -> bytes:
-    """The crop as PNG, scaled so its shorter side is at least `shortest` and its longer side at most `longest`."""
-    with Image.open(io.BytesIO(data)) as image:
-        out = ImageOps.exif_transpose(image).convert('RGB').crop(crop)
-    scale = max(shortest / min(out.size), 1.0)
-    scale = min(scale, longest / max(out.size))
-    if abs(scale - 1.0) > 0.01:
-        out = out.resize((max(1, round(out.width * scale)), max(1, round(out.height * scale))), Image.Resampling.LANCZOS)
-    buffer = io.BytesIO()
-    out.save(buffer, format='PNG')
-    return buffer.getvalue()
-
-
 def crop_square(data: bytes, crop: tuple[int, int, int], size: int) -> bytes:
     left, top, side = crop
     with Image.open(io.BytesIO(data)) as image:

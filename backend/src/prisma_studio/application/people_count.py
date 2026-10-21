@@ -13,32 +13,19 @@ MIN_RELATIVE_SIZE = 0.3        # faces far smaller than the largest are bystande
 EXTENSIONS = {'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp'}
 
 
-def people_faces(boxes: list[dict]) -> list[dict]:
-    """The faces that count as people in the photo, from left to right."""
+def count_faces(boxes: list[dict]) -> int:
     confident = [b for b in boxes if b['score'] >= MIN_SCORE]
     if not confident:
-        return []
+        return 0
     largest = max(max(b['width'], b['height']) for b in confident)
-    kept = [b for b in confident if max(b['width'], b['height']) >= MIN_RELATIVE_SIZE * largest]
-    return sorted(kept, key=lambda b: b['x'] + b['width'] / 2)
-
-
-def count_faces(boxes: list[dict]) -> int:
-    return len(people_faces(boxes))
-
-
-def placed(boxes: list[dict], record: dict) -> list[dict]:
-    """Face boxes as fractions of the photo (0 to 1), so the interface can mark each person on any thumbnail."""
-    width, height = record.get('width') or 1, record.get('height') or 1
-    return [{'x': round(b['x'] / width, 4), 'y': round(b['y'] / height, 4), 'width': round(b['width'] / width, 4),
-             'height': round(b['height'] / height, 4)} for b in people_faces(boxes)]
+    return sum(1 for b in confident if max(b['width'], b['height']) >= MIN_RELATIVE_SIZE * largest)
 
 
 class PeopleCounter:
     def __init__(self, comfy, store, files):
         self.comfy, self.store, self.files = comfy, store, files
         self.jobs: dict[str, dict] = {}
-        self.counts: dict[str, dict] = {}           # file hash -> people found, so choosing the same photo is instant
+        self.counts: dict[str, int] = {}            # file hash -> people found, so choosing the same photo is instant
         self.lock = threading.Lock()
 
     def start(self, file_hash: str) -> dict:
@@ -49,7 +36,7 @@ class PeopleCounter:
         with self.lock:
             known = self.counts.get(file_hash)
         if known is not None:
-            job = {'status': 'completed', **known, 'file': file_hash}
+            job = {'status': 'completed', 'count': known, 'file': file_hash}
         else:
             job = {'status': 'queued', 'file': file_hash}
             try:
@@ -76,11 +63,10 @@ class PeopleCounter:
         try:
             state = self.comfy.job(job_id)
             if state.status == 'completed':
-                boxes = face_boxes(text_output(self.comfy.outputs(job_id)))
-                found = {'count': count_faces(boxes), 'people': placed(boxes, self.files(job['file']) or {})}
-                job.update(status='completed', **found)
+                count = count_faces(face_boxes(text_output(self.comfy.outputs(job_id))))
+                job.update(status='completed', count=count)
                 with self.lock:
-                    self.counts[job['file']] = found
+                    self.counts[job['file']] = count
             elif state.status in ('failed', 'cancelled', 'missing'):
                 job.update(status='failed', error=state.error or 'A contagem de pessoas não terminou.')
             else:

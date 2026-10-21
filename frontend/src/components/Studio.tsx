@@ -17,7 +17,6 @@ import {Icon} from './Icon';
 import {History} from './History';
 import {PromptPreview, SETUP_STEPS, setupIssues} from './PromptPreview';
 import {References} from './References';
-import {SwapPeople} from './SwapPeople';
 import {RunPanel, useNow} from './RunPanel';
 import {TranslateButton} from './Translate';
 
@@ -308,7 +307,6 @@ export function Studio({library, comfyOnline, notify}: Props) {
               <Icon name="refresh" size={14} />Limpar</button>
           </div>
           <References workspace={workspace} slots={prepared?.slots ?? {}} disabled={false} update={update} notify={notify} />
-          <SwapPeople workspace={workspace} detection={detection} update={update} notify={notify} />
           <section className="card" aria-labelledby="ask-title">
             <div className="section-title">
               <h2 id="ask-title">{request.mode === 'edit' ? 'O que mudar' : 'O que pedir'}</h2>
