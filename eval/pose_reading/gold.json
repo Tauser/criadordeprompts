@@ -1,0 +1,98 @@
+{
+  "about": "Respostas esperadas para medir a leitura de pose (Descrever a partir da foto). Anotadas olhando cada foto, não o prompt que a gerou. Direita e esquerda são do ponto de vista da pessoa; 'adult on the left/right' é a posição na imagem. Cada fato tem 'expect' (o texto acerta se combinar) e, quando existe, 'contradict' (o texto erra se combinar). Os padrões rodam no prompt em minúsculas, por trecho entre ';' quando o fato fala de uma pessoa específica.",
+  "photos": [
+    {
+      "file": "01_wave.jpg",
+      "meta": {"participants": 1, "posture": ["standing"], "support": ["floor"], "gaze": ["camera"], "orientation": ["front"]},
+      "facts": [
+        {"id": "braço direito erguido acima da cabeça", "expect": "right (arm|hand)[^;,]*(raised|above|overhead|up)", "contradict": "left (arm|hand)[^;,]*(raised|above the head|overhead)"},
+        {"id": "mão esquerda no quadril", "expect": "left (hand|arm|elbow)[^;]*hip", "contradict": "right hand[^;,]*hip"},
+        {"id": "palma aberta acenando", "expect": "(open palm|palm|wav)"},
+        {"id": "pernas afastadas", "expect": "(apart|wide|shoulder-width|spread)"}
+      ]
+    },
+    {
+      "file": "02_chair.jpg",
+      "meta": {"participants": 1, "posture": ["seated"], "support": ["seat"], "gaze": ["camera"], "orientation": ["front"]},
+      "facts": [
+        {"id": "perna direita cruzada sobre a esquerda", "expect": "right (leg|knee|thigh|ankle)[^;,]*(crossed|over)", "contradict": "left (leg|knee|thigh|ankle)[^;,]*crossed over"},
+        {"id": "mão direita no joelho direito", "expect": "right hand[^;,]*knee", "contradict": "right hand[^;,]*(lap|thigh|shin|ankle)"},
+        {"id": "mão esquerda sobre a perna direita cruzada", "expect": "left hand[^;,]*(shin|ankle|right (leg|knee|thigh)|crossed)", "contradict": "left hand[^;,]*left (thigh|knee|leg|hip)"},
+        {"id": "costas eretas", "expect": "(back|torso|spine)[^;,]*(straight|upright|erect)"}
+      ]
+    },
+    {
+      "file": "03_floor.jpg",
+      "meta": {"participants": 1, "posture": ["lying", "supine"], "support": ["floor"], "gaze": null, "orientation": ["side", "any"]},
+      "facts": [
+        {"id": "deitado de costas", "expect": "(on the back|supine|face up|faceup)", "contradict": "(on the stomach|face down|prone|on the side)"},
+        {"id": "joelhos dobrados", "expect": "(knees?[^;,]*bent|bent knees|knees? (raised|up|drawn))", "contradict": "legs?[^;,]*(straight|extended)"},
+        {"id": "pés apoiados no chão", "expect": "(feet|soles?|foot)[^;,]*(flat|on the floor|planted|resting)"},
+        {"id": "braço ao longo do corpo", "expect": "(arms?|hands?)[^;,]*(along|beside|at the side|by the side|alongside|next to)"}
+      ]
+    },
+    {
+      "file": "04_kneel.jpg",
+      "meta": {"participants": 1, "posture": ["kneeling"], "support": ["floor"], "gaze": ["away", "any"], "orientation": ["front", "three_quarter"]},
+      "facts": [
+        {"id": "joelho esquerdo no chão", "expect": "(left knee[^;,]*(floor|ground|down|resting)|kneeling on the left knee)", "contradict": "(kneeling on the right knee|right knee[^;,]*(on the floor|on the ground|touching))"},
+        {"id": "pé direito plano à frente", "expect": "right foot[^;,]*(flat|forward|front|planted)", "contradict": "left foot[^;,]*(flat on the floor in front|forward|in front)"},
+        {"id": "antebraço direito sobre a coxa ou joelho direito", "expect": "right (forearm|arm|elbow|hand)[^;,]*(thigh|knee)"},
+        {"id": "braço esquerdo para baixo", "expect": "left (arm|hand)[^;,]*(hang|down|relaxed|along|floor|side|straight)"},
+        {"id": "cabeça virada para a direita", "expect": "(head[^;,]*(turned|turning)[^;,]*right|turned to the right|looking (to the |toward the )?right)", "contradict": "(head[^;,]*(turned|turning)[^;,]*left|turned to the left|looking (to the |toward the )?left)"}
+      ]
+    },
+    {
+      "file": "05_side_hug.jpg",
+      "meta": {"participants": 2, "posture": ["standing"], "support": ["floor"], "gaze": ["camera"], "orientation": ["front"]},
+      "facts": [
+        {"id": "pessoa da esquerda: braço esquerdo nos ombros da outra", "person": "adult on the left", "expect": "left (arm|hand)[^;]*(shoulder|around)", "contradict": "right (arm|hand)[^;]*(around the shoulders|on the shoulder)"},
+        {"id": "pessoa da direita: braço direito na cintura da outra", "person": "adult on the right", "expect": "right (arm|hand)[^;]*(waist|back|around)", "contradict": "left (arm|hand)[^;]*(waist|around)"},
+        {"id": "lado a lado", "expect": "side by side"}
+      ]
+    },
+    {
+      "file": "06_bench_talk.jpg",
+      "meta": {"participants": 2, "posture": ["seated"], "support": ["seat"], "gaze": ["any", "away"], "orientation": ["side", "any"]},
+      "facts": [
+        {"id": "de frente um para o outro", "expect": "(facing each other|face to face|turned toward each other|toward the adult|toward each other)"},
+        {"id": "pessoa da esquerda: mão esquerda erguida gesticulando", "person": "adult on the left", "expect": "left hand[^;,]*(raised|gestur|up|lifted)", "contradict": "right hand[^;,]*(raised|gestur|lifted)"},
+        {"id": "pessoa da esquerda: mão direita no joelho ou coxa", "person": "adult on the left", "expect": "right hand[^;,]*(knee|thigh)"},
+        {"id": "pessoa da direita: as duas mãos nos joelhos ou coxas", "person": "adult on the right", "expect": "(both hands|hands)[^;,]*(knee|thigh|lap)", "contradict": "hand[^;,]*(raised|gestur)"}
+      ]
+    },
+    {
+      "file": "07_piggyback.jpg",
+      "meta": {"participants": 2, "posture": ["any", "standing"], "support": ["floor"], "gaze": ["camera", "any"], "orientation": ["front"]},
+      "facts": [
+        {"id": "quem carrega está em pé", "expect": "stand"},
+        {"id": "quem monta: braços em volta do pescoço ou ombros", "expect": "arms?[^;,]*(around|wrapped|hug)[^;,]*(neck|shoulders|chest)"},
+        {"id": "quem monta: pernas em volta da cintura", "expect": "(legs?|thighs?)[^;,]*(around|wrapped|straddl|hooked)"},
+        {"id": "quem carrega: mãos segurando as pernas de quem monta", "expect": "hands?[^;,]*(hold|holding|grip|gripping|support|supporting|under)[^;,]*(knee|thigh|leg)"},
+        {"id": "rindo de boca aberta", "expect": "(laugh|mouths? (wide )?open|open mouth|open-mouthed)"},
+        {"id": "quem monta vai nas costas, não nos ombros", "expect": "(on the back|piggyback)", "contradict": "sits? on [^;,]*shoulders"},
+        {"id": "dá para saber quem carrega e quem monta", "expect": "(adult in front|adult behind|adult on the back|rider|carrier|front adult|carried adult|adult being carried)"}
+      ]
+    },
+    {
+      "file": "08_row_cheer.jpg",
+      "meta": {"participants": 3, "posture": ["standing"], "support": ["floor"], "gaze": ["camera"], "orientation": ["front"]},
+      "facts": [
+        {"id": "todos com os dois braços erguidos acima da cabeça", "expect": "(both arms|arms)[^;,]*(raised|above|overhead|up)", "contradict": "(arm|hand)[^;,]*(down|at the side|hanging|lowered)"},
+        {"id": "punhos cerrados", "expect": "fist"},
+        {"id": "bocas abertas", "expect": "mouth"},
+        {"id": "lado a lado em fila", "expect": "(side by side|in a row|in a line)"}
+      ]
+    },
+    {
+      "file": "09_floor_circle.jpg",
+      "meta": {"participants": 3, "posture": ["seated"], "support": ["floor"], "gaze": ["any", "away"], "orientation": ["any", "three_quarter", "side"]},
+      "facts": [
+        {"id": "pernas cruzadas", "expect": "(cross-legged|legs crossed|crossed legs|legs folded)"},
+        {"id": "cada um com as mãos nos próprios joelhos", "expect": "hands?[^;,]*knees?", "contradict": "hand[^;,]*(thigh|knee) of the adult"},
+        {"id": "em roda, voltados uns para os outros", "expect": "(circle|semicircle|triangle|facing each other|toward each other|turned toward|facing one another)"},
+        {"id": "sentados no chão", "expect": "(on the floor|on the ground)"}
+      ]
+    }
+  ]
+}

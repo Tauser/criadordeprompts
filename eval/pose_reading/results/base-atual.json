@@ -1,0 +1,295 @@
+{
+  "label": "base-atual",
+  "totals": {
+    "right": 32,
+    "wrong": 5,
+    "missing": 2,
+    "meta_right": 42,
+    "meta_total": 44
+  },
+  "photos": [
+    {
+      "file": "01_wave.jpg",
+      "status": "completed",
+      "seconds": 14,
+      "error": null,
+      "prompt": "standing upright on the floor, weight balanced evenly on both feet, legs slightly apart with the left foot turned a bit outward; right arm raised straight up beside the head, palm open and facing forward with fingers extended upward; left arm bent with the hand resting on the left hip, fingers spread over the waistband; head upright and facing the camera, eyes open and looking straight ahead, expression neutral and calm; torso upright with a slight natural lean, shoulders relaxed, the raised right shoulder lifted a little with the arm",
+      "requirements": {
+        "participants": 1,
+        "posture": "standing",
+        "gaze": "camera",
+        "orientation": "front",
+        "support_any_of": [
+          "floor"
+        ],
+        "minimum_framing": "full"
+      },
+      "facts": {
+        "braço direito erguido acima da cabeça": "right",
+        "mão esquerda no quadril": "right",
+        "palma aberta acenando": "right",
+        "pernas afastadas": "right"
+      },
+      "meta": {
+        "participants": true,
+        "support": true,
+        "posture": true,
+        "gaze": true,
+        "orientation": true
+      },
+      "findings": []
+    },
+    {
+      "file": "02_chair.jpg",
+      "status": "completed",
+      "seconds": 8,
+      "error": null,
+      "prompt": "sitting on a seat, weight resting on the seat, back upright and facing the camera; head level, eyes looking at the camera; right leg crossed over the left leg at the knee, right foot lifted and extended to the side at knee height, left leg straight down with the foot flat on the floor; right hand resting on the raised right knee, left hand resting on the left thigh near the hip; the seat supports the hips and the left foot contacts the floor",
+      "requirements": {
+        "participants": 1,
+        "posture": "seated",
+        "gaze": "camera",
+        "orientation": "front",
+        "support_any_of": [
+          "seat"
+        ],
+        "minimum_framing": "full"
+      },
+      "facts": {
+        "perna direita cruzada sobre a esquerda": "right",
+        "mão direita no joelho direito": "right",
+        "mão esquerda sobre a perna direita cruzada": "wrong",
+        "costas eretas": "right"
+      },
+      "meta": {
+        "participants": true,
+        "support": true,
+        "posture": true,
+        "gaze": true,
+        "orientation": true
+      },
+      "findings": []
+    },
+    {
+      "file": "03_floor.jpg",
+      "status": "completed",
+      "seconds": 10,
+      "error": null,
+      "prompt": "lying on the back on the floor, weight fully resting on the back and shoulders, head tilted back and resting on the floor with the face turned upward and eyes closed; both knees bent and raised, feet planted flat on the floor with the legs open to about hip width; the right arm extended straight along the floor beside the body with the palm resting on the ground and fingers relaxed, the left arm hidden behind the torso; the hips and pelvis pressed against the floor, the torso flat against the ground, the back, shoulders, head, hips, and both feet on the floor",
+      "requirements": {
+        "participants": 1,
+        "posture": "lying",
+        "gaze": "closed",
+        "orientation": "side",
+        "support_any_of": [
+          "floor"
+        ],
+        "minimum_framing": "full"
+      },
+      "facts": {
+        "deitado de costas": "right",
+        "joelhos dobrados": "right",
+        "pés apoiados no chão": "right",
+        "braço ao longo do corpo": "right"
+      },
+      "meta": {
+        "participants": true,
+        "support": true,
+        "posture": true,
+        "orientation": true
+      },
+      "findings": []
+    },
+    {
+      "file": "04_kneel.jpg",
+      "status": "completed",
+      "seconds": 20,
+      "error": null,
+      "prompt": "kneeling on the floor with the left knee down and the right foot planted flat forward, weight resting on the left knee and the right leg, torso upright and slightly leaned forward, head turned to the right side of the frame in profile with eyes looking away toward the left side of the frame; right elbow resting on the raised right knee with the right hand hanging relaxed between the thighs, left arm extended straight down with the left hand resting on the floor beside the left knee; right leg bent with the foot flat on the floor, left leg folded beneath with the left knee on the ground and the left foot tucked behind",
+      "requirements": {
+        "participants": 1,
+        "posture": "kneeling",
+        "gaze": "away",
+        "orientation": "three_quarter",
+        "support_any_of": [
+          "floor"
+        ],
+        "minimum_framing": "full"
+      },
+      "facts": {
+        "joelho esquerdo no chão": "right",
+        "pé direito plano à frente": "right",
+        "antebraço direito sobre a coxa ou joelho direito": "right",
+        "braço esquerdo para baixo": "right",
+        "cabeça virada para a direita": "wrong"
+      },
+      "meta": {
+        "participants": true,
+        "support": true,
+        "posture": true,
+        "gaze": true,
+        "orientation": true
+      },
+      "findings": []
+    },
+    {
+      "file": "05_side_hug.jpg",
+      "status": "completed",
+      "seconds": 22,
+      "error": null,
+      "prompt": "two adults standing side by side in a friendly embrace, bodies close together, chests nearly touching; the adult on the left: right arm hanging relaxed at the side with the hand resting near the thigh, left arm raised and draped over the shoulder of the adult on the right, hand resting on the far shoulder; the adult on the right: right arm wrapped around the back of the adult on the left with the hand visible at the left side of the left adult's waist, left arm hanging relaxed at the side with the hand near the thigh; both standing upright with weight evenly on both feet, feet slightly apart on the floor, both heads upright and turned toward the camera, eyes open and looking at the lens, smiling; the left hand of the left adult resting on the right shoulder and the right hand of the right adult resting on the left waist, with the rest of the bodies free of contact",
+      "requirements": {
+        "participants": 2,
+        "posture": "standing",
+        "gaze": "camera",
+        "orientation": "front",
+        "support_any_of": [
+          "floor"
+        ],
+        "minimum_framing": "full"
+      },
+      "facts": {
+        "pessoa da esquerda: braço esquerdo nos ombros da outra": "right",
+        "pessoa da direita: braço direito na cintura da outra": "right",
+        "lado a lado": "right"
+      },
+      "meta": {
+        "participants": true,
+        "support": true,
+        "posture": true,
+        "gaze": true,
+        "orientation": true
+      },
+      "findings": []
+    },
+    {
+      "file": "06_bench_talk.jpg",
+      "status": "completed",
+      "seconds": 20,
+      "error": null,
+      "prompt": "two adults seated on a seat facing each other in conversation, the adult on the left leaning slightly forward with the right hand raised at chest height, palm open and fingers spread in a gesturing motion, the left hand resting on the left thigh, the head turned to the right toward the adult on the right with the mouth open as if speaking; the adult on the right sitting upright with both hands resting on the thighs, the head turned to the left toward the adult on the left, eyes directed at the other adult as listening; both seated on the seat with the weight on the seat, knees bent and feet flat on the floor, the seat supporting both bodies",
+      "requirements": {
+        "participants": 2,
+        "posture": "seated",
+        "gaze": "any",
+        "orientation": "front",
+        "support_any_of": [
+          "seat"
+        ],
+        "minimum_framing": "full"
+      },
+      "facts": {
+        "de frente um para o outro": "right",
+        "pessoa da esquerda: mão esquerda erguida gesticulando": "wrong",
+        "pessoa da esquerda: mão direita no joelho ou coxa": "missing",
+        "pessoa da direita: as duas mãos nos joelhos ou coxas": "right"
+      },
+      "meta": {
+        "participants": true,
+        "support": true,
+        "posture": true,
+        "gaze": true,
+        "orientation": false
+      },
+      "findings": []
+    },
+    {
+      "file": "07_piggyback.jpg",
+      "status": "completed",
+      "seconds": 22,
+      "error": null,
+      "prompt": "a adult standing upright on the floor carrying a adult on the back in a piggyback ride; the adult faces the camera with the head turned slightly toward the adult, smiling, the adult sits on the adult's shoulders with the torso upright above the chest, the arms wrapped around the shoulders and upper arms crossed and clasped in front of the chest, both heads tilt toward each other with open-mouthed joyful smiles, the adult's head leaning slightly to her right toward the adult's head; the adult's hands support the adult's thighs from behind at hip level; the adult's thighs resting on the adult's forearms and the adult's feet flat on the floor",
+      "requirements": {
+        "participants": 2,
+        "posture": "standing",
+        "gaze": "camera",
+        "orientation": "any",
+        "support_any_of": [
+          "floor"
+        ],
+        "minimum_framing": "full"
+      },
+      "facts": {
+        "quem carrega está em pé": "right",
+        "quem monta: braços em volta do pescoço ou ombros": "right",
+        "quem monta: pernas em volta da cintura": "missing",
+        "quem carrega: mãos segurando as pernas de quem monta": "right",
+        "rindo de boca aberta": "right",
+        "quem monta vai nas costas, não nos ombros": "wrong",
+        "dá para saber quem carrega e quem monta": "right"
+      },
+      "meta": {
+        "participants": true,
+        "support": true,
+        "posture": true,
+        "gaze": true,
+        "orientation": false
+      },
+      "findings": [
+        "gendered_pose"
+      ]
+    },
+    {
+      "file": "08_row_cheer.jpg",
+      "status": "completed",
+      "seconds": 10,
+      "error": null,
+      "prompt": "three adults standing side by side in a row, each with both arms raised straight up and fists clenched at head height, mouths open in excited cheering expressions; the person on the left: head facing forward, torso upright with weight evenly on both feet, right arm and left arm fully extended upward with clenched fists, legs straight and slightly apart, feet planted on the floor; the person in the middle: identical posture, head facing forward, both arms raised with clenched fists, torso upright, legs straight and apart, feet planted; the person on the right: identical posture, head facing forward, both arms raised with clenched fists, torso upright, legs straight and apart, feet planted; bodies fully visible from head to toe, no contact between the people",
+      "requirements": {
+        "participants": 3,
+        "posture": "standing",
+        "gaze": "camera",
+        "orientation": "front",
+        "support_any_of": [
+          "floor"
+        ],
+        "minimum_framing": "full"
+      },
+      "facts": {
+        "todos com os dois braços erguidos acima da cabeça": "right",
+        "punhos cerrados": "right",
+        "bocas abertas": "right",
+        "lado a lado em fila": "right"
+      },
+      "meta": {
+        "participants": true,
+        "support": true,
+        "posture": true,
+        "gaze": true,
+        "orientation": true
+      },
+      "findings": []
+    },
+    {
+      "file": "09_floor_circle.jpg",
+      "status": "completed",
+      "seconds": 30,
+      "error": null,
+      "prompt": "three adults sitting on the floor in a triangle, each with legs crossed or bent and weight resting on the floor; the adult on the left sits with the right leg crossed over the left, torso turned to the right toward the center, head in profile facing right, eyes directed at the adult in the center, the right hand resting on the right knee and the left arm extended with the hand placed on the thigh of the adult in the center; the adult in the center sits with legs bent and slightly open, torso upright and turned slightly toward the left, head turned to the left, eyes directed at the adult on the left, the right hand resting on the knee of the adult on the left and the left hand resting on the thigh of the adult on the right; the adult on the right sits with legs bent and crossed at the ankles, torso turned to the left toward the center, head in profile facing left, eyes directed at the adult in the center, the right arm extended with the hand placed on the thigh of the adult in the center and the left hand resting on the left knee of the adult on the right; all three sit directly on the floor with hips and feet in full contact with the ground",
+      "requirements": {
+        "participants": 3,
+        "posture": "seated",
+        "gaze": "any",
+        "orientation": "any",
+        "support_any_of": [
+          "floor"
+        ],
+        "minimum_framing": "full"
+      },
+      "facts": {
+        "pernas cruzadas": "right",
+        "cada um com as mãos nos próprios joelhos": "wrong",
+        "em roda, voltados uns para os outros": "right",
+        "sentados no chão": "right"
+      },
+      "meta": {
+        "participants": true,
+        "support": true,
+        "posture": true,
+        "gaze": true,
+        "orientation": true
+      },
+      "findings": []
+    }
+  ]
+}
