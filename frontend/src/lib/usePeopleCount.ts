@@ -1,20 +1,25 @@
 import {useEffect, useRef, useState} from 'react';
 import {api} from '../api/client';
+import type {PersonBox} from '../api/types';
 
-export interface PeopleDetection {hash: string; status: 'counting' | 'done' | 'failed'; count?: number; error?: string}
+export interface PeopleDetection {hash: string; status: 'counting' | 'done' | 'failed'; count?: number; people?: PersonBox[];
+  error?: string}
 
 const POLL_MS = 1500, MAX_POLLS = 80;
 
-// Counts the faces in the photo being edited, once per photo, while "Pessoas na foto" is still empty.
-// `onCount` receives the number only when at least one face was found; zero means "could not tell".
+// Finds the faces in the photo being edited, once per photo: where each person is (for "Trocar pessoas") and how many
+// there are. `onCount` fills "Pessoas na foto" only while that field is empty (`wanted`), and only when at least one
+// face was found; zero means "could not tell".
 export function usePeopleCount(hash: string | null, wanted: boolean, online: boolean,
                                onCount: (hash: string, count: number) => void): PeopleDetection | null {
   const [detection, setDetection] = useState<PeopleDetection | null>(null);
   const tried = useRef(new Set<string>());
   const report = useRef(onCount);
   report.current = onCount;
+  const want = useRef(wanted);
+  want.current = wanted;
   useEffect(() => {
-    if (!hash || !wanted || !online || tried.current.has(hash)) return;
+    if (!hash || !online || tried.current.has(hash)) return;
     tried.current.add(hash);
     let stopped = false, finished = false, id: string | undefined;
     setDetection({hash, status: 'counting'});
@@ -29,8 +34,8 @@ export function usePeopleCount(hash: string | null, wanted: boolean, online: boo
         finished = job.status !== 'queued' && job.status !== 'running';
         if (stopped) return;
         if (job.status === 'completed' && job.count !== undefined) {
-          setDetection({hash, status: 'done', count: job.count});
-          if (job.count > 0) report.current(hash, job.count);
+          setDetection({hash, status: 'done', count: job.count, people: job.people ?? []});
+          if (job.count > 0 && want.current) report.current(hash, job.count);
         } else {
           setDetection({hash, status: 'failed', error: job.error ?? 'A contagem automática não terminou.'});
         }
@@ -47,6 +52,6 @@ export function usePeopleCount(hash: string | null, wanted: boolean, online: boo
         if (id) api.cancelPeopleCount(id).catch(() => undefined);
       }
     };
-  }, [hash, wanted, online]);
+  }, [hash, online]);
   return detection?.hash === hash ? detection : null;
 }

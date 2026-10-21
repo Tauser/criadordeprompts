@@ -10,7 +10,9 @@ export interface Workspace {
   existingFrom?: string | null;     // hash of the photo whose detected people filled "Pessoas na foto"
   auto?: Partial<Record<Category, 'pose' | 'action'>>;   // fields the Studio filled for the pose or action
   touched?: Category[];             // fields the person chose: the Studio never fills them again
+  swapInfo?: Record<string, SwapInfo>;   // reference id -> how far the face turns, for the swap warning
 }
+export interface SwapInfo {turn: number | null; frontal: boolean; name: string}
 
 export const ROLES: Record<string, {label: string; categories: Category[]}> = {
   character: {label: 'Personagem principal (rosto, corpo, pele e cabelo)', categories: ['face', 'body', 'skin', 'hair']},
@@ -187,6 +189,8 @@ export function removeReference(ws: Workspace, id: string): Workspace {
   const next = clone(ws);
   release(next, id);
   next.request.characters = (next.request.characters ?? []).filter(c => c.reference_id !== id);
+  next.request.swaps = (next.request.swaps ?? []).filter(s => s.reference_id !== id);
+  if (next.swapInfo) delete next.swapInfo[id];
   next.request.references = next.request.references.filter(ref => ref.id !== id);
   delete next.files[id];
   if (next.request.target_id === id) {      // never promote another image silently
@@ -204,12 +208,47 @@ export function setTarget(ws: Workspace, id: string): Workspace {
   next.request.characters = (next.request.characters ?? []).filter(c => c.reference_id !== id);
   if (next.request.target_id !== id) {     // another photo: its people are counted again
     next.request.participants.existing = null; next.existingFrom = null;
+    dropSwaps(next);                        // the places belonged to the previous photo
   }
   next.request.target_id = id;
   next.request.mask = false;
   next.maskHash = null;
   return next;
 }
+
+// "Trocar pessoas": each person of the edited photo, counted from the left, may get the head-and-shoulders crop of
+// another person. The crop is a reference of its own that only the swap uses.
+function dropSwaps(next: Workspace) {
+  for (const swap of next.request.swaps ?? []) {
+    next.request.references = next.request.references.filter(ref => ref.id !== swap.reference_id);
+    delete next.files[swap.reference_id];
+  }
+  next.request.swaps = [];
+  next.swapInfo = {};
+}
+
+export function setSwap(ws: Workspace, position: number, id: string, file: FileInfo, info: SwapInfo): Workspace {
+  const old = (ws.request.swaps ?? []).find(s => s.position === position);
+  const base = old ? removeReference(ws, old.reference_id) : ws;
+  const next = addReference(base, id, file);
+  next.request.swaps = [...(next.request.swaps ?? []), {position, reference_id: id, body: old?.body ?? ''}]
+    .sort((a, b) => a.position - b.position);
+  next.swapInfo = {...next.swapInfo, [id]: info};
+  return next;
+}
+
+export function removeSwap(ws: Workspace, position: number): Workspace {
+  const swap = (ws.request.swaps ?? []).find(s => s.position === position);
+  return swap ? removeReference(ws, swap.reference_id) : ws;
+}
+
+export function describeSwapBody(ws: Workspace, position: number, body: string): Workspace {
+  const next = clone(ws);
+  next.request.swaps = (next.request.swaps ?? []).map(s => s.position === position ? {...s, body} : s);
+  return next;
+}
+
+export const swapReferenceIds = (ws: Workspace) => new Set((ws.request.swaps ?? []).map(s => s.reference_id));
 
 export function referenceRoles(ws: Workspace, id: string): Category[] {
   return CATEGORIES.filter(c => {
@@ -243,6 +282,8 @@ export function requestForSubmit(ws: Workspace): StudioRequest {
   const request = clone(ws.request);
   request.characters = (request.characters ?? []).map(c => ({...c, description: c.description.trim()}));
   if (!request.characters.length) delete request.characters;   // older Studio servers do not know this field
+  request.swaps = request.mode === 'edit' ? (request.swaps ?? []).map(s => ({...s, body: s.body.trim()})) : [];
+  if (!request.swaps.length) delete request.swaps;
   if (request.prompt_mode === 'structured') request.manual_prompt = null;
   if (request.attributes.wardrobe?.intent !== 'set') request.wardrobe_scope = 'primary';
   if (request.mode === 'generate') {request.target_id = null; request.mask = false;}
