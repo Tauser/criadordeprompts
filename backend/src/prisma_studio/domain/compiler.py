@@ -83,7 +83,7 @@ def build_ir(request: Request, assessment: Assessment) -> list:
     if edit and request.swaps:
         # Who the people are changes first, so every later instruction speaks about the new people.
         changes_body = any(request.attribute(c).intent in ('set', 'transfer') for c in ('pose', 'action'))
-        people = tuple(ir.SwapPerson(s.position, assessment.slots[s.reference_id], s.body.strip())
+        people = tuple(ir.SwapPerson(s.position, assessment.slots[s.reference_id], s.body.strip(), s.mode)
                        for s in sorted(request.swaps, key=lambda s: s.position))
         blocks.insert(1, ir.Swap(request.participants.existing or len(people), people, keep_pose=not changes_body,
                                  keep_expression=request.attribute('expression').intent not in ('set', 'transfer')))
@@ -98,6 +98,9 @@ def build_ir(request: Request, assessment: Assessment) -> list:
                      or (c == 'framing' and same_framing))
         if request.swaps:              # the swap changes who the people are; everything else stays
             kept = tuple(c for c in kept if c not in IDENTITY)
+            if any(s.mode == 'body' for s in request.swaps):
+                # A whole-person reference brings its clothing: measured, the photo's clothing does not come back.
+                kept = tuple(c for c in kept if c != 'wardrobe')
         free = [c for c in CATEGORIES if request.attribute(c).intent == 'free']
         added = any(c.added for c in cast) or (assessment.participants_total or 0) > present
         widen = added and request.context.allow_reframing and 'framing' in kept

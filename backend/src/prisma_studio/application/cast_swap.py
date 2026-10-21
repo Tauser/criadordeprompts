@@ -12,6 +12,7 @@ from ..infrastructure.storage.files import bust_box, bust_png
 from .people_count import EXTENSIONS, MIN_SCORE
 
 MAX_TURN = 30                  # degrees: beyond this the face is too far from frontal to carry the identity
+MAX_FACE_SHARE = 0.2           # face height / photo height above which the photo is a portrait, not a body
 
 
 class BustService:
@@ -71,8 +72,12 @@ class BustService:
         data = self.store.read(job['file'])
         stored = self.save(bust_png(data, bust_box(face, (record.get('width') or 1, record.get('height') or 1))))
         turn = None if face['yaw'] is None else round(abs(face['yaw']))
+        # A face taller than a fifth of the photo: the photo shows little more than the head, so no body to take.
+        share = face['height'] / (record.get('height') or face['height'])
         job.update(status='completed', hash=stored.hash, width=stored.width, height=stored.height, turn=turn,
-                   frontal=turn is not None and turn <= MAX_TURN, faces=len(faces))
+                   frontal=turn is not None and turn <= MAX_TURN, faces=len(faces), source=job['file'],
+                   source_width=record.get('width'), source_height=record.get('height'),
+                   shows_body=share <= MAX_FACE_SHARE)
 
     def cancel(self, job_id: str) -> dict:
         with self.lock:

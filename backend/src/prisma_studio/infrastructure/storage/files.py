@@ -145,10 +145,10 @@ def bust_box(box: dict, image_size: tuple[int, int]) -> tuple[int, int, int, int
     purpose: a person-swap reference that shows the arms or the pose gets copied into the scene."""
     width, height = image_size
     cx = box['x'] + box['width'] / 2
-    half = box['width'] * 1.5
+    half = box['width'] * 1.15                     # a selfie's hand at the chin stays out
     left, right = max(0, round(cx - half)), min(width, round(cx + half))
-    top = max(0, round(box['y'] - box['height'] * 0.6))
-    bottom = min(height, round(box['y'] + box['height'] * 2.0))
+    top = max(0, round(box['y'] - box['height'] * 0.5))
+    bottom = min(height, round(box['y'] + box['height'] * 1.7))
     return left, top, right, bottom
 
 

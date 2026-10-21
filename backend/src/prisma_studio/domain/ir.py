@@ -57,6 +57,7 @@ class SwapPerson:
     position: int                         # 1 = leftmost person in the photo
     slot: int
     body: str = ''
+    mode: str = 'body'                    # 'body': face and body from the reference; 'face': face and hair only
 
 
 @dataclass(frozen=True)

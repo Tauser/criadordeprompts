@@ -18,8 +18,9 @@ def landmarks_text(faces):
         yaw = math.radians(face.get('yaw', 0))
         rows = [[math.cos(yaw), 0.0, math.sin(yaw), 0.1], [0.0, 1.0, 0.0, 4.5], [-math.sin(yaw), 0.0, math.cos(yaw), -40.0]]
         matrix = ',\n       '.join('[' + ', '.join(f'{v: .7f}' for v in row) + ']' for row in rows)
+        shapes = ', '.join(f"'{k}': {v}" for k, v in {'_neutral': 1e-06, 'browDownLeft': 0.3, **face.get('shapes', {})}.items())
         entries.append(f"{{'bbox_xyxy': array([{x0:.4f}, {y0:.4f}, {x1:.4f}, {y1:.4f}], dtype=float32), "
-                       f"'blendshapes': {{'_neutral': 1e-06, 'browDownLeft': 0.3}}, 'landmarks_xy': array([[1., 2.],\n"
+                       f"'blendshapes': {{{shapes}}}, 'landmarks_xy': array([[1., 2.],\n"
                        f"       [3., 4.]], shape=(478, 2), dtype=float32), 'presence': 4.5, "
                        f"'score': {face.get('score', 0.9)}, 'transformation_matrix': array([{matrix},\n"
                        f"       [ 0.,  0.,  0.,  1.]], dtype=float32)}}")

@@ -205,6 +205,8 @@ def face_pose_graph(image: str, faces: int, min_confidence: float = 0.5) -> dict
 _NUMBER = r'(-?\d+(?:\.\d*)?(?:e[-+]?\d+)?)'
 _FACE_START = re.compile(r"'bbox_xyxy': array\(\[([^\]]*)\]")
 _SCORE = re.compile(r"'score': " + _NUMBER)
+_BLENDSHAPE = re.compile(r"'(mouthSmileLeft|mouthSmileRight|jawOpen|eyeBlinkLeft|eyeBlinkRight|browInnerUp)': "
+                         + _NUMBER)
 _MATRIX = re.compile(r"'transformation_matrix': array\(\[\[([^\]]*)\],\s*\[([^\]]*)\],\s*\[([^\]]*)\]")
 
 
@@ -225,7 +227,8 @@ def face_poses(text: str | None) -> list[dict]:
             continue
         score = _SCORE.search(chunk)
         face = {'x': x0, 'y': y0, 'width': x1 - x0, 'height': y1 - y0,
-                'score': float(score.group(1)) if score else 0.0, 'yaw': None, 'pitch': None}
+                'score': float(score.group(1)) if score else 0.0, 'yaw': None, 'pitch': None,
+                'blendshapes': {m.group(1): float(m.group(2)) for m in _BLENDSHAPE.finditer(chunk)}}
         matrix = _MATRIX.search(chunk)
         if matrix:
             try:

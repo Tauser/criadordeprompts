@@ -64,10 +64,13 @@ class Character(_Strict):
 
 class Swap(_Strict):
     """Edit: the person at `position` in the photo (1 = leftmost face) becomes the person of a reference photo,
-    keeping pose, contacts, head angle and expression. The reference should be a head-and-shoulders crop."""
+    keeping the pose and the action of the photo. 'body': face and body come from the reference, which shows the
+    whole person (its clothing comes along); 'face': only face and hair, from a head-and-shoulders crop, and the body,
+    clothing and accessories of the photo stay."""
     position: int = Field(ge=1, le=4)
     reference_id: str = Field(pattern=REF_ID)
-    body: str = Field(default='', max_length=300)       # body build in words; photos do not carry it reliably
+    mode: Literal['body', 'face'] = 'body'
+    body: str = Field(default='', max_length=300)       # body build in words, when the photo does not show it
 
 
 class Participants(_Strict):

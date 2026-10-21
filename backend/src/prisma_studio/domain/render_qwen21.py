@@ -287,16 +287,22 @@ def _swap(block: ir.Swap, image) -> str:
         source = image(person.slot)
         sources.append(source)
         place = _place(person.position, block.total, target)
-        if person.body:
-            parts.append(f'{place[0].upper() + place[1:]} becomes the person shown in {source}: the face, hair and skin '
-                         f'tone come from {source}, and the body build is {person.body.rstrip(".")}.')
+        lead = f'{place[0].upper() + place[1:]} becomes the person shown in {source}: '
+        build = f', and the body build is {person.body.rstrip(".")}' if person.body else ''
+        if person.mode == 'face':
+            parts.append(lead + f'the face, hair and skin tone come from {source}{build}; the body, clothing and '
+                         f'accessories stay as in {target}.')
+        elif person.body:
+            parts.append(lead + f'the face, hair and skin tone come from {source}{build}.')
         else:
-            parts.append(f'{place[0].upper() + place[1:]} becomes the person shown in {source}: the face, hair, skin '
-                         f'tone and body build come from {source}.')
+            parts.append(lead + f'the face, hair, skin tone, body shape, build, weight and proportions come from {source}.')
     one = len(sources) == 1
+    # A whole-person reference brings its clothing anyway (measured): only a face-only swap forbids it.
+    never = ['pose', 'posture', 'position', 'head angle', 'expression']
+    never += ['clothing'] if all(p.mode == 'face' for p in block.people) else []
     parts.append(f'{_join(sources)} {"is" if one else "are"} only {"an identity reference" if one else "identity references"}: '
-                 f'never copy {"its" if one else "their"} pose, posture, position, head angle, expression, clothing or '
-                 f'background, and never add {"it as an extra person" if one else "them as extra people"}.')
+                 f'never copy {"its" if one else "their"} {", ".join(never)} or background, and never add '
+                 f'{"it as an extra person" if one else "them as extra people"}.')
     if block.keep_pose:
         same = 'the same arms and hands, the same points of contact, the same head angle and gaze'
         if block.keep_expression:
@@ -310,6 +316,26 @@ def _swap(block: ir.Swap, image) -> str:
         if position not in swapped:
             place = _place(position, block.total, target)
             parts.append(f'{place[0].upper() + place[1:]} stays exactly the same person, unchanged.')
+    return ' '.join(parts)
+
+
+def restore_prompt(total: int, swapped: dict[int, str], expressions: dict[int, str | None]) -> str:
+    """Second edit of a person swap: <image1> is the swap result, <image2> the original photo. Measured: the identity
+    reference brings its smile or open mouth and drops eyewear; this pass gives back each person's expression, named in
+    words, and the accessories of the original, while keeping the new people. `swapped` maps position -> mode."""
+    target, original = '<image1>', '<image2>'
+    count = f'exactly {total} {"person" if total == 1 else "people"}'
+    parts = [f'Edit {target}. {target} shows {count}. Keep each person in {target} exactly who they are: the same face, '
+             f'facial features, hair, skin, body shape and build.']
+    faces = [f'{_place(p, total, target)} has {expressions[p]}' for p in sorted(expressions) if expressions[p]]
+    if faces:
+        parts.append('Change only their facial expressions: ' + '; '.join(faces) + '.')
+    if any(mode == 'face' for mode in swapped.values()):
+        parts.append(f'Eyewear, earrings, necklaces and other accessories come only from the person in the same place '
+                     f'in {original}, and only if that person wears them there: add nothing that is not in {original}.')
+    parts.append(f'Keep the pose, the arms and hands, the clothing, the background, the light, the sharpness and the '
+                 f'framing of {target}. {original} gives only the expressions and the accessories, never the identity '
+                 f'or the body of the people. The result shows {count}.')
     return ' '.join(parts)
 
 

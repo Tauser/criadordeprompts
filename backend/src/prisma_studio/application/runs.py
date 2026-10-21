@@ -79,6 +79,10 @@ class RunService:
             'compiler_version': compiled.version, 'participants': assessment.participants_total, 'blocks': [b.id for b in compiled.blocks],
             'face_detail': face_detail.enabled(output.face_detail, assessment.participants_total),
         }
+        if request.mode == 'edit' and request.swaps and request.prompt_mode == 'structured':
+            # A second edit gives back each person's expression (and, face-only, the accessories) of the photo.
+            settings['swap'] = {'total': request.participants.existing or len(request.swaps),
+                                'people': [{'position': s.position, 'mode': s.mode} for s in request.swaps]}
         return self._insert(request_id, request.mode, request.model_dump(mode='json'),
                             {'references': files, 'mask': mask}, settings, prompt=compiled.text,
                             compiled={'segments': compiled.segments, 'version': compiled.version})

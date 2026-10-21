@@ -465,7 +465,8 @@ def create_app(config: Config | None = None, container: Container | None = None)
         view['images'] = [{'task_id': t['id'], 'position': t['position'], 'seed': t['seed'], 'status': t['status'],
                            'files': (t['result'] or {}).get('files', []), 'score': (t['result'] or {}).get('score'),
                            'verdicts': (t['result'] or {}).get('verdicts'), 'detail': (t['result'] or {}).get('detail'),
-                           'raw_files': (t['result'] or {}).get('raw_files', [])} for t in tasks if t['kind'] == 'image']
+                           'raw_files': (t['result'] or {}).get('raw_files', []),
+                           'restore': (t['result'] or {}).get('restore')} for t in tasks if t['kind'] == 'image']
         if detail:
             view['request'] = run['request']
             view['files'] = run['files']
