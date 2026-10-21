@@ -232,6 +232,16 @@ def test_kept_expression_yields_to_a_declared_gaze(library):
     assert 'The eyes look downwards.' in compiled.text
 
 
+def test_kept_expression_yields_to_what_the_action_shows_on_the_face(library):
+    # Measured: "both smiling" in a high five stayed serious while the expression was kept as a whole.
+    _, compiled = run(edit_request({**DEFAULT_KEEP, 'expression': keep(), 'action': cat('action.hug')},
+                                   participants={'existing': 2}), library)
+    assert 'facial expression, apart from what the action shows on the face' in compiled.text
+    _, still = run(edit_request({**DEFAULT_KEEP, 'expression': keep(), 'pose': cat('pose.standing'),
+                                 'environment': cat('env.studio')}), library)
+    assert 'facial expression' in still.text and 'apart from what the action' not in still.text
+
+
 def test_second_character_comes_from_its_own_reference(library):
     request = generate_request({'subject': cat('subject.woman'), 'environment': cat('env.garden')},
                                references=[{'id': 'a', 'label': 'Ana'}, {'id': 'b', 'label': 'Bia'}],
@@ -259,12 +269,17 @@ def test_second_character_in_an_edit_counts_as_a_change(library):
     # Not in the photo yet: the person is added, never swapped onto the first person's face.
     assert 'Add a second person to the scene, next to the first person' in compiled.text
     assert 'takes no facial features from <image2>' in compiled.text
+    # Measured: otherwise the head comes straight from the reference, with its angle and light, and looks pasted on.
+    assert ('Draw the second person anew in this scene: their head turns and tilts with their own body, sits '
+            'naturally') in compiled.text
+    assert 'never its head angle, facial expression, lighting or framing' in compiled.text
     assert "the first person's facial identity" in compiled.text
     assert 'Widen the framing only as much as needed' in compiled.text and 'framing and crop' not in compiled.text
     # Both already in the photo: the character only gives the second person an identity.
     present = request.model_copy(update={'participants': request.participants.model_copy(update={'existing': 2})})
     _, compiled = run(present, library)
     assert 'The second person has the facial identity' in compiled.text and 'Add a second' not in compiled.text
+    assert 'Draw the second person anew' not in compiled.text
     locked = request.model_copy(update={'context': request.context.model_copy(update={'allow_reframing': False})})
     assert 'framing and crop' in run(locked, library)[1].text
 

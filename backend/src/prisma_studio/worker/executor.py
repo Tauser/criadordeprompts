@@ -21,6 +21,7 @@ TASK_DONE = {'completed', 'failed', 'cancelled', 'lost'}
 MAX_UNEXPECTED_ERRORS = 3
 MASK_FEATHER = 12                         # pixels of soft transition, always inside the drawn area
 FACE_SLOTS = 16                           # face task position = image position * FACE_SLOTS + face index
+EXTRA_FACES = 2                           # the detector looks past the expected count, so an extra person shows up
 IMAGE_KINDS = {'image', 'face'}
 PHASES = {'UNETLoader': 'loading_models', 'CLIPLoader': 'loading_models', 'VAELoader': 'loading_models',
           'QwenImage21Cache': 'loading_models', 'LoadImage': 'loading_images', 'LoadImageMask': 'loading_images',
@@ -29,6 +30,12 @@ PHASES = {'UNETLoader': 'loading_models', 'CLIPLoader': 'loading_models', 'VAELo
           'ImageCompositeMasked': 'compositing', 'SaveImage': 'saving', 'TextGenerate': 'generating_text',
           'BatchImagesNode': 'loading_images', 'PreviewAny': 'saving', 'VAEEncode': 'encoding',
           'LoadMediaPipeFaceLandmarker': 'loading_models', 'MediaPipeFaceLandmarker': 'detecting_faces'}
+
+
+def extra_people(result: dict | None) -> bool:
+    """More faces than people asked for. Fewer proves nothing: a face turned away or hidden is not found."""
+    detail = (result or {}).get('detail') or {}
+    return bool(detail.get('expected')) and detail.get('found', 0) > detail['expected']
 
 
 class Executor:
@@ -218,7 +225,8 @@ class Executor:
         if settings['verify'] and settings['checks']:
             self.repository.transition(run['id'], 'verifying')
         else:
-            self.repository.transition(run['id'], 'completed', best_task_id=done[0]['id'])
+            best = next((t for t in done if not extra_people(t['result'])), done[0])
+            self.repository.transition(run['id'], 'completed', best_task_id=best['id'])
 
     def _detailing(self, run: dict) -> None:
         """Per image: detect the faces, redraw each small one from its crop, paste them back. A failure here only
@@ -238,7 +246,7 @@ class Executor:
 
             def detect_graph(file_hash=file_hash):
                 name = self.comfy.upload(self.store.read(file_hash), f'prisma_{file_hash[:24]}.png', 'image/png')
-                return face_detect_graph(name, max(1, settings.get('participants') or 1))
+                return face_detect_graph(name, max(1, settings.get('participants') or 1) + EXTRA_FACES)
             detect = self._drive_optional(detect, detect_graph)
             if detect['status'] not in TASK_DONE:
                 waiting = True
@@ -262,7 +270,7 @@ class Executor:
             if not all(task['status'] in TASK_DONE for task, _, _ in pending):
                 waiting = True
                 continue
-            self._paste_faces(image, data, len(found), pending)
+            self._paste_faces(image, data, len(found), settings.get('participants'), pending)
         if not waiting:
             done = [t for t in self.repository.tasks(run['id'], 'image') if t['status'] == 'completed']
             self._images_ready(run, done)
@@ -277,14 +285,14 @@ class Executor:
                         sampler=engine.get('sampler'), scheduler=engine.get('scheduler'),
                         prefix=f'prisma/{run["id"][:8]}_face')
 
-    def _paste_faces(self, image: dict, data: bytes, found: int, pending: list) -> None:
+    def _paste_faces(self, image: dict, data: bytes, found: int, expected: int | None, pending: list) -> None:
         refined = []
         for task, box, crop in pending:
             if task['status'] == 'completed':
                 output = task['result']['images'][0]
                 refined.append((self.comfy.view(output['filename'], output.get('subfolder', ''), output['type']),
                                 box, crop))
-        result = {**image['result'], 'detail': {'found': found, 'refined': len(refined)}}
+        result = {**image['result'], 'detail': {'found': found, 'refined': len(refined), 'expected': expected}}
         if refined:
             with self.repository.db.write_lock:
                 stored = self.store.put(paste_faces(data, refined), MAX_RESULT_BYTES)
@@ -323,15 +331,16 @@ class Executor:
         judges = {t['position']: t for t in self.repository.tasks(run['id'], 'verify')}
         if len(judges) < len(images) or not all(t['status'] in TASK_DONE for t in judges.values()):
             return
-        best, best_score = None, -1.0
+        best, best_rank = None, (False, -1.0)
         for position, judge in sorted(judges.items()):
             text = judge['result'].get('text', '') if judge['status'] == 'completed' else ''
             verdicts = parse_verdicts(text or '', checks)
             value = score(verdicts)
             self.repository.task_transition(images[position]['id'], 'completed', result_json={
                 **images[position]['result'], 'verdicts': verdicts, 'score': value})
-            if value > best_score:
-                best, best_score = images[position]['id'], value
+            rank = (not extra_people(images[position]['result']), value)   # a counted extra person loses first
+            if rank > best_rank:
+                best, best_rank = images[position]['id'], rank
         self.repository.transition(run['id'], 'completed', best_task_id=best)
 
     # task driver ------------------------------------------------------------

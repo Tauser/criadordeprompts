@@ -146,8 +146,12 @@ def render(blocks) -> list[tuple[str, str]]:
             if block.allow_action_movement and 'body pose' in names:
                 names[names.index('body pose')] = 'body pose, apart from the movement the action needs'
             gaze_changes = any(isinstance(b, ir.Guidance) and b.key == 'gaze' for b in blocks)
-            if gaze_changes and 'facial expression' in names:
-                names[names.index('facial expression')] = 'facial expression, apart from the requested gaze direction'
+            # Measured: a kept expression beats the smile or laugh the action asks for ("both smiling" stayed serious).
+            acting = any(isinstance(b, ir.Operation) and b.category == 'action' for b in blocks)
+            freed = [part for part, on in (('the requested gaze direction', gaze_changes),
+                                           ('what the action shows on the face', acting)) if on]
+            if freed and 'facial expression' in names:
+                names[names.index('facial expression')] = 'facial expression, apart from ' + ' and '.join(freed)
             target = image(1)
             if block.people_added:
                 # The identity of the people already there is kept per person: a scene-wide "keep the facial identity"
@@ -252,6 +256,14 @@ def _character(block: ir.Character, source: str, blocks) -> str:
     action = next((b for b in blocks if isinstance(b, ir.Operation) and b.category == 'action'), None)
     if action is not None and (action.participants or 1) >= block.ordinal:
         text += f' The {ordinal} person takes part in the requested action together with the first person.'
+    if block.added:
+        # Measured on a piggyback: without this the head came straight from the reference, with its angle, expression
+        # and light, and looked pasted on; asked for, it tilted with the body and took the scene's light.
+        text += (f' Draw the {ordinal} person anew in this scene: their head turns and tilts with their own body'
+                 f'{" for the action" if action is not None else ""}, sits naturally on their own neck and shoulders, '
+                 "is in scale with the first person's head for its distance from the camera, and is lit by the light "
+                 f'of the scene. Take only the face, hair and body from {source}, never its head angle, facial '
+                 'expression, lighting or framing.')
     if block.description:
         text += f' The {ordinal} person: ' + _sentence(block.description)
     return text

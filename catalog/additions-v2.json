@@ -45,7 +45,7 @@
    "id": "action.fun_selfie",
    "category": "action",
    "label": "Diversão · Selfie com caretas (dois adultos)",
-   "prompt": "two adults cheek to cheek making silly faces for a selfie, the adult on the right holding a phone up at arm's length with the right hand, the adult on the left sticking out the tongue and crossing the eyes",
+   "prompt": "two adults cheek to cheek making silly faces for a selfie, the adult on the right holding a phone up at arm's length with the right hand, the adult on the left sticking out the tongue and scrunching up the nose",
    "prompt_pt": "dois adultos de rosto colado fazendo caretas para uma selfie, o adulto da direita segurando o celular no alto com o braço direito esticado, o da esquerda mostrando a língua e vesgo de brincadeira",
    "adult": false,
    "enabled": true,

@@ -37,6 +37,12 @@ SCENE_DETAILS = (r'\b(?:red|blue|green|yellow|orange|purple|pink|brown|black|whi
                  r'golden|silver|velvet|leather|wooden|linen|cotton|silk|satin|upholstered|tufted|plush|marble|wicker|'
                  r'striped|checkered|floral|patterned)\b')
 FIXED_HEAD =r'\bhead (?:in line with the spine|aligned with the (?:spine|body)|straight)\b'
+# The camera is chosen in Framing and Camera, and an edit keeps the photo's: a pose that moves it pulls against both.
+CAMERA_WORDS = (r'\b(?:camera (?:at|from|is|placed|positioned|angle)|(?:low|high)[- ]angle|bird.?s[- ]eye|'
+                r'worm.?s[- ]eye|close[- ]up|wide shot|shot from)\b')
+# The Studio asks every face for two matching eyes looking the same way; an eye trick makes the model fight it.
+EYE_TRICKS = (r'\b(?:cross(?:ing|es)? (?:the |their |both )?eyes|cross[- ]eyed|eyes crossed|'
+              r'roll(?:ing|s)? (?:the |their )?eyes|rolled eyes|wink(?:ing|s)?)\b')
 
 
 @dataclass(frozen=True)
@@ -76,6 +82,14 @@ def audit_item(item: Item) -> list[Finding]:
         add('scene_details', 'style', 'O texto da pose cita cor ou material (' + ', '.join(scene) + '): isso briga '
             'com o Cenário escolhido. Descreva só o corpo e o contato, com superfícies genéricas.')
 
+    wording = ' '.join(t for t in (item.prompt, item.edit_prompt) if t).lower()
+    if body and re.search(CAMERA_WORDS, wording):
+        add('camera_words', 'conflict', 'O texto da pose escolhe o ângulo da câmera: isso briga com Enquadramento e '
+            'Câmera e, na edição, com a ordem de manter a câmera da foto. Descreva só o corpo.')
+    if body and re.search(EYE_TRICKS, wording):
+        add('eye_trick', 'conflict', 'O texto pede olhos vesgos, revirados ou uma piscada, mas o Studio pede dois olhos '
+            'iguais olhando para o mesmo lado: o modelo tende a errar o olho. Use outra careta.')
+
     req = item.requirements
     if body and req.support_any_of:
         named = {s for s, pattern in SURFACE_WORDS.items() if re.search(pattern, low)}
@@ -105,7 +119,6 @@ def audit_item(item: Item) -> list[Finding]:
         add('fixed_head', 'conflict', 'O texto fixa a cabeça alinhada, mas a orientação ou o olhar pedem que ela gire.')
     if item.category in ('pose', 'action') and req.participants == 1 and re.search(r'\b(?:each other|two adults|partner)\b', low):
         add('people_words', 'conflict', 'O texto fala de duas pessoas, mas a opção declara uma.')
-    wording = ' '.join(t for t in (item.prompt, item.edit_prompt) if t).lower()
     if item.category == 'wardrobe' and re.search(SINGLE_PERSON, wording):
         add('single_person', 'ambiguity', 'A roupa fala de uma pessoa só ("the character", "the person"): com "Todas as '
             'pessoas", o modelo tende a vestir só uma. Use um texto neutro, sem sujeito, ou no plural.')

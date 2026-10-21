@@ -12,6 +12,7 @@ from prisma_studio.infrastructure.comfy.client import ComfyRejected
 from prisma_studio.infrastructure.comfy.workflows import (ImageJob, face_boxes, face_detect_graph, image_graph,
                                                           turbo_tail)
 from prisma_studio.infrastructure.storage.files import crop_square, face_crop_box, paste_faces
+from prisma_studio.worker.executor import extra_people
 from test_executor import env  # noqa: F401 - shared fixture
 
 FACE = {'x': 10, 'y': 8, 'width': 8, 'height': 10, 'label': 'face', 'score': 0.9}
@@ -53,6 +54,14 @@ def test_face_boxes_reads_the_first_frame_and_drops_bad_entries():
     text = json.dumps([[FACE, {'x': 1, 'y': 2}, {**OTHER, 'width': 0}]])
     assert [b['x'] for b in face_boxes(text)] == [10.0]
     assert face_boxes('not json') == [] and face_boxes(None) == [] and face_boxes('[[]]') == []
+
+
+def test_face_boxes_drop_a_face_reported_twice():
+    # Measured on a three-person photo: the detector returned the middle face a second time, almost on top of itself.
+    twice = {**FACE, 'x': 10.5, 'y': 8.2, 'width': 7.6, 'height': 9.5, 'score': 0.56}
+    assert face_boxes(json.dumps([[twice, FACE, OTHER]])) == face_boxes(json.dumps([[FACE, OTHER]]))
+    side_by_side = {**FACE, 'x': 16, 'score': 0.5}             # touching, but another face
+    assert len(face_boxes(json.dumps([[FACE, side_by_side]]))) == 2
 
 
 def test_img2img_graph_encodes_the_start_image_without_using_it_as_reference():
@@ -103,11 +112,11 @@ def test_couple_run_redraws_each_small_face_and_keeps_the_raw_image(env):  # noq
     run = env.run_until(run['id'])
     assert run['status'] == 'completed'
     image = env.repo.tasks(run['id'], 'image')[0]
-    assert image['result']['detail'] == {'found': 2, 'refined': 2}
+    assert image['result']['detail'] == {'found': 2, 'refined': 2, 'expected': 2}
     assert image['result']['raw_files'] != image['result']['files']
     detect = env.repo.tasks(run['id'], 'face_detect')[0]
     assert next(n for n in detect['graph'].values()
-                if n['class_type'] == 'MediaPipeFaceLandmarker')['inputs']['num_faces'] == 2
+                if n['class_type'] == 'MediaPipeFaceLandmarker')['inputs']['num_faces'] == 4   # 2 people + 2 to spot extras
     faces = env.repo.tasks(run['id'], 'face')
     assert [t['position'] for t in faces] == [0, 1] and all(t['seed'] == 7 for t in faces)
     graph = faces[0]['graph']
@@ -120,7 +129,7 @@ def test_couple_run_redraws_each_small_face_and_keeps_the_raw_image(env):  # noq
 def test_no_face_found_keeps_the_image_as_generated(env):  # noqa: F811
     run = env.run_until(env.service.create(couple(), 'faces-2', {}, None)['id'])
     image = env.repo.tasks(run['id'], 'image')[0]
-    assert run['status'] == 'completed' and image['result']['detail'] == {'found': 0, 'refined': 0}
+    assert run['status'] == 'completed' and image['result']['detail'] == {'found': 0, 'refined': 0, 'expected': 2}
     assert 'raw_files' not in image['result'] and env.repo.tasks(run['id'], 'face') == []
 
 
@@ -128,7 +137,7 @@ def test_large_faces_are_left_alone(env):  # noqa: F811
     env.comfy.faces = [{**FACE, 'width': face_detail.MAX_FACE + 1}]
     run = env.run_until(env.service.create(couple(), 'faces-3', {}, None)['id'])
     assert env.repo.tasks(run['id'], 'face') == []
-    assert env.repo.tasks(run['id'], 'image')[0]['result']['detail'] == {'found': 1, 'refined': 0}
+    assert env.repo.tasks(run['id'], 'image')[0]['result']['detail'] == {'found': 1, 'refined': 0, 'expected': 2}
 
 
 def test_single_person_skips_the_pass_unless_asked(env):  # noqa: F811
@@ -153,7 +162,7 @@ def test_a_failing_detection_never_fails_the_run(env):  # noqa: F811
     env.comfy.upload = upload
     assert run['status'] == 'completed'
     assert env.repo.tasks(run['id'], 'face_detect')[0]['status'] == 'failed'
-    assert env.repo.tasks(run['id'], 'image')[0]['result']['detail'] == {'found': 0, 'refined': 0}
+    assert env.repo.tasks(run['id'], 'image')[0]['result']['detail'] == {'found': 0, 'refined': 0, 'expected': 2}
 
 
 def test_deleting_the_run_removes_the_raw_image_too(env):  # noqa: F811
@@ -163,3 +172,18 @@ def test_deleting_the_run_removes_the_raw_image_too(env):  # noqa: F811
     assert result['raw_files'][0] in env.repo.referenced_files()        # never collected as an orphan
     env.service.delete(run['id'])
     assert not env.store.path(result['raw_files'][0]).exists() and not env.store.path(result['files'][0]).exists()
+
+
+def test_an_extra_face_is_flagged_and_loses_the_best_pick(env):  # noqa: F811
+    third = {**FACE, 'x': 24, 'y': 30}
+    answers = iter([[FACE, OTHER, third], [FACE, OTHER]])       # variation 1 shows a third person, variation 2 does not
+    env.comfy.faces = lambda: next(answers)
+    run = env.run_until(env.service.create(couple(variations=2), 'faces-9', {}, None)['id'], limit=200)
+    first, second = env.repo.tasks(run['id'], 'image')
+    assert first['result']['detail']['found'] == 3 and extra_people(first['result'])
+    assert not extra_people(second['result']) and run['best_task_id'] == second['id']
+
+
+def test_fewer_faces_than_people_is_not_an_alarm():
+    assert not extra_people({'detail': {'found': 1, 'refined': 1, 'expected': 2}})
+    assert not extra_people({'detail': {'found': 2, 'refined': 0}}) and not extra_people(None)

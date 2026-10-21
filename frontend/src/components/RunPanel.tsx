@@ -55,6 +55,7 @@ export function RunPanel({run, connection, onReuse, notify, onRepeat}: Props) {
   const progress = runProgress(run, now);
   const verdicts = shown?.verdicts ? Object.entries(shown.verdicts) : [];
   const met = verdicts.filter(([, v]) => v.verdict === 'met').length;
+  const extra = shown?.detail?.expected && shown.detail.found > shown.detail.expected ? shown.detail : null;
   const repeat = async (sameSeed: boolean, redo?: {profile: 'qwen21' | 'turbo'; seed: number}) => {
     setRepeating(true); try {await onRepeat(sameSeed, redo);} finally {setRepeating(false);}
   };
@@ -116,6 +117,8 @@ export function RunPanel({run, connection, onReuse, notify, onRepeat}: Props) {
         <div className="stage stage-pending"><Steps progress={progress} /></div>
       ) : null}
 
+      {extra && <p className="issue warning">Foram encontrados {extra.found} rostos, e o pedido tem {extra.expected} {extra.expected === 1 ? 'pessoa' : 'pessoas'}: confira se apareceu alguém a mais.</p>}
+
       {showChecks && shown?.verdicts && (
         <ul className="verdicts">{verdicts.map(([id, v]) => (
           <li key={id} className={v.verdict}><strong>{VERDICT[v.verdict]}</strong> · {checks[id] ?? id}{v.note ? ` — ${v.note}` : ''}</li>
@@ -127,7 +130,8 @@ export function RunPanel({run, connection, onReuse, notify, onRepeat}: Props) {
           {images.map(image => (
             <button key={image.task_id} type="button" aria-pressed={image === shown}
                     className={'variation' + (image === shown ? ' on' : '')} onClick={() => setChosen(image.task_id)}
-                    title={`Variação ${image.position + 1} · seed ${image.seed}${image.score != null ? ` · ${Math.round(image.score * 100)}%` : ''}`}>
+                    title={`Variação ${image.position + 1} · seed ${image.seed}${image.score != null ? ` · ${Math.round(image.score * 100)}%` : ''}${
+                      image.detail?.expected && image.detail.found > image.detail.expected ? ' · pessoa a mais?' : ''}`}>
               <img src={fileUrl(image.files[0])} alt={`Variação ${image.position + 1}`} />
               {run.best_task_id === image.task_id && <span className="best-mark" title="Melhor avaliada"><Icon name="star" size={11} /></span>}
             </button>

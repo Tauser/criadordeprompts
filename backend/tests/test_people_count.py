@@ -3,8 +3,8 @@ from prisma_studio.application.people_count import count_faces
 from test_api import client  # noqa: F401 - fixture
 
 
-def box(side, score=0.9):
-    return {'x': 0, 'y': 0, 'width': side, 'height': side, 'score': score}
+def box(side, score=0.9, x=0):
+    return {'x': x, 'y': 0, 'width': side, 'height': side, 'score': score}
 
 
 def test_bystanders_and_weak_hits_are_not_counted():
@@ -14,7 +14,7 @@ def test_bystanders_and_weak_hits_are_not_counted():
 
 def test_people_are_counted_once_per_photo(client):  # noqa: F811
     comfy = client.container.comfy
-    comfy.faces = [box(220), box(200), box(30)]
+    comfy.faces = [box(220), box(200, x=300), box(30, x=560)]   # side by side, as in a photo
     stored = client.post('/api/files', files={'file': ('casal.png', png(640, 480), 'image/png')}).json()
     job = client.post(f'/api/files/{stored["hash"]}/people').json()
     status = job

@@ -8,7 +8,7 @@ from .request import CatalogValue, Request
 from .rules import Assessment, available_supports, body_gaze, effective_orientation, framing_already_there
 from .vocabulary import CATEGORIES, FRAMING_ORDER, SUPPORT_PRIORITY, agreed
 
-COMPILER_VERSION = '1.14.0'
+COMPILER_VERSION = '1.16.0'
 
 # Operation order: scene first, then person changes; style leads in generation.
 EDIT_ORDER = ('environment', 'lighting', 'style', 'camera', 'framing', 'subject', 'face', 'body', 'skin', 'hair',

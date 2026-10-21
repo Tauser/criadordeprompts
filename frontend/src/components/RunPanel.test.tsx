@@ -26,3 +26,13 @@ it('offers no redo for a result that is already in the full profile', () => {
   render(<RunPanel run={run('qwen21')} connection="online" onReuse={vi.fn()} notify={vi.fn()} onRepeat={vi.fn()} />);
   expect(screen.queryByRole('button', {name: 'Refazer no Completo'})).toBeNull();
 });
+
+it('warns when the variation on screen shows more faces than people asked for', () => {
+  const crowded = run('qwen21');
+  crowded.images[1] = {...crowded.images[1], detail: {found: 3, refined: 3, expected: 2}};
+  render(<RunPanel run={crowded} connection="online" onReuse={vi.fn()} notify={vi.fn()} onRepeat={vi.fn()} />);
+  expect(screen.getByText(/Foram encontrados 3 rostos, e o pedido tem 2 pessoas/)).toBeTruthy();
+  expect(screen.getByTitle(/Variação 2 .* pessoa a mais\?/)).toBeTruthy();
+  fireEvent.click(screen.getByTitle(/Variação 1 /));
+  expect(screen.queryByText(/Foram encontrados/)).toBeNull();
+});

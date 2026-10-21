@@ -191,7 +191,19 @@ def face_boxes(text: str | None) -> list[dict]:
             continue
         if values['width'] > 0 and values['height'] > 0:
             boxes.append({**values, 'score': float(box.get('score') or 0)})
-    return boxes
+    # Measured: the detector sometimes reports one face twice, nearly on top of itself; the weaker copy goes.
+    return [b for i, b in enumerate(boxes)
+            if not any(_overlap(b, o) > 0.5 and (o['score'], -j) > (b['score'], -i) for j, o in enumerate(boxes))]
+
+
+def _overlap(a: dict, b: dict) -> float:
+    """Intersection over union of two boxes."""
+    width = min(a['x'] + a['width'], b['x'] + b['width']) - max(a['x'], b['x'])
+    height = min(a['y'] + a['height'], b['y'] + b['height']) - max(a['y'], b['y'])
+    if width <= 0 or height <= 0:
+        return 0.0
+    shared = width * height
+    return shared / (a['width'] * a['height'] + b['width'] * b['height'] - shared)
 
 
 def text_graph(job: TextJob) -> dict:

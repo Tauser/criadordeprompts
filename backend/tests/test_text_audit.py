@@ -114,3 +114,18 @@ def test_options_saved_with_a_portuguese_copy_still_load_without_it():
     loaded = Item.model_validate({'id': 'user.pose.old', 'category': 'pose', 'label': 'Antiga', 'prompt': 'standing',
                                   'prompt_pt': 'em pé'})
     assert 'prompt_pt' not in loaded.model_dump()
+
+
+def test_a_pose_that_moves_the_camera_or_plays_with_the_eyes_is_flagged():
+    camera = item('pose.f', 'pose', 'reclining on a bed, camera at a low angle looking up along the body',
+                  req={'participants': 1})
+    assert 'camera_words' in found(camera)
+    edit_only = item('pose.g', 'pose', 'reclining on a bed with the knees raised', req={'participants': 1},
+                     edit_prompt='Change the pose and show it from a high angle.')
+    assert 'camera_words' in found(edit_only)
+    # The shipped selfie used to ask for crossed eyes; the face guidance then fought it and left a blank white eye.
+    selfie = item('action.s', 'action', 'two adults making silly faces, one sticking out the tongue and crossing the '
+                  'eyes', req={'participants': 2})
+    assert 'eye_trick' in found(selfie)
+    assert not {'camera_words', 'eye_trick'} & found(item('pose.h', 'pose', 'standing with the eyes on the horizon, '
+                                                           'the right hand raised', req={'participants': 1}))
