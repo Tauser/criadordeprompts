@@ -10,7 +10,7 @@ vi.mock('../api/client', () => ({api: {testPose: vi.fn(), poseTest: vi.fn(), can
 afterEach(() => {cleanup(); vi.clearAllMocks(); vi.useRealTimers();});
 
 const hug: Item = {id: 'user.action.abc12345', category: 'action', label: '', prompt: 'standing side by side, hugging',
-  prompt_pt: 'abraço', edit_prompt: '', adult: false, enabled: true, requirements: {participants: 2}, provides: {}};
+  edit_prompt: '', adult: false, enabled: true, requirements: {participants: 2}, provides: {}};
 
 it('sends only the English text of the draft and shows the preview', async () => {
   vi.mocked(api.testPose).mockResolvedValue({id: 't1', status: 'completed', has_image: true});
@@ -18,7 +18,7 @@ it('sends only the English text of the draft and shows the preview', async () =>
   fireEvent.click(screen.getByRole('button', {name: 'Testar pose'}));
   const image = await screen.findByAltText('Prévia da pose');
   expect(image.getAttribute('src')).toBe('/api/library/pose-tests/t1/image');
-  expect(api.testPose).toHaveBeenCalledWith(expect.objectContaining({prompt: hug.prompt, label: 'Teste', prompt_pt: null,
+  expect(api.testPose).toHaveBeenCalledWith(expect.objectContaining({prompt: hug.prompt, label: 'Teste',
     edit_prompt: null}), 'standard', []);
 });
 

@@ -5,7 +5,7 @@ from fakes import FakeComfy
 from helpers import cat, codes, generate_request, run
 from prisma_studio.api.app import Container, create_app
 from prisma_studio.config import Config
-from prisma_studio.domain.catalog import Library
+from prisma_studio.domain.catalog import Item, Library
 from prisma_studio.domain.text_audit import audit_item, contradictions_in_prompt
 from test_api import CATALOG, NoProgress
 
@@ -70,7 +70,7 @@ def test_audit_endpoint_reviews_an_unsaved_item(tmp_path):
         body = {'id': 'user.pose.x', 'category': 'pose', 'label': 'Teste', 'prompt': 'lying on your back',
                 'requirements': {'participants': 1}}
         codes_found = {f['code'] for f in client.post('/api/library/audit', json=body).json()['findings']}
-        assert {'second_person', 'too_vague', 'missing_pt'} <= codes_found
+        assert {'second_person', 'too_vague'} <= codes_found
 
 
 def test_library_audit_lists_saved_options_with_findings_and_changes_nothing(tmp_path):
@@ -85,7 +85,7 @@ def test_library_audit_lists_saved_options_with_findings_and_changes_nothing(tmp
                                  'support_any_of': []}}
         saved = client.put('/api/library', json={'revision': before['revision'], 'items': [bad, good]}).json()
         report = client.get('/api/library/audit').json()
-        assert {'second_person', 'too_vague', 'missing_pt'} <= {f['code'] for f in report['user.pose.bad']}
+        assert {'second_person', 'too_vague'} <= {f['code'] for f in report['user.pose.bad']}
         assert all(set(f) == {'code', 'level', 'message'} for f in report['user.pose.bad'])
         assert 'user.pose.good' not in report
         # The shipped catalog carries no conflicts or ambiguities, so built-ins show at most wording notes.
@@ -108,3 +108,9 @@ def test_clothing_written_for_one_person_is_flagged():
     neutral = item('wardrobe.n', 'wardrobe', 'a long red dress', prompt_pt='x',
                    edit_prompt='Change the clothing to a long red dress.')
     assert 'single_person' not in found(neutral)
+
+
+def test_options_saved_with_a_portuguese_copy_still_load_without_it():
+    loaded = Item.model_validate({'id': 'user.pose.old', 'category': 'pose', 'label': 'Antiga', 'prompt': 'standing',
+                                  'prompt_pt': 'em pé'})
+    assert 'prompt_pt' not in loaded.model_dump()

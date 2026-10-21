@@ -31,7 +31,7 @@ export function TestPose({item}: {item: Item}) {
     job.current = mine;
     const prompt = item.prompt;
     // Only the wording is under test: the name and the optional texts are not needed by the preview.
-    const sent: Item = {...item, label: item.label.trim() || 'Teste', prompt_pt: null, edit_prompt: null};
+    const sent: Item = {...item, label: item.label.trim() || 'Teste', edit_prompt: null};
     setError(''); setState('working');
     try {
       let status = await api.testPose(sent, item.adult ? 'adult' : 'standard', item.adult ? ['adults_only'] : []);

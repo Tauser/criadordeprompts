@@ -38,14 +38,14 @@ def convert(legacy: dict, review: dict) -> Library:
         if category == 'expression':
             requirements = {k: v for k, v in requirements.items() if k == 'gaze'}
         rewrite = review.get('prompts', {}).get(item_id)
-        prompt, prompt_pt = (rewrite['prompt'], rewrite['prompt_pt']) if rewrite else (old['prompt'], old.get('prompt_pt'))
+        prompt = rewrite['prompt'] if rewrite else old['prompt']
         if item_id in review['supports']:
             provides['supports'] = review['supports'][item_id]
         if item_id in seen:
             raise SystemExit(f'Identificador repetido após a conversão: {item_id}')
         seen.add(item_id)
         items.append(Item(id=item_id, category=category, label=old['label'], prompt=prompt,
-                          prompt_pt=prompt_pt, adult=bool(old.get('adult_only')),
+                          adult=bool(old.get('adult_only')),
                           enabled=bool(old.get('enabled', True)), requirements=requirements, provides=provides))
     additions = [data for path in sorted((ROOT / 'catalog').glob('additions-v*.json'))
                  for data in json.loads(path.read_text(encoding='utf-8'))['items']]

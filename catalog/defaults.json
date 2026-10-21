@@ -7,7 +7,6 @@
       "category": "subject",
       "label": "Uma mulher adulta",
       "prompt": "one fictional adult woman, visibly aged 25 or older",
-      "prompt_pt": "uma mulher adulta fictícia, visivelmente com 25 anos ou mais",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -27,7 +26,6 @@
       "category": "subject",
       "label": "Um homem adulto",
       "prompt": "one fictional adult man, visibly aged 25 or older",
-      "prompt_pt": "um homem adulto fictício, visivelmente com 25 anos ou mais",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -47,7 +45,6 @@
       "category": "subject",
       "label": "Dois adultos",
       "prompt": "two fictional consenting adults, both visibly aged 25 or older",
-      "prompt_pt": "dois adultos fictícios consentindo, ambos visivelmente com 25 anos ou mais",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -67,7 +64,6 @@
       "category": "environment",
       "label": "Apartamento contemporâneo",
       "prompt": "a contemporary apartment with white walls, light oak floors, a low linen sofa, a floor lamp and large windows with sheer curtains",
-      "prompt_pt": "um apartamento contemporâneo com paredes brancas, piso de carvalho claro, sofá baixo de linho, luminária de chão e janelas amplas com cortinas leves",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -89,7 +85,6 @@
       "category": "environment",
       "label": "Estúdio fotográfico",
       "prompt": "a minimal photography studio with a seamless light-grey backdrop, a large softbox and a wooden stool",
-      "prompt_pt": "um estúdio fotográfico minimalista com fundo infinito cinza-claro, um softbox grande e uma banqueta de madeira",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -111,7 +106,6 @@
       "category": "environment",
       "label": "Quarto elegante",
       "prompt": "an elegant bedroom with a linen-covered bed, an upholstered headboard, brass bedside lamps and soft neutral decor",
-      "prompt_pt": "um quarto elegante com cama de roupa de linho, cabeceira estofada, abajures de latão e decoração neutra e suave",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -133,7 +127,6 @@
       "category": "environment",
       "label": "Rua urbana",
       "prompt": "a city street with brick buildings, shop windows, parked bicycles and a sidewalk receding into the distance",
-      "prompt_pt": "uma rua da cidade com prédios de tijolo, vitrines, bicicletas estacionadas e a calçada se afastando ao fundo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -155,7 +148,6 @@
       "category": "environment",
       "label": "Jardim natural",
       "prompt": "a lush garden with flowering shrubs, a stone path, a wooden bench and dappled sunlight through the leaves",
-      "prompt_pt": "um jardim exuberante com arbustos floridos, caminho de pedra, banco de madeira e luz do sol filtrada pelas folhas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -177,7 +169,6 @@
       "category": "environment",
       "label": "Fundo neutro",
       "prompt": "a seamless warm-grey backdrop with a soft curve from floor to wall",
-      "prompt_pt": "um fundo infinito cinza quente com curva suave do chão para a parede",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -199,7 +190,6 @@
       "category": "environment",
       "label": "Praia · areia e mar",
       "prompt": "a beach with pale sand, ocean waves and a visible horizon",
-      "prompt_pt": "uma praia com areia clara, ondas do mar e horizonte visível",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -221,7 +211,6 @@
       "category": "environment",
       "label": "Terraço · vista da cidade",
       "prompt": "a rooftop terrace with glass railings and a city skyline",
-      "prompt_pt": "um terraço com guarda-corpo de vidro e prédios da cidade ao fundo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -243,7 +232,6 @@
       "category": "environment",
       "label": "Piscina externa",
       "prompt": "an outdoor swimming pool with blue water, tiled edges and sun loungers",
-      "prompt_pt": "uma piscina externa com água azul, bordas de azulejo e espreguiçadeiras",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -265,7 +253,6 @@
       "category": "environment",
       "label": "Biblioteca · estantes de madeira",
       "prompt": "a library with tall wooden bookshelves, books and reading tables",
-      "prompt_pt": "uma biblioteca com estantes altas de madeira, livros e mesas de leitura",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -287,7 +274,6 @@
       "category": "environment",
       "label": "Cozinha moderna",
       "prompt": "a modern kitchen with white cabinets, a stone countertop and pendant lights",
-      "prompt_pt": "uma cozinha moderna com armários brancos, bancada de pedra e luminárias pendentes",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -309,7 +295,6 @@
       "category": "environment",
       "label": "Floresta · trilha natural",
       "prompt": "a forest with tall trees, green foliage and a visible earth trail",
-      "prompt_pt": "uma floresta com árvores altas, folhagem verde e trilha de terra visível",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -331,7 +316,6 @@
       "category": "environment",
       "label": "Quarto de hotel",
       "prompt": "a hotel room with a made bed, upholstered headboard and a large window",
-      "prompt_pt": "um quarto de hotel com cama arrumada, cabeceira estofada e janela ampla",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -353,7 +337,6 @@
       "category": "environment",
       "label": "Rua urbana · chuva",
       "prompt": "a rainy city street with wet pavement, storefronts and reflected lights",
-      "prompt_pt": "uma rua urbana na chuva com calçada molhada, lojas e luzes refletidas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -375,7 +358,6 @@
       "category": "environment",
       "label": "Estúdio · parede de tijolos",
       "prompt": "a photography studio with an exposed brick wall and a wooden floor",
-      "prompt_pt": "um estúdio fotográfico com parede de tijolos aparentes e piso de madeira",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -397,7 +379,6 @@
       "category": "environment",
       "label": "Camarim · espelho iluminado",
       "prompt": "a dressing room with a lighted mirror, clothing racks and a padded stool",
-      "prompt_pt": "um camarim com espelho iluminado, araras de roupas e banco estofado",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -419,7 +400,6 @@
       "category": "pose",
       "label": "Em pé · braços relaxados",
       "prompt": "standing upright facing the camera, weight evenly on both feet set hip-width apart, arms hanging relaxed at the sides with open hands and shoulders level",
-      "prompt_pt": "em pé de frente para a câmera, peso igual nos dois pés afastados na largura do quadril, braços soltos ao lado do corpo com as mãos abertas e ombros nivelados",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -440,7 +420,6 @@
       "category": "pose",
       "label": "Sentado · postura ereta",
       "prompt": "sitting upright with the back straight, both thighs resting on the surface beneath them, knees bent at about ninety degrees, both feet flat on the floor and both hands resting on the thighs",
-      "prompt_pt": "sentado ereto com as costas retas, as duas coxas apoiadas na superfície, joelhos dobrados em cerca de noventa graus, os dois pés apoiados no chão e as mãos sobre as coxas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -460,7 +439,6 @@
       "category": "pose",
       "label": "Ajoelhado · tronco ereto",
       "prompt": "kneeling upright on both knees, thighs vertical and in line with the torso, shins and the tops of the feet flat on the surface behind, back straight and arms relaxed at the sides",
-      "prompt_pt": "ajoelhado ereto sobre os dois joelhos, coxas na vertical alinhadas ao tronco, canelas e peito dos pés apoiados na superfície atrás, costas retas e braços soltos ao lado do corpo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -480,7 +458,6 @@
       "category": "pose",
       "label": "Giro de tronco · olhar sobre o ombro",
       "prompt": "standing with the hips and back turned away from the camera, the upper torso rotated back toward the camera and the head turned to look back over the right shoulder",
-      "prompt_pt": "em pé com o quadril e as costas virados para longe da câmera, a parte de cima do tronco girada de volta para a câmera e a cabeça virada olhando por cima do ombro direito",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -501,7 +478,6 @@
       "category": "pose",
       "label": "Caminhada · passo natural",
       "prompt": "walking forward in mid-stride, the front foot landing heel first, the back foot pushing off from the toes, the arm opposite the front leg swinging forward and the torso upright",
-      "prompt_pt": "caminhando para a frente no meio do passo, o pé da frente tocando o chão pelo calcanhar, o pé de trás impulsionando pelos dedos, o braço oposto à perna da frente balançando para a frente e o tronco ereto",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -521,7 +497,6 @@
       "category": "pose",
       "label": "Reclinado no sofá",
       "prompt": "reclining on a sofa with the upper back and shoulders resting against the armrest, both legs extended along the seat cushion, the right arm resting across the waist and the left arm resting along the backrest",
-      "prompt_pt": "reclinado num sofá com a parte de cima das costas e os ombros apoiados no braço do sofá, as duas pernas estendidas sobre o assento, o braço direito sobre a cintura e o braço esquerdo ao longo do encosto",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -541,7 +516,6 @@
       "category": "pose",
       "label": "Apoio em mãos e joelhos",
       "prompt": "on hands and knees, both palms flat on the surface directly below the shoulders with straight arms, both knees directly below the hips and the back flat and level",
-      "prompt_pt": "apoiado nas mãos e nos joelhos, as duas palmas apoiadas logo abaixo dos ombros com os braços retos, os dois joelhos logo abaixo do quadril e as costas retas na horizontal",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -561,7 +535,6 @@
       "category": "pose",
       "label": "Deitado de lado · corpo apoiado",
       "prompt": "lying on one side on a flat surface, the lower arm bent under the head like a pillow, shoulders and hips stacked vertically, both knees slightly bent and stacked, the upper arm resting along the body",
-      "prompt_pt": "deitado de lado numa superfície plana, o braço de baixo dobrado sob a cabeça como travesseiro, ombros e quadril alinhados na vertical, os dois joelhos levemente dobrados um sobre o outro e o braço de cima apoiado ao longo do corpo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -581,7 +554,6 @@
       "category": "pose",
       "label": "Em pé · costas na parede",
       "prompt": "standing with the shoulder blades and upper back resting flat against a wall, both feet planted a short step in front of the wall, the right knee slightly bent and both arms hanging relaxed at the sides",
-      "prompt_pt": "em pé com as escápulas e a parte de cima das costas encostadas na parede, os dois pés apoiados um passo à frente da parede, o joelho direito levemente dobrado e os dois braços soltos ao lado do corpo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -601,7 +573,6 @@
       "category": "pose",
       "label": "Cadeira · sentado de lado",
       "prompt": "sitting sideways on a chair with the backrest beside the body, both feet flat on the floor, the torso turned toward the camera and the right forearm resting on top of the backrest",
-      "prompt_pt": "sentado de lado numa cadeira com o encosto ao lado do corpo, os dois pés apoiados no chão, o tronco virado para a câmera e o antebraço direito apoiado em cima do encosto",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -621,7 +592,6 @@
       "category": "pose",
       "label": "Cadeira · tornozelos cruzados",
       "prompt": "sitting upright on a chair with the back straight, knees together and bent, both ankles crossed in front of the seat and both hands resting flat on the thighs",
-      "prompt_pt": "sentado ereto numa cadeira com as costas retas, joelhos juntos e dobrados, os dois tornozelos cruzados à frente do assento e as duas mãos apoiadas sobre as coxas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -641,7 +611,6 @@
       "category": "pose",
       "label": "Sofá · cotovelo no apoio",
       "prompt": "sitting upright at one end of a sofa, the right elbow resting on the armrest with the right hand relaxed, the left hand resting on the lap and both feet flat on the floor",
-      "prompt_pt": "sentado ereto numa ponta do sofá, o cotovelo direito apoiado no braço do sofá com a mão direita relaxada, a mão esquerda sobre o colo e os dois pés apoiados no chão",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -661,7 +630,6 @@
       "category": "pose",
       "label": "Cama · sentado na borda",
       "prompt": "sitting on the edge of a bed with the back straight, knees bent at about ninety degrees, both feet flat on the floor and both hands resting on the mattress beside the hips",
-      "prompt_pt": "sentado na beira da cama com as costas retas, joelhos dobrados em cerca de noventa graus, os dois pés apoiados no chão e as duas mãos apoiadas no colchão ao lado do quadril",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -681,7 +649,6 @@
       "category": "pose",
       "label": "Em pé · uma mão na cintura",
       "prompt": "standing with the weight on the right leg and the right hip shifted slightly outward, the left knee relaxed and slightly bent, the right hand placed on the right hip with the elbow pointing out to the side, the left arm hanging relaxed and the shoulders angled slightly toward the camera",
-      "prompt_pt": "em pé com o peso na perna direita e o quadril direito levemente projetado para fora, o joelho esquerdo relaxado e levemente dobrado, a mão direita apoiada no quadril direito com o cotovelo apontando para o lado, o braço esquerdo solto e os ombros levemente virados para a câmera",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -701,7 +668,6 @@
       "category": "pose",
       "label": "Em pé · mãos atrás da cabeça",
       "prompt": "standing upright with both hands behind the head and the fingers interlaced at the back of the head, both elbows raised and pointing out to the sides, chest open and feet hip-width apart",
-      "prompt_pt": "em pé ereto com as duas mãos atrás da cabeça e os dedos entrelaçados na nuca, os dois cotovelos erguidos e apontando para os lados, peito aberto e pés afastados na largura do quadril",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -721,7 +687,6 @@
       "category": "pose",
       "label": "Cadeira · pernas cruzadas",
       "prompt": "sitting upright on a chair with the right leg crossed over the left leg at the knee, the right foot off the floor, the left foot flat on the floor and both hands resting on the right knee",
-      "prompt_pt": "sentado ereto numa cadeira com a perna direita cruzada sobre a esquerda na altura do joelho, o pé direito fora do chão, o pé esquerdo apoiado no chão e as duas mãos sobre o joelho direito",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -741,7 +706,6 @@
       "category": "pose",
       "label": "Chão · pernas cruzadas",
       "prompt": "sitting directly on the floor with the legs crossed in front, each foot tucked under the opposite knee, the spine straight and both hands resting palms down on the knees",
-      "prompt_pt": "sentado direto no chão com as pernas cruzadas à frente, cada pé encaixado sob o joelho oposto, a coluna reta e as duas mãos apoiadas com as palmas para baixo sobre os joelhos",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -761,7 +725,6 @@
       "category": "expression",
       "label": "Sorriso discreto",
       "prompt": "a subtle closed-mouth smile with the corners of the mouth slightly raised and relaxed eyes",
-      "prompt_pt": "um sorriso discreto de boca fechada, cantos da boca levemente erguidos e olhos relaxados",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -781,7 +744,6 @@
       "category": "action",
       "label": "Ajustar cabelo",
       "prompt": "raising one hand to the side of the head and running the fingers through the hair near the temple, with that elbow lifted",
-      "prompt_pt": "levando uma mão à lateral da cabeça e passando os dedos pelo cabelo perto da têmpora, com esse cotovelo erguido",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -801,7 +763,6 @@
       "category": "expression",
       "label": "Olhar por cima do ombro",
       "prompt": "the head turned to look back over one shoulder, with the eyes following the head",
-      "prompt_pt": "a cabeça virada olhando por cima de um ombro, com os olhos acompanhando a cabeça",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -821,7 +782,6 @@
       "category": "action",
       "label": "Abraçar (dois adultos)",
       "prompt": "two adults standing face to face in a hug, each wrapping both arms around the other's back, their chests touching and each head resting beside the other's shoulder",
-      "prompt_pt": "dois adultos em pé, de frente um para o outro, abraçados, cada um envolvendo as costas do outro com os dois braços, os peitos encostados e cada cabeça ao lado do ombro do outro",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -841,7 +801,6 @@
       "category": "action",
       "label": "Apertar mãos (dois adultos)",
       "prompt": "two adults facing each other, each extending the right arm forward and clasping the other's right hand at waist height, palms pressed together",
-      "prompt_pt": "dois adultos de frente um para o outro, cada um estendendo o braço direito e apertando a mão direita do outro na altura da cintura, palmas encostadas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -861,7 +820,6 @@
       "category": "action",
       "label": "Dançar em dupla (dois adultos)",
       "prompt": "two adults facing each other in a ballroom dance hold: one person's right hand on the partner's upper back, the partner's left hand on that person's shoulder, their other hands joined and raised to the side at shoulder height, both caught mid-step",
-      "prompt_pt": "dois adultos de frente um para o outro na posição de dança de salão: a mão direita de um nas costas do parceiro, a mão esquerda do parceiro no ombro dele, as outras mãos unidas e erguidas para o lado na altura do ombro, os dois no meio de um passo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -881,7 +839,6 @@
       "category": "action",
       "label": "Conversar (dois adultos)",
       "prompt": "two adults standing face to face about an arm's length apart and looking at each other, one speaking with an open-palm hand gesture while the other listens",
-      "prompt_pt": "dois adultos em pé, de frente um para o outro, a cerca de um braço de distância e olhando um para o outro, um falando com um gesto de palma aberta enquanto o outro escuta",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -901,7 +858,6 @@
       "category": "camera",
       "label": "Frontal",
       "prompt": "camera at eye level directly in front of the person, the lens pointing straight at the face",
-      "prompt_pt": "câmera na altura dos olhos bem à frente da pessoa, com a lente apontada direto para o rosto",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -922,7 +878,6 @@
       "category": "camera",
       "label": "Três quartos",
       "prompt": "camera at eye level about forty-five degrees to one side, showing three quarters of the face",
-      "prompt_pt": "câmera na altura dos olhos, cerca de quarenta e cinco graus para um lado, mostrando três quartos do rosto",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -943,7 +898,6 @@
       "category": "camera",
       "label": "Perfil lateral",
       "prompt": "camera at eye level at ninety degrees to the person, showing a clean side profile",
-      "prompt_pt": "câmera na altura dos olhos a noventa graus da pessoa, mostrando o perfil lateral limpo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -964,7 +918,6 @@
       "category": "camera",
       "label": "Ângulo baixo",
       "prompt": "camera slightly below chest height, angled about fifteen degrees upward",
-      "prompt_pt": "câmera um pouco abaixo da altura do peito, inclinada cerca de quinze graus para cima",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -984,7 +937,6 @@
       "category": "camera",
       "label": "Ângulo alto",
       "prompt": "camera slightly above head height, angled about fifteen degrees downward",
-      "prompt_pt": "câmera um pouco acima da altura da cabeça, inclinada cerca de quinze graus para baixo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1004,7 +956,6 @@
       "category": "framing",
       "label": "Rosto / retrato",
       "prompt": "head-and-shoulders portrait with the entire face unobstructed",
-      "prompt_pt": "retrato de cabeça e ombros, com todo o rosto desobstruído",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1024,7 +975,6 @@
       "category": "framing",
       "label": "Meio-corpo",
       "prompt": "medium shot showing face, torso and arms",
-      "prompt_pt": "plano médio incluindo rosto, tronco e braços",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1044,7 +994,6 @@
       "category": "framing",
       "label": "Corpo inteiro",
       "prompt": "full-body framing with hands, legs and feet clearly visible",
-      "prompt_pt": "enquadramento de corpo inteiro com mãos, pernas e pés visíveis",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1064,7 +1013,6 @@
       "category": "framing",
       "label": "Plano aberto",
       "prompt": "wide shot with subjects visible in the environment",
-      "prompt_pt": "plano aberto com personagens visíveis no ambiente",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1084,7 +1032,6 @@
       "category": "lighting",
       "label": "Suave e natural",
       "prompt": "soft diffused daylight from a large source, with gentle shadows and true-to-life skin tones",
-      "prompt_pt": "luz do dia difusa e suave vinda de uma fonte grande, com sombras delicadas e tons de pele fiéis",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1106,7 +1053,6 @@
       "category": "lighting",
       "label": "Estúdio profissional",
       "prompt": "professional three-point studio lighting: a large soft key light, gentle fill and a subtle hair light, with clear catchlights in the eyes",
-      "prompt_pt": "iluminação de estúdio profissional em três pontos: luz principal grande e suave, preenchimento delicado e luz de cabelo sutil, com brilho nítido nos olhos",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1128,7 +1074,6 @@
       "category": "lighting",
       "label": "Luz dourada",
       "prompt": "low golden-hour sunlight from one side, with long warm shadows and a warm glow on skin and hair",
-      "prompt_pt": "sol baixo da hora dourada vindo de um lado, com sombras longas e quentes e um brilho dourado na pele e no cabelo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1150,7 +1095,6 @@
       "category": "lighting",
       "label": "Cinematográfica dramática",
       "prompt": "low-key cinematic lighting with a single hard key light, deep shadows and controlled contrast",
-      "prompt_pt": "iluminação cinematográfica de tom baixo com uma única luz principal dura, sombras profundas e contraste controlado",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1170,7 +1114,6 @@
       "category": "lighting",
       "label": "Noite urbana",
       "prompt": "a nighttime scene lit by street lamps, shop windows and passing car lights, with colored reflections",
-      "prompt_pt": "cena noturna iluminada por postes, vitrines e faróis de carros, com reflexos coloridos",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1192,7 +1135,6 @@
       "category": "style",
       "label": "Realista",
       "prompt": "photorealistic photograph taken with a full-frame camera and a sharp prime lens, natural skin with visible pores and fine texture, realistic hair strands, true-to-life colors and fabric detail, accurate hands",
-      "prompt_pt": "fotografia fotorrealista feita com câmera full-frame e lente fixa nítida, pele natural com poros e textura fina, fios de cabelo realistas, cores e tecidos fiéis e mãos corretas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1213,7 +1155,6 @@
       "category": "style",
       "label": "Anime",
       "prompt": "high-quality contemporary anime illustration, clean confident line art, cel shading with crisp two-tone shadows, vivid but controlled colors, expressive eyes, consistent anime proportions and a detailed painted background",
-      "prompt_pt": "ilustração anime contemporânea de alta qualidade, traço limpo e firme, cel-shading com sombras em dois tons, cores vivas e controladas, olhos expressivos, proporções de anime consistentes e fundo pintado detalhado",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1234,7 +1175,6 @@
       "category": "style",
       "label": "Cinema",
       "prompt": "cinematic film still shot on 35 mm film with an anamorphic lens, motivated lighting, filmic contrast with soft highlight roll-off, subtle film grain, natural skin tones and shallow depth of field",
-      "prompt_pt": "frame de cinema filmado em 35 mm com lente anamórfica, luz motivada, contraste de filme com altas luzes suaves, grão sutil, pele natural e pouca profundidade de campo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1255,7 +1195,6 @@
       "category": "style",
       "label": "Ilustração",
       "prompt": "polished semi-realistic digital painting, soft painterly brushwork, consistent material rendering, a harmonious color palette, clean readable shapes and accurate anatomy",
-      "prompt_pt": "pintura digital semirrealista refinada, pinceladas suaves, materiais consistentes, paleta harmoniosa, formas claras e anatomia correta",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1277,7 +1216,6 @@
       "label": "Filme analógico",
       "prompt": "candid analog photograph on 35 mm color film, natural colors with gentle grain, slightly soft focus, warm highlights and softly faded shadows",
       "edit_prompt": "Give the whole image the look of a 35 mm color film photograph with gentle grain, warm highlights and softly faded shadows, keeping the people recognizable.",
-      "prompt_pt": "foto analógica espontânea em filme colorido 35 mm, cores naturais com grão suave, foco levemente macio, altas luzes quentes e sombras levemente desbotadas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1298,7 +1236,6 @@
       "label": "Preto e branco",
       "prompt": "black-and-white fine-art photograph with a rich tonal range, deep blacks, luminous highlights and fine grain",
       "edit_prompt": "Convert the whole image into a black-and-white fine-art photograph with a rich tonal range, deep blacks and luminous highlights, keeping the people recognizable.",
-      "prompt_pt": "fotografia artística em preto e branco com ampla gama de tons, pretos profundos, altas luzes luminosas e grão fino",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1319,7 +1256,6 @@
       "label": "Pintura a óleo",
       "prompt": "classical oil painting on canvas with visible brushstrokes, rich layered color, soft chiaroscuro lighting and a subtle canvas texture",
       "edit_prompt": "Repaint the whole image as a classical oil painting on canvas with visible brushstrokes and soft chiaroscuro, keeping the people recognizable.",
-      "prompt_pt": "pintura a óleo clássica sobre tela, pinceladas visíveis, cores em camadas, claro-escuro suave e textura sutil da tela",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1340,7 +1276,6 @@
       "label": "Aquarela",
       "prompt": "delicate watercolor painting on textured paper with soft transparent washes, gentle color bleeding, light pencil outlines and areas of untouched white paper",
       "edit_prompt": "Repaint the whole image as a delicate watercolor on textured paper with soft washes and light pencil outlines, keeping the people recognizable.",
-      "prompt_pt": "aquarela delicada em papel texturizado, aguadas suaves e transparentes, cores que se misturam, contornos leves a lápis e áreas de papel branco",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1361,7 +1296,6 @@
       "label": "3D estilizado",
       "prompt": "stylized 3D animated-film render with soft global illumination, smooth subsurface skin, appealing slightly exaggerated proportions and clean materials",
       "edit_prompt": "Re-render the whole image as a stylized 3D animated-film scene with soft global illumination and clean materials, keeping the people recognizable.",
-      "prompt_pt": "render 3D estilizado de animação, iluminação global suave, pele lisa com subsurface, proporções simpáticas levemente exageradas e materiais limpos",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1381,7 +1315,6 @@
       "category": "expression",
       "label": "Sorriso natural",
       "prompt": "a small closed-mouth smile, relaxed cheeks and soft eyes",
-      "prompt_pt": "um sorriso discreto com boca fechada, bochechas relaxadas e olhar suave",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1401,7 +1334,6 @@
       "category": "expression",
       "label": "Expressão neutra",
       "prompt": "relaxed eyebrows, closed lips and a calm gaze",
-      "prompt_pt": "sobrancelhas relaxadas, lábios fechados e olhar calmo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1421,7 +1353,6 @@
       "category": "expression",
       "label": "Confiante",
       "prompt": "steady eye contact, a subtly lifted chin and relaxed closed lips",
-      "prompt_pt": "contato visual firme, queixo levemente elevado e lábios fechados relaxados",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1441,7 +1372,6 @@
       "category": "expression",
       "label": "Serena",
       "prompt": "soft eyes, relaxed eyebrows and a faint closed-mouth smile",
-      "prompt_pt": "olhar suave, sobrancelhas relaxadas e um leve sorriso com boca fechada",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1461,7 +1391,6 @@
       "category": "expression",
       "label": "Olhar para a câmera",
       "prompt": "eyes directed at the camera, with a relaxed mouth",
-      "prompt_pt": "olhos direcionados à câmera e boca relaxada",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1481,7 +1410,6 @@
       "category": "expression",
       "label": "Riso natural",
       "prompt": "a natural laugh, lifted cheeks and a slightly open mouth",
-      "prompt_pt": "uma risada natural, bochechas elevadas e boca ligeiramente aberta",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1501,7 +1429,6 @@
       "category": "expression",
       "label": "Pensativo · olhar desviado",
       "prompt": "eyes looking slightly away, relaxed closed lips and a thoughtful expression",
-      "prompt_pt": "olhar ligeiramente desviado, lábios fechados relaxados e expressão pensativa",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1521,7 +1448,6 @@
       "category": "expression",
       "label": "Sério · sem sorriso",
       "prompt": "a steady gaze, neutral eyebrows and closed lips without a smile",
-      "prompt_pt": "olhar firme, sobrancelhas neutras e lábios fechados sem sorriso",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1541,7 +1467,6 @@
       "category": "expression",
       "label": "Olhos fechados · relaxado",
       "prompt": "gently closed eyelids and relaxed facial muscles",
-      "prompt_pt": "pálpebras suavemente fechadas e músculos faciais relaxados",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1561,7 +1486,6 @@
       "category": "expression",
       "label": "Surpresa discreta",
       "prompt": "slightly raised eyebrows, widened eyes and a softly parted mouth",
-      "prompt_pt": "sobrancelhas levemente elevadas, olhos mais abertos e boca discretamente entreaberta",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1581,7 +1505,6 @@
       "category": "expression",
       "label": "Sorriso discreto · olhar de lado",
       "prompt": "a subtle closed-mouth smile and eyes looking slightly sideways",
-      "prompt_pt": "um sorriso discreto com boca fechada e olhar ligeiramente de lado",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1601,7 +1524,6 @@
       "category": "action",
       "label": "Acenar · mão direita",
       "prompt": "raising the right hand above shoulder height, palm open and facing the camera with the fingers spread, in the middle of a wave",
-      "prompt_pt": "erguendo a mão direita acima da altura do ombro, palma aberta voltada para a câmera com os dedos afastados, no meio de um aceno",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1621,7 +1543,6 @@
       "category": "action",
       "label": "Sinal de positivo · mão direita",
       "prompt": "holding the right hand at chest height in a fist with the thumb pointing straight up",
-      "prompt_pt": "segurando a mão direita fechada na altura do peito com o polegar apontando para cima",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1641,7 +1562,6 @@
       "category": "action",
       "label": "Apontar · indicador direito",
       "prompt": "extending the right arm out to the person's right side and pointing with the index finger, the other fingers curled into the palm",
-      "prompt_pt": "estendendo o braço direito para o lado direito da pessoa e apontando com o indicador, os outros dedos dobrados na palma",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1661,7 +1581,6 @@
       "category": "action",
       "label": "Cruzar os braços",
       "prompt": "folding both arms across the chest, each forearm resting over the other and the hands tucked against the upper arms",
-      "prompt_pt": "cruzando os dois braços sobre o peito, um antebraço sobre o outro e as mãos encostadas na parte de cima dos braços",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1681,7 +1600,6 @@
       "category": "action",
       "label": "Segurar uma caneca",
       "prompt": "holding a ceramic mug by its handle in the right hand at chest height, the mug clearly visible in front of the body",
-      "prompt_pt": "segurando uma caneca de cerâmica pela alça com a mão direita na altura do peito, a caneca bem visível à frente do corpo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1701,7 +1619,6 @@
       "category": "action",
       "label": "Beber numa caneca",
       "prompt": "bringing a ceramic mug to the mouth with the right hand, the rim touching the lower lip and the elbow raised",
-      "prompt_pt": "levando uma caneca de cerâmica à boca com a mão direita, a borda encostada no lábio inferior e o cotovelo erguido",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1721,7 +1638,6 @@
       "category": "action",
       "label": "Segurar um livro aberto",
       "prompt": "holding an open book with both hands at waist height, the open pages facing up and both thumbs resting on the pages",
-      "prompt_pt": "segurando um livro aberto com as duas mãos na altura da cintura, as páginas abertas voltadas para cima e os dois polegares sobre as páginas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1741,7 +1657,6 @@
       "category": "action",
       "label": "Ler um livro",
       "prompt": "reading an open book held in both hands at chest height, the head tilted down and the eyes on the pages",
-      "prompt_pt": "lendo um livro aberto seguro com as duas mãos na altura do peito, a cabeça inclinada para baixo e os olhos nas páginas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1761,7 +1676,6 @@
       "category": "action",
       "label": "Usar o celular",
       "prompt": "holding a smartphone in the left hand at chest height with the screen facing the person, tapping the screen with the right index finger and looking down at it",
-      "prompt_pt": "segurando um celular com a mão esquerda na altura do peito com a tela voltada para a pessoa, tocando a tela com o indicador direito e olhando para ela",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1781,7 +1695,6 @@
       "category": "action",
       "label": "Telefone junto ao ouvido",
       "prompt": "holding a smartphone against the right ear with the right hand, the elbow raised and the phone touching the ear",
-      "prompt_pt": "segurando um celular junto à orelha direita com a mão direita, o cotovelo erguido e o celular encostado na orelha",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1801,7 +1714,6 @@
       "category": "action",
       "label": "Ajustar os óculos",
       "prompt": "wearing eyeglasses and pushing them up the nose by touching the bridge of the frame with the right index finger",
-      "prompt_pt": "usando óculos e empurrando-os para cima do nariz tocando a ponte da armação com o indicador direito",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1821,7 +1733,6 @@
       "category": "action",
       "label": "Carregar uma bolsa",
       "prompt": "carrying a small handbag by its handles in the left hand, the arm hanging straight beside the hip and the bag visible next to the thigh",
-      "prompt_pt": "carregando uma bolsa pequena pelas alças com a mão esquerda, o braço esticado ao lado do quadril e a bolsa visível ao lado da coxa",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1841,7 +1752,6 @@
       "category": "subject",
       "label": "Mulher jovem adulta",
       "prompt": "one fictional young adult woman in her late twenties",
-      "prompt_pt": "uma mulher jovem adulta fictícia, com cerca de vinte e oito anos",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1861,7 +1771,6 @@
       "category": "subject",
       "label": "Homem jovem adulto",
       "prompt": "one fictional young adult man in his late twenties",
-      "prompt_pt": "um homem jovem adulto fictício, com cerca de vinte e oito anos",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1881,7 +1790,6 @@
       "category": "subject",
       "label": "Mulher madura",
       "prompt": "one fictional woman in her sixties, with natural silver hair and expressive smile lines",
-      "prompt_pt": "uma mulher fictícia de uns sessenta anos, com cabelo grisalho natural e linhas de expressão ao sorrir",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1901,7 +1809,6 @@
       "category": "subject",
       "label": "Homem maduro",
       "prompt": "one fictional man in his sixties, with a trimmed grey beard and weathered skin",
-      "prompt_pt": "um homem fictício de uns sessenta anos, com barba grisalha aparada e pele marcada pelo tempo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1921,7 +1828,6 @@
       "category": "subject",
       "label": "Casal maduro",
       "prompt": "two fictional adults in their fifties, a long-time couple standing close together",
-      "prompt_pt": "dois adultos fictícios na casa dos cinquenta, um casal de longa data lado a lado",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1941,7 +1847,6 @@
       "category": "subject",
       "label": "Grupo de três amigos",
       "prompt": "three fictional adult friends in their thirties, each with a distinct face, hairstyle and outfit",
-      "prompt_pt": "três amigos adultos fictícios na casa dos trinta, cada um com rosto, penteado e roupa diferentes",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1961,7 +1866,6 @@
       "category": "subject",
       "label": "Artista pintor(a)",
       "prompt": "one fictional adult painter with paint-stained fingers and a canvas apron",
-      "prompt_pt": "uma pessoa adulta fictícia que pinta, com dedos manchados de tinta e avental de lona",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -1981,7 +1885,6 @@
       "category": "subject",
       "label": "Atleta",
       "prompt": "one fictional adult athlete with a lean, strong build and a focused presence",
-      "prompt_pt": "uma pessoa atleta adulta fictícia, de corpo enxuto e forte e presença concentrada",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2001,7 +1904,6 @@
       "category": "environment",
       "label": "Café de esquina",
       "prompt": "a small corner café with marble tables, bentwood chairs, a chalkboard menu and morning light through the front window",
-      "prompt_pt": "um pequeno café de esquina com mesas de mármore, cadeiras de madeira curvada, cardápio em lousa e luz da manhã entrando pela vitrine",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2023,7 +1925,6 @@
       "category": "environment",
       "label": "Deserto · dunas",
       "prompt": "rolling sand dunes under a clear sky, with long wind ripples across the sand",
-      "prompt_pt": "dunas de areia ondulantes sob céu limpo, com longas marcas de vento na areia",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2045,7 +1946,6 @@
       "category": "environment",
       "label": "Mirante na montanha",
       "prompt": "a rocky mountain overlook above a pine valley, with distant ridges fading into blue haze",
-      "prompt_pt": "um mirante rochoso acima de um vale de pinheiros, com cordilheiras distantes se perdendo na névoa azulada",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2067,7 +1967,6 @@
       "category": "environment",
       "label": "Floresta nevada",
       "prompt": "a snowy pine forest with fresh powder on the branches and soft winter haze",
-      "prompt_pt": "uma floresta de pinheiros nevada, com neve fresca nos galhos e névoa suave de inverno",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2089,7 +1988,6 @@
       "category": "environment",
       "label": "Galeria de arte",
       "prompt": "a white-walled art gallery with large framed paintings, a polished concrete floor and track lighting",
-      "prompt_pt": "uma galeria de arte de paredes brancas com grandes quadros emoldurados, piso de concreto polido e iluminação de trilho",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2111,7 +2009,6 @@
       "category": "environment",
       "label": "Estação de metrô",
       "prompt": "an underground subway platform with tiled walls, a waiting train and fluorescent strip lights",
-      "prompt_pt": "uma plataforma de metrô subterrânea com paredes de azulejo, um trem parado e luzes fluorescentes",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2133,7 +2030,6 @@
       "category": "environment",
       "label": "Feira de rua",
       "prompt": "an open-air street market with fruit stalls, striped awnings and wooden crates of produce",
-      "prompt_pt": "uma feira de rua ao ar livre com bancas de frutas, toldos listrados e caixotes de madeira com hortaliças",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2155,7 +2051,6 @@
       "category": "environment",
       "label": "Estufa de plantas",
       "prompt": "a glass greenhouse full of tropical plants, hanging ferns and white wrought-iron frames",
-      "prompt_pt": "uma estufa de vidro cheia de plantas tropicais, samambaias penduradas e estrutura de ferro branco",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2177,7 +2072,6 @@
       "category": "environment",
       "label": "Sala vintage",
       "prompt": "a vintage living room with patterned wallpaper, a velvet armchair, dark wood furniture and warm table lamps",
-      "prompt_pt": "uma sala vintage com papel de parede estampado, poltrona de veludo, móveis de madeira escura e abajures de luz quente",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2199,7 +2093,6 @@
       "category": "environment",
       "label": "Beco neon",
       "prompt": "a narrow city alley at night with neon signs, wet asphalt and steam rising from a street grate",
-      "prompt_pt": "um beco estreito da cidade à noite com letreiros de neon, asfalto molhado e vapor saindo de uma grade",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2221,7 +2114,6 @@
       "category": "environment",
       "label": "Píer no lago",
       "prompt": "a wooden dock over a calm lake at dawn, with mist on the water and pine trees on the far shore",
-      "prompt_pt": "um píer de madeira sobre um lago calmo ao amanhecer, com névoa sobre a água e pinheiros na outra margem",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2243,7 +2135,6 @@
       "category": "environment",
       "label": "Galpão industrial",
       "prompt": "an industrial loft with exposed steel beams, tall factory windows and worn concrete floors",
-      "prompt_pt": "um galpão industrial com vigas de aço aparentes, janelas altas de fábrica e piso de concreto gasto",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2265,7 +2156,6 @@
       "category": "environment",
       "label": "Salão clássico",
       "prompt": "a classical ballroom with crystal chandeliers, gilded mouldings and a polished parquet floor",
-      "prompt_pt": "um salão clássico com lustres de cristal, molduras douradas e piso de parquê polido",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2287,7 +2177,6 @@
       "category": "environment",
       "label": "Escritório moderno",
       "prompt": "a modern office with a walnut desk, an ergonomic chair, bookshelves and floor-to-ceiling windows over the city",
-      "prompt_pt": "um escritório moderno com mesa de nogueira, cadeira ergonômica, estantes e janelas do chão ao teto com vista para a cidade",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2309,7 +2198,6 @@
       "category": "environment",
       "label": "Cobertura à noite",
       "prompt": "a rooftop at night with string lights, potted plants and a glittering city skyline",
-      "prompt_pt": "uma cobertura à noite com varal de luzes, vasos de plantas e o horizonte da cidade iluminado",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2331,7 +2219,6 @@
       "category": "environment",
       "label": "Vinhedo ao entardecer",
       "prompt": "rows of grapevines on rolling hills at sunset, with a stone farmhouse in the distance",
-      "prompt_pt": "fileiras de videiras em colinas ondulantes ao pôr do sol, com uma casa de pedra ao longe",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2353,7 +2240,6 @@
       "category": "pose",
       "label": "Em pé · contrapposto",
       "prompt": "standing in contrapposto: weight on the right leg with the right hip raised, the left knee relaxed and slightly forward, shoulders tilted opposite to the hips and both arms hanging loosely",
-      "prompt_pt": "em pé em contrapposto: peso na perna direita com o quadril direito elevado, joelho esquerdo relaxado e levemente à frente, ombros inclinados no sentido oposto ao quadril e os braços soltos",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2373,7 +2259,6 @@
       "category": "pose",
       "label": "Em pé · mãos nos bolsos",
       "prompt": "standing upright with both hands in the front trouser pockets, thumbs outside, elbows relaxed and feet shoulder-width apart",
-      "prompt_pt": "em pé ereto com as duas mãos nos bolsos da frente, polegares para fora, cotovelos relaxados e pés afastados na largura dos ombros",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2393,7 +2278,6 @@
       "category": "pose",
       "label": "Agachado",
       "prompt": "crouching low with both knees deeply bent, feet flat on the ground, forearms resting on the knees and the back straight",
-      "prompt_pt": "agachado com os dois joelhos bem dobrados, pés apoiados no chão, antebraços sobre os joelhos e as costas retas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2413,7 +2297,6 @@
       "category": "pose",
       "label": "Apoiado no parapeito",
       "prompt": "standing and leaning forward with both forearms resting on a railing, the right foot crossed behind the left foot at the ankle",
-      "prompt_pt": "em pé, inclinado para a frente com os dois antebraços apoiados num parapeito, o pé direito cruzado atrás do esquerdo na altura do tornozelo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2433,7 +2316,6 @@
       "category": "pose",
       "label": "Banqueta alta",
       "prompt": "sitting on a tall stool with the right foot on the footrest, the left leg extended down to the floor and both hands resting on the front edge of the seat",
-      "prompt_pt": "sentado numa banqueta alta com o pé direito no apoio, a perna esquerda estendida até o chão e as duas mãos na borda da frente do assento",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2453,7 +2335,6 @@
       "category": "pose",
       "label": "Sentado na escada",
       "prompt": "sitting on a step of a staircase with forearms resting on the knees and hands loosely clasped between the knees",
-      "prompt_pt": "sentado num degrau de escada com os antebraços sobre os joelhos e as mãos levemente entrelaçadas entre os joelhos",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2473,7 +2354,6 @@
       "category": "pose",
       "label": "Abraçando os joelhos",
       "prompt": "sitting on the floor with the knees drawn up to the chest, both arms wrapped around the shins and the chin resting near the knees",
-      "prompt_pt": "sentado no chão com os joelhos puxados até o peito, os dois braços envolvendo as canelas e o queixo perto dos joelhos",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2493,7 +2373,6 @@
       "category": "pose",
       "label": "Mão no queixo",
       "prompt": "sitting at a table with the right elbow on the tabletop, the chin resting on the right hand and the left hand flat on the table",
-      "prompt_pt": "sentado à mesa com o cotovelo direito sobre o tampo, o queixo apoiado na mão direita e a mão esquerda espalmada sobre a mesa",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2513,7 +2392,6 @@
       "category": "pose",
       "label": "Deitado olhando o céu",
       "prompt": "lying on the back with both hands folded behind the head, legs extended and ankles crossed, face turned up toward the sky",
-      "prompt_pt": "deitado de costas com as duas mãos cruzadas atrás da cabeça, pernas estendidas e tornozelos cruzados, rosto voltado para o céu",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2533,7 +2411,6 @@
       "category": "pose",
       "label": "Salto no ar",
       "prompt": "caught mid-jump with both feet off the ground, knees bent and both arms raised above the head",
-      "prompt_pt": "flagrado no meio de um salto com os dois pés fora do chão, joelhos dobrados e os dois braços erguidos acima da cabeça",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2553,7 +2430,6 @@
       "category": "pose",
       "label": "Corrida",
       "prompt": "running at full stride with the front knee lifted high, the back leg extended behind and both arms bent at ninety degrees and swinging",
-      "prompt_pt": "correndo em passada larga com o joelho da frente bem erguido, a perna de trás estendida e os dois braços dobrados em noventa graus balançando",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2573,7 +2449,6 @@
       "category": "pose",
       "label": "Perfil · ombro na parede",
       "prompt": "standing in profile with one shoulder against a wall, arms loosely crossed and the outer foot crossed in front of the inner foot",
-      "prompt_pt": "em pé de perfil com um ombro encostado na parede, braços cruzados de leve e o pé de fora cruzado à frente do pé de dentro",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2593,7 +2468,6 @@
       "category": "expression",
       "label": "Alegria radiante",
       "prompt": "a wide open smile showing the upper teeth, raised cheeks and crinkled eyes",
-      "prompt_pt": "um sorriso largo mostrando os dentes de cima, bochechas erguidas e olhos apertados de alegria",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2613,7 +2487,6 @@
       "category": "expression",
       "label": "Determinado",
       "prompt": "a firm jaw, slightly lowered brows and a focused gaze straight into the camera",
-      "prompt_pt": "mandíbula firme, sobrancelhas levemente baixas e olhar concentrado direto para a câmera",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2633,7 +2506,6 @@
       "category": "expression",
       "label": "Melancólico",
       "prompt": "softly downturned mouth corners, relaxed brows and eyes looking down",
-      "prompt_pt": "cantos da boca levemente caídos, sobrancelhas relaxadas e olhos voltados para baixo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2653,7 +2525,6 @@
       "category": "expression",
       "label": "Curioso",
       "prompt": "one eyebrow slightly raised, the head tilted a little to one side and lips gently pressed together",
-      "prompt_pt": "uma sobrancelha levemente erguida, a cabeça um pouco inclinada para o lado e os lábios suavemente apertados",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2673,7 +2544,6 @@
       "category": "expression",
       "label": "Sorriso travesso",
       "prompt": "a lopsided half smile with one corner of the mouth raised and slightly narrowed eyes looking at the camera",
-      "prompt_pt": "um meio sorriso torto com um canto da boca erguido e olhos levemente semicerrados olhando para a câmera",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2693,7 +2563,6 @@
       "category": "expression",
       "label": "Sonhador",
       "prompt": "a faint smile, relaxed eyelids and eyes gazing upward",
-      "prompt_pt": "um sorriso leve, pálpebras relaxadas e olhos voltados para cima",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2713,7 +2582,6 @@
       "category": "expression",
       "label": "Concentrado",
       "prompt": "slightly narrowed eyes, brows drawn together and lips closed in concentration",
-      "prompt_pt": "olhos levemente semicerrados, sobrancelhas franzidas e lábios fechados em concentração",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2733,7 +2601,6 @@
       "category": "expression",
       "label": "Segurando o riso",
       "prompt": "a suppressed laugh with closed lips curving upward and eyes squinting with amusement",
-      "prompt_pt": "um riso contido com os lábios fechados curvados para cima e os olhos apertados de diversão",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2753,7 +2620,6 @@
       "category": "action",
       "label": "Pintar numa tela",
       "prompt": "painting on a canvas on an easel, holding a brush in the right hand and a wooden palette in the left hand",
-      "prompt_pt": "pintando uma tela num cavalete, com um pincel na mão direita e uma paleta de madeira na mão esquerda",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2773,7 +2639,6 @@
       "category": "action",
       "label": "Tocar violão",
       "prompt": "playing an acoustic guitar, the left hand fretting a chord on the neck and the right hand strumming over the sound hole",
-      "prompt_pt": "tocando violão, a mão esquerda formando um acorde no braço e a mão direita dedilhando sobre a boca do instrumento",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2793,7 +2658,6 @@
       "category": "action",
       "label": "Fotografar",
       "prompt": "holding a camera up to the right eye with both hands, the right index finger on the shutter button",
-      "prompt_pt": "segurando uma câmera junto ao olho direito com as duas mãos, o indicador direito no botão do obturador",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2813,7 +2677,6 @@
       "category": "action",
       "label": "Segurar guarda-chuva",
       "prompt": "holding an open umbrella above the head with the right hand gripping the handle",
-      "prompt_pt": "segurando um guarda-chuva aberto acima da cabeça, com a mão direita no cabo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2833,7 +2696,6 @@
       "category": "action",
       "label": "Escrever num caderno",
       "prompt": "writing in an open notebook with a pen in the right hand while the left hand holds the page flat",
-      "prompt_pt": "escrevendo num caderno aberto com uma caneta na mão direita enquanto a mão esquerda segura a página",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2853,7 +2715,6 @@
       "category": "action",
       "label": "Segurar flores",
       "prompt": "holding a bouquet of fresh flowers in both hands at chest height",
-      "prompt_pt": "segurando um buquê de flores frescas com as duas mãos na altura do peito",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2873,7 +2734,6 @@
       "category": "action",
       "label": "Alongar os braços",
       "prompt": "stretching both arms straight overhead with the fingers interlaced and the palms facing up",
-      "prompt_pt": "alongando os dois braços esticados acima da cabeça com os dedos entrelaçados e as palmas para cima",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2893,7 +2753,6 @@
       "category": "action",
       "label": "Usar o notebook",
       "prompt": "typing on an open laptop with both hands, eyes on the screen",
-      "prompt_pt": "digitando num notebook aberto com as duas mãos, olhos na tela",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2913,7 +2772,6 @@
       "category": "action",
       "label": "Vestir o casaco",
       "prompt": "pulling a coat over the shoulders, the right arm already in its sleeve and the left hand holding the collar",
-      "prompt_pt": "vestindo um casaco sobre os ombros, com o braço direito já na manga e a mão esquerda segurando a gola",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2933,7 +2791,6 @@
       "category": "action",
       "label": "Cabelo ao vento",
       "prompt": "hair blown sideways by the wind, one hand rising to hold strands away from the face",
-      "prompt_pt": "cabelo soprado para o lado pelo vento, uma mão subindo para afastar os fios do rosto",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2953,7 +2810,6 @@
       "category": "action",
       "label": "Toca aqui (dois adultos)",
       "prompt": "two adults giving each other a high five, their right palms meeting above shoulder height, both smiling",
-      "prompt_pt": "dois adultos batendo as mãos no alto, as palmas direitas se encontrando acima da altura dos ombros, os dois sorrindo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2973,7 +2829,6 @@
       "category": "action",
       "label": "Caminhar juntos (dois adultos)",
       "prompt": "two adults walking side by side in step, their arms linked at the elbows",
-      "prompt_pt": "dois adultos caminhando lado a lado no mesmo passo, de braços dados",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -2993,7 +2848,6 @@
       "category": "action",
       "label": "Brindar (dois adultos)",
       "prompt": "two adults raising glasses toward each other until the rims touch at eye level",
-      "prompt_pt": "dois adultos erguendo as taças um para o outro até as bordas se tocarem na altura dos olhos",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3013,7 +2867,6 @@
       "category": "lighting",
       "label": "Rembrandt",
       "prompt": "Rembrandt lighting: a single key light high and to one side, leaving a small triangle of light on the shadowed cheek",
-      "prompt_pt": "luz Rembrandt: uma única luz principal alta e lateral, deixando um pequeno triângulo de luz na bochecha sombreada",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3033,7 +2886,6 @@
       "category": "lighting",
       "label": "Borboleta · glamour",
       "prompt": "butterfly lighting from directly in front of and above the face, with a small shadow under the nose and bright cheekbones",
-      "prompt_pt": "luz borboleta vinda de frente e de cima do rosto, com uma pequena sombra sob o nariz e maçãs do rosto iluminadas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3053,7 +2905,6 @@
       "category": "lighting",
       "label": "Contraluz com recorte",
       "prompt": "strong backlight outlining the hair and shoulders with a bright rim, and soft fill light on the face",
-      "prompt_pt": "contraluz forte contornando o cabelo e os ombros com uma borda brilhante, e luz de preenchimento suave no rosto",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3073,7 +2924,6 @@
       "category": "lighting",
       "label": "Luz de janela",
       "prompt": "soft directional daylight from a large side window, falling off gradually into shadow on the far side",
-      "prompt_pt": "luz do dia suave e direcional vinda de uma grande janela lateral, diminuindo aos poucos até a sombra do outro lado",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3095,7 +2945,6 @@
       "category": "lighting",
       "label": "Dia nublado",
       "prompt": "even overcast daylight with no hard shadows and muted, true-to-life colors",
-      "prompt_pt": "luz uniforme de dia nublado, sem sombras duras e com cores suaves e fiéis",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3117,7 +2966,6 @@
       "category": "lighting",
       "label": "Neon colorido",
       "prompt": "magenta and cyan neon light from opposite sides, with colored reflections on skin and surfaces",
-      "prompt_pt": "luz neon magenta e ciano vinda de lados opostos, com reflexos coloridos na pele e nas superfícies",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3137,7 +2985,6 @@
       "category": "lighting",
       "label": "Luz de velas",
       "prompt": "warm candlelight from below and to one side, deep amber tones and softly dark surroundings",
-      "prompt_pt": "luz de velas quente vinda de baixo e de um lado, tons âmbar profundos e arredores suavemente escuros",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3157,7 +3004,6 @@
       "category": "lighting",
       "label": "Hora azul",
       "prompt": "deep blue twilight from the sky, with warm artificial lights glowing in the background",
-      "prompt_pt": "crepúsculo azul profundo vindo do céu, com luzes artificiais quentes brilhando ao fundo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3179,7 +3025,6 @@
       "category": "lighting",
       "label": "Sol do meio-dia",
       "prompt": "hard midday sunlight from above, with crisp short shadows and high contrast",
-      "prompt_pt": "sol forte do meio-dia vindo de cima, com sombras curtas e nítidas e alto contraste",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3201,7 +3046,6 @@
       "category": "lighting",
       "label": "Luz dividida",
       "prompt": "split lighting with one half of the face fully lit and the other half in shadow",
-      "prompt_pt": "luz dividida, com metade do rosto totalmente iluminada e a outra metade na sombra",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3221,7 +3065,6 @@
       "category": "lighting",
       "label": "Neblina com feixes",
       "prompt": "a hazy atmosphere with visible beams of light cutting through the mist",
-      "prompt_pt": "atmosfera enevoada com feixes de luz visíveis atravessando a névoa",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3241,7 +3084,6 @@
       "category": "face",
       "label": "Rosto oval suave",
       "prompt": "an oval face with soft cheekbones, a gently rounded chin and balanced proportions",
-      "prompt_pt": "rosto oval com maçãs suaves, queixo levemente arredondado e proporções equilibradas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3261,7 +3103,6 @@
       "category": "face",
       "label": "Traços angulosos",
       "prompt": "an angular face with high cheekbones, a defined jawline and a straight nose",
-      "prompt_pt": "rosto anguloso com maçãs altas, mandíbula definida e nariz reto",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3281,7 +3122,6 @@
       "category": "face",
       "label": "Rosto redondo",
       "prompt": "a round face with full cheeks, a soft jaw and a small rounded chin",
-      "prompt_pt": "rosto redondo com bochechas cheias, mandíbula suave e queixo pequeno e arredondado",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3301,7 +3141,6 @@
       "category": "face",
       "label": "Sardas",
       "prompt": "a light scattering of natural freckles across the nose and cheeks",
-      "prompt_pt": "sardas naturais espalhadas de leve pelo nariz e pelas bochechas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3321,7 +3160,6 @@
       "category": "face",
       "label": "Sobrancelhas marcantes",
       "prompt": "thick, softly shaped dark eyebrows framing deep-set eyes",
-      "prompt_pt": "sobrancelhas escuras e grossas, de formato suave, emoldurando olhos profundos",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3341,7 +3179,6 @@
       "category": "face",
       "label": "Barba curta",
       "prompt": "a short, neatly trimmed full beard with a clean cheek line",
-      "prompt_pt": "barba cheia curta e bem aparada, com a linha da bochecha definida",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3361,7 +3198,6 @@
       "category": "face",
       "label": "Bigode",
       "prompt": "a well-groomed mustache with a clean-shaven chin and cheeks",
-      "prompt_pt": "bigode bem cuidado, com queixo e bochechas barbeados",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3381,7 +3217,6 @@
       "category": "face",
       "label": "Maquiagem natural",
       "prompt": "subtle natural makeup: even skin, a soft blush, defined lashes and tinted lips",
-      "prompt_pt": "maquiagem natural discreta: pele uniforme, blush suave, cílios definidos e lábios levemente coloridos",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3401,7 +3236,6 @@
       "category": "face",
       "label": "Maquiagem marcante",
       "prompt": "bold makeup with sharp winged eyeliner and deep red lipstick",
-      "prompt_pt": "maquiagem marcante com delineado gatinho bem definido e batom vermelho intenso",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3421,7 +3255,6 @@
       "category": "face",
       "label": "Covinhas",
       "prompt": "deep dimples in both cheeks",
-      "prompt_pt": "covinhas marcadas nas duas bochechas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3441,7 +3274,6 @@
       "category": "skin",
       "label": "Textura natural",
       "prompt": "natural skin texture with visible pores, fine lines and subtle variation in tone, without airbrushing",
-      "prompt_pt": "textura de pele natural com poros visíveis, linhas finas e leve variação de tom, sem retoque",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3461,7 +3293,6 @@
       "category": "skin",
       "label": "Pele clara",
       "prompt": "fair skin with cool undertones and a light rosy flush on the cheeks",
-      "prompt_pt": "pele clara com subtom frio e um leve rosado nas bochechas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3481,7 +3312,6 @@
       "category": "skin",
       "label": "Pele oliva",
       "prompt": "medium olive skin with warm golden undertones",
-      "prompt_pt": "pele oliva média com subtom dourado e quente",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3501,7 +3331,6 @@
       "category": "skin",
       "label": "Pele morena",
       "prompt": "warm medium-brown skin with an even, healthy tone",
-      "prompt_pt": "pele morena média e quente, de tom uniforme e saudável",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3521,7 +3350,6 @@
       "category": "skin",
       "label": "Pele negra",
       "prompt": "deep dark-brown skin with rich warm undertones and a natural sheen",
-      "prompt_pt": "pele negra retinta com subtom quente e rico e brilho natural",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3541,7 +3369,6 @@
       "category": "skin",
       "label": "Bronzeada",
       "prompt": "sun-kissed tanned skin with a warm glow",
-      "prompt_pt": "pele bronzeada pelo sol, com brilho quente",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3561,7 +3388,6 @@
       "category": "skin",
       "label": "Pele luminosa",
       "prompt": "a dewy, softly luminous skin finish with gentle highlights on the cheekbones",
-      "prompt_pt": "acabamento de pele luminoso e viçoso, com brilho suave nas maçãs do rosto",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3581,7 +3407,6 @@
       "category": "skin",
       "label": "Pele matte",
       "prompt": "a matte skin finish with minimal shine and an even texture",
-      "prompt_pt": "acabamento de pele matte, com pouco brilho e textura uniforme",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3601,7 +3426,6 @@
       "category": "skin",
       "label": "Pele madura",
       "prompt": "mature skin with natural wrinkles around the eyes and mouth and fine texture",
-      "prompt_pt": "pele madura com rugas naturais ao redor dos olhos e da boca e textura fina",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3621,7 +3445,6 @@
       "category": "skin",
       "label": "Vitiligo",
       "prompt": "skin with natural vitiligo patches of lighter pigmentation",
-      "prompt_pt": "pele com manchas naturais de vitiligo, de pigmentação mais clara",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3641,7 +3464,6 @@
       "category": "camera",
       "label": "Nível dos olhos · 50 mm",
       "prompt": "eye-level camera with a natural 50 mm lens perspective",
-      "prompt_pt": "câmera na altura dos olhos com perspectiva natural de lente 50 mm",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3661,7 +3483,6 @@
       "category": "camera",
       "label": "Retrato · 85 mm",
       "prompt": "85 mm portrait lens perspective with gentle background compression and a shallow depth of field",
-      "prompt_pt": "perspectiva de lente de retrato 85 mm, com leve compressão do fundo e pouca profundidade de campo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3681,7 +3502,6 @@
       "category": "camera",
       "label": "Grande angular · 24 mm",
       "prompt": "24 mm wide-angle perspective that shows more of the surroundings, with slight stretching at the edges",
-      "prompt_pt": "perspectiva grande angular de 24 mm que mostra mais do ambiente, com leve esticamento nas bordas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3701,7 +3521,6 @@
       "category": "camera",
       "label": "Vista de cima",
       "prompt": "camera directly overhead, looking straight down",
-      "prompt_pt": "câmera bem acima, olhando direto para baixo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3721,7 +3540,6 @@
       "category": "camera",
       "label": "Ângulo holandês",
       "prompt": "dutch angle, with the camera tilted about fifteen degrees",
-      "prompt_pt": "ângulo holandês, com a câmera inclinada cerca de quinze graus",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3741,7 +3559,6 @@
       "category": "camera",
       "label": "Contra-plongée extremo",
       "prompt": "extreme low angle from near the ground, looking up",
-      "prompt_pt": "ângulo extremamente baixo, perto do chão, olhando para cima",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3761,7 +3578,6 @@
       "category": "camera",
       "label": "Sobre o ombro",
       "prompt": "camera behind and slightly above one shoulder of the person, showing what they are looking at",
-      "prompt_pt": "câmera atrás e um pouco acima de um ombro da pessoa, mostrando o que ela está olhando",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3782,7 +3598,6 @@
       "category": "camera",
       "label": "Close de detalhe",
       "prompt": "very close macro perspective with an extremely shallow depth of field",
-      "prompt_pt": "perspectiva macro bem próxima, com profundidade de campo extremamente rasa",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3802,7 +3617,6 @@
       "category": "camera",
       "label": "Fotojornalismo espontâneo",
       "prompt": "candid handheld documentary perspective with a slightly off-center composition",
-      "prompt_pt": "perspectiva documental espontânea, de câmera na mão, com composição levemente descentralizada",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3822,7 +3636,6 @@
       "category": "body",
       "label": "Corpo esguio",
       "prompt": "a slim, slender build with narrow shoulders and long limbs",
-      "prompt_pt": "corpo esguio e magro, com ombros estreitos e membros longos",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3842,7 +3655,6 @@
       "category": "body",
       "label": "Corpo médio",
       "prompt": "an average build with balanced proportions",
-      "prompt_pt": "corpo médio, de proporções equilibradas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3862,7 +3674,6 @@
       "category": "body",
       "label": "Atlético",
       "prompt": "an athletic build with defined shoulders, toned arms and a strong core",
-      "prompt_pt": "corpo atlético, com ombros definidos, braços tonificados e abdômen firme",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3882,7 +3693,6 @@
       "category": "body",
       "label": "Musculoso",
       "prompt": "a muscular build with broad shoulders, thick arms and a powerful chest",
-      "prompt_pt": "corpo musculoso, com ombros largos, braços grossos e peitoral forte",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3902,7 +3712,6 @@
       "category": "body",
       "label": "Curvilíneo",
       "prompt": "a curvy build with full hips and a defined waist",
-      "prompt_pt": "corpo curvilíneo, com quadris largos e cintura definida",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3922,7 +3731,6 @@
       "category": "body",
       "label": "Plus size",
       "prompt": "a plus-size build with soft, full proportions",
-      "prompt_pt": "corpo plus size, de proporções cheias e macias",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3942,7 +3750,6 @@
       "category": "body",
       "label": "Alto e longilíneo",
       "prompt": "a tall, long-limbed build with an elongated silhouette",
-      "prompt_pt": "corpo alto e longilíneo, de silhueta alongada",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3962,7 +3769,6 @@
       "category": "body",
       "label": "Baixo e compacto",
       "prompt": "a petite, compact build with short stature",
-      "prompt_pt": "corpo baixo e compacto, de estatura pequena",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -3982,7 +3788,6 @@
       "category": "body",
       "label": "Corpo maduro",
       "prompt": "an older adult build with natural softness and a relaxed posture",
-      "prompt_pt": "corpo de adulto mais velho, com maciez natural e postura relaxada",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4002,7 +3807,6 @@
       "category": "hair",
       "label": "Longo ondulado",
       "prompt": "long, loose wavy hair falling past the shoulders",
-      "prompt_pt": "cabelo longo, solto e ondulado, caindo abaixo dos ombros",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4022,7 +3826,6 @@
       "category": "hair",
       "label": "Chanel liso",
       "prompt": "a sleek straight bob cut at chin length with a blunt edge",
-      "prompt_pt": "corte chanel liso na altura do queixo, com pontas retas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4042,7 +3845,6 @@
       "category": "hair",
       "label": "Pixie",
       "prompt": "a short textured pixie cut with tapered sides",
-      "prompt_pt": "corte pixie curto e texturizado, com laterais afinadas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4062,7 +3864,6 @@
       "category": "hair",
       "label": "Cacheado volumoso",
       "prompt": "voluminous natural curls with defined ringlets",
-      "prompt_pt": "cachos naturais volumosos e bem definidos",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4082,7 +3883,6 @@
       "category": "hair",
       "label": "Crespo afro",
       "prompt": "a full, rounded afro of tightly coiled natural hair",
-      "prompt_pt": "black power cheio e arredondado, de cabelo crespo natural",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4102,7 +3902,6 @@
       "category": "hair",
       "label": "Tranças box braids",
       "prompt": "long box braids gathered behind the shoulders",
-      "prompt_pt": "tranças box braids longas, reunidas atrás dos ombros",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4122,7 +3921,6 @@
       "category": "hair",
       "label": "Coque alto",
       "prompt": "hair pulled up into a neat high bun, with a few loose strands framing the face",
-      "prompt_pt": "cabelo preso num coque alto e arrumado, com alguns fios soltos emoldurando o rosto",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4142,7 +3940,6 @@
       "category": "hair",
       "label": "Rabo de cavalo",
       "prompt": "hair tied back in a smooth high ponytail",
-      "prompt_pt": "cabelo preso num rabo de cavalo alto e liso",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4162,7 +3959,6 @@
       "category": "hair",
       "label": "Raspado",
       "prompt": "a very short, even buzz cut",
-      "prompt_pt": "cabelo raspado bem curto e uniforme",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4182,7 +3978,6 @@
       "category": "hair",
       "label": "Undercut",
       "prompt": "an undercut with shaved sides and longer hair swept back on top",
-      "prompt_pt": "undercut com laterais raspadas e cabelo mais longo penteado para trás no topo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4202,7 +3997,6 @@
       "category": "hair",
       "label": "Grisalho",
       "prompt": "naturally silver-grey hair",
-      "prompt_pt": "cabelo grisalho natural",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4222,7 +4016,6 @@
       "category": "hair",
       "label": "Ruivo acobreado",
       "prompt": "vivid copper-red hair",
-      "prompt_pt": "cabelo ruivo acobreado intenso",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4242,7 +4035,6 @@
       "category": "hair",
       "label": "Loiro platinado",
       "prompt": "platinum blonde hair with a cool tone",
-      "prompt_pt": "cabelo loiro platinado de tom frio",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4262,7 +4054,6 @@
       "category": "hair",
       "label": "Preto brilhante",
       "prompt": "glossy jet-black hair",
-      "prompt_pt": "cabelo preto intenso e brilhante",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4283,7 +4074,6 @@
       "label": "Diversão · Guerra de travesseiros (dois adultos)",
       "prompt": "two adults kneeling face to face on a bed in a playful pillow fight, each swinging a pillow overhead with both hands, laughing with mouths open and hair flying",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos ajoelhados de frente um para o outro sobre a cama numa guerra de travesseiros, cada um erguendo um travesseiro acima da cabeça com as duas mãos, rindo de boca aberta e com o cabelo voando",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4308,7 +4098,6 @@
       "label": "Diversão · Cavalinho nas costas (dois adultos)",
       "prompt": "two adults laughing in a piggyback ride: the adult in front bends slightly forward and holds the back of the rider's knees, while the rider sits high on the front adult's back with both arms wrapped around the front adult's shoulders",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos rindo numa brincadeira de cavalinho: o adulto da frente se inclina um pouco e segura a parte de trás dos joelhos de quem monta, que vai alto nas costas dele com os dois braços em volta dos ombros",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4333,7 +4122,6 @@
       "label": "Diversão · Selfie com caretas (dois adultos)",
       "prompt": "two adults cheek to cheek making silly faces for a selfie, the adult on the right holding a phone up at arm's length with the right hand, the adult on the left sticking out the tongue and crossing the eyes",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos de rosto colado fazendo caretas para uma selfie, o adulto da direita segurando o celular no alto com o braço direito esticado, o da esquerda mostrando a língua e vesgo de brincadeira",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4358,7 +4146,6 @@
       "label": "Diversão · Guerra de água (dois adultos)",
       "prompt": "two adults standing a few steps apart and splashing water at each other, the adult on the left squeezing a water pistol with both hands and the adult on the right tossing water from a bucket held in both hands, both laughing, droplets frozen in the air",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos em pé a alguns passos de distância jogando água um no outro, o da esquerda apertando uma pistola de água com as duas mãos e o da direita atirando água de um balde seguro com as duas mãos, os dois rindo, com gotas paradas no ar",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4383,7 +4170,6 @@
       "label": "Diversão · Pulo em grupo (três amigos)",
       "prompt": "three adult friends jumping in the air side by side at the same moment, knees bent and feet off the ground, arms thrown up overhead, all laughing toward the camera",
       "edit_prompt": null,
-      "prompt_pt": "três amigos adultos pulando lado a lado no mesmo instante, joelhos dobrados e pés fora do chão, braços jogados para o alto, todos rindo para a câmera",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4408,7 +4194,6 @@
       "label": "Diversão · Jogo de tabuleiro (quatro amigos)",
       "prompt": "four adult friends, each sitting on a chair around a table, playing a board game, the friend on the far right rolling dice with the right hand while the rest lean in and cheer with raised fists",
       "edit_prompt": null,
-      "prompt_pt": "quatro amigos adultos sentados em cadeiras em volta de uma mesa jogando um jogo de tabuleiro, o da ponta direita jogando os dados com a mão direita enquanto os outros se inclinam e comemoram de punhos erguidos",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4433,7 +4218,6 @@
       "label": "Diversão · Karaokê (dois adultos)",
       "prompt": "two adults standing side by side and singing karaoke, each holding a microphone in the right hand close to the mouth and the left arm raised high with fingers spread, eyes squeezed shut in an exaggerated rock star moment",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos em pé lado a lado cantando karaokê, cada um com o microfone na mão direita perto da boca e o braço esquerdo erguido com os dedos abertos, olhos apertados num momento exagerado de estrela do rock",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4458,7 +4242,6 @@
       "label": "Sérias · Reunião de trabalho (três adultos)",
       "prompt": "three adults sitting upright, each on a chair at a meeting table, the adult in the middle speaking with both hands resting on a closed folder, the two adults at the sides listening attentively with straight backs",
       "edit_prompt": null,
-      "prompt_pt": "três adultos sentados eretos, cada um numa cadeira, numa mesa de reunião, o do meio falando com as duas mãos sobre uma pasta fechada, os dois das pontas ouvindo com atenção e as costas retas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4483,7 +4266,6 @@
       "label": "Sérias · Consolar (dois adultos)",
       "prompt": "two adults sitting side by side, the adult on the left resting the forehead in both hands, the adult on the right leaning close with the left arm around the shoulders of the adult on the left, both quiet and somber",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos sentados lado a lado, o da esquerda com a testa apoiada nas duas mãos, o da direita inclinado para perto com o braço esquerdo em volta dos ombros do outro, os dois quietos e sérios",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4508,7 +4290,6 @@
       "label": "Sérias · Analisar um mapa (dois adultos)",
       "prompt": "two adults standing shoulder to shoulder at a table, both leaning forward with the hands flat on a large unfolded map, eyes fixed on the map, faces serious and concentrated",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos em pé ombro a ombro junto a uma mesa, os dois inclinados para a frente com as mãos espalmadas sobre um mapa grande aberto, olhos fixos no mapa, rostos sérios e concentrados",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4533,7 +4314,6 @@
       "label": "Sérias · Retrato formal (dois adultos)",
       "prompt": "two adults standing side by side in a formal portrait, shoulders almost touching, arms relaxed at the sides, chins level and expressions composed, both facing the camera with a steady gaze",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos em pé lado a lado num retrato formal, ombros quase encostados, braços soltos ao lado do corpo, queixos nivelados e expressões contidas, os dois de frente para a câmera com o olhar firme",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4558,7 +4338,6 @@
       "label": "Sérias · Discussão tensa (dois adultos)",
       "prompt": "two adults face to face at close distance in a tense argument, the adult on the left pointing the right index finger at the chest of the adult on the right, who keeps the arms crossed and the jaw clenched",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos frente a frente, bem próximos, numa discussão tensa, o da esquerda apontando o indicador direito para o peito do da direita, que mantém os braços cruzados e o maxilar travado",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4583,7 +4362,6 @@
       "label": "Sérias · Homenagem silenciosa (três adultos)",
       "prompt": "three adults standing in a row with heads slightly bowed, hands clasped in front of the body and eyes lowered in a moment of quiet remembrance",
       "edit_prompt": null,
-      "prompt_pt": "três adultos em pé, em fila, com a cabeça levemente baixa, mãos unidas na frente do corpo e olhos baixos num momento de homenagem silenciosa",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4608,7 +4386,6 @@
       "label": "Sérias · Entrevista (dois adultos)",
       "prompt": "two adults sitting in armchairs angled toward each other in an interview, the adult on the left holding a notebook on the lap and listening, the adult on the right speaking with the right hand open in a calm gesture",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos sentados em poltronas viradas uma para a outra numa entrevista, o da esquerda com um caderno no colo, ouvindo, o da direita falando com a mão direita aberta num gesto calmo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4633,7 +4410,6 @@
       "label": "Animadas · Abraço comemorando (dois adultos)",
       "prompt": "two adults leaping into a celebratory hug, arms thrown around each other's shoulders, feet off the ground and mouths open in a joyful shout",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos pulando num abraço de comemoração, braços jogados em volta dos ombros um do outro, pés fora do chão e bocas abertas num grito de alegria",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4658,7 +4434,6 @@
       "label": "Animadas · Festa dançante (quatro amigos)",
       "prompt": "four adult friends dancing energetically in a loose circle, arms raised overhead, hips swinging and hair in motion, all laughing and singing along",
       "edit_prompt": null,
-      "prompt_pt": "quatro amigos adultos dançando com energia numa roda solta, braços erguidos acima da cabeça, quadris balançando e cabelos em movimento, todos rindo e cantando junto",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4683,7 +4458,6 @@
       "label": "Animadas · Correr de mãos dadas (dois adultos)",
       "prompt": "two adults running side by side and holding hands, the left adult's right hand gripping the right adult's left hand, the free arms pumping, both laughing with hair flying",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos correndo lado a lado de mãos dadas, a mão direita do da esquerda segurando a mão esquerda do da direita, os braços livres balançando, os dois rindo com o cabelo voando",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4708,7 +4482,6 @@
       "label": "Animadas · Chuva de confete (três adultos)",
       "prompt": "three adults standing close together and throwing handfuls of colorful confetti into the air above their heads, faces tilted up and arms stretched high, confetti falling all around",
       "edit_prompt": null,
-      "prompt_pt": "três adultos em pé bem juntos jogando punhados de confete colorido para o alto, rostos voltados para cima e braços esticados, confete caindo em volta",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4733,7 +4506,6 @@
       "label": "Animadas · Girar de mãos dadas (dois adultos)",
       "prompt": "two adults facing each other and spinning in a circle, arms stretched out and hands clasped across the gap, both leaning back against the pull, hair swinging outward and both laughing",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos de frente um para o outro girando em círculo, braços esticados e mãos dadas no espaço entre eles, os dois inclinados para trás contra o puxão, cabelos voando para fora e os dois rindo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4758,7 +4530,6 @@
       "label": "Animadas · Torcida (três adultos)",
       "prompt": "three adult fans standing shoulder to shoulder and cheering, fists pumped in the air, mouths wide open in a shout and faces painted in team colors",
       "edit_prompt": null,
-      "prompt_pt": "três torcedores adultos em pé ombro a ombro comemorando, punhos erguidos no ar, bocas bem abertas num grito e rostos pintados com as cores do time",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4783,7 +4554,6 @@
       "label": "Família · Balançar a criança (dois adultos e uma criança)",
       "prompt": "two adults walking with a small child between them, each adult holding a hand of the child and lifting the child up in a playful swing, the child's feet off the ground and the child laughing",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos caminhando com uma criança pequena entre eles, cada adulto segurando uma das mãos da criança e erguendo-a num balanço de brincadeira, os pés da criança fora do chão e a criança rindo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4809,7 +4579,6 @@
       "label": "Família · Piquenique (dois adultos e duas crianças)",
       "prompt": "two adults and two children sitting together on a checkered blanket on the grass, sharing sandwiches and fruit from a wicker basket, everyone smiling",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos e duas crianças sentados juntos numa toalha xadrez sobre a grama, dividindo sanduíches e frutas de uma cesta de vime, todos sorrindo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4835,7 +4604,6 @@
       "label": "Família · Hora da história (dois adultos e uma criança)",
       "prompt": "two adults sitting on a sofa with a child between them, the adult on the left holding an open picture book and reading aloud, the child pointing at the page and the adult on the right smiling at the child",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos sentados num sofá com uma criança entre eles, o da esquerda segurando um livro ilustrado aberto e lendo em voz alta, a criança apontando para a página e o da direita sorrindo para a criança",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4861,7 +4629,6 @@
       "label": "Família · Fazer biscoitos (dois adultos e uma criança)",
       "prompt": "two adults and a child standing at a kitchen table and rolling out cookie dough, the child pressing a cookie cutter into the dough with both hands, flour dusted on hands and forearms, all smiling",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos e uma criança em pé junto à mesa da cozinha abrindo massa de biscoito, a criança apertando um cortador na massa com as duas mãos, farinha nas mãos e nos antebraços, todos sorrindo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4887,7 +4654,6 @@
       "label": "Família · Abraço em grupo (quatro pessoas)",
       "prompt": "four family members of different ages in a tight group hug, arms wrapped around each other's shoulders and backs, heads leaning together, all smiling with eyes closed",
       "edit_prompt": null,
-      "prompt_pt": "quatro pessoas da família, de idades diferentes, num abraço apertado em grupo, braços em volta dos ombros e das costas umas das outras, cabeças encostadas, todos sorrindo de olhos fechados",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4913,7 +4679,6 @@
       "label": "Família · Avós com o neto no colo (três pessoas)",
       "prompt": "two grandparents sitting side by side on a bench with a toddler on the lap of the grandparent on the left, the grandparent on the right holding a small toy out to the toddler, all three smiling",
       "edit_prompt": null,
-      "prompt_pt": "dois avós sentados lado a lado num banco com uma criança pequena no colo de quem está à esquerda, quem está à direita oferecendo um brinquedo pequeno à criança, os três sorrindo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4939,7 +4704,6 @@
       "label": "Família · Passeio de mãos dadas (quatro pessoas)",
       "prompt": "a family of four walking in a row and holding hands, two adults at the ends and two children in the middle, seen from behind as they stroll away",
       "edit_prompt": null,
-      "prompt_pt": "uma família de quatro pessoas caminhando em fila de mãos dadas, dois adultos nas pontas e duas crianças no meio, vistos de costas enquanto se afastam",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4965,7 +4729,6 @@
       "label": "Descontraídas · Filme no sofá (dois adultos)",
       "prompt": "two adults sitting close together on a sofa under a soft blanket, sharing a bowl of popcorn held between them, legs tucked up and shoulders touching, eyes on a screen off to the side",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos sentados bem juntos num sofá debaixo de uma manta macia, dividindo uma tigela de pipoca entre eles, pernas encolhidas e ombros encostados, olhos numa tela ao lado",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -4990,7 +4753,6 @@
       "label": "Descontraídas · Café e conversa (dois adultos)",
       "prompt": "two adults sitting across a small table from each other, each on a chair with a cup of coffee, both leaning back and laughing at a shared story",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos sentados em cadeiras, um de frente para o outro numa mesa pequena, com xícaras de café, os dois recostados e rindo de uma história",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -5015,7 +4777,6 @@
       "label": "Descontraídas · Deitados olhando o céu (dois adultos)",
       "prompt": "two adults lying on their backs on a picnic blanket, heads close together and bodies pointing in opposite directions, gazing up at the sky with relaxed smiles",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos deitados de costas numa toalha de piquenique, cabeças próximas e corpos em direções opostas, olhando para o céu com sorrisos tranquilos",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -5040,7 +4801,6 @@
       "label": "Descontraídas · Cozinhar juntos (dois adultos)",
       "prompt": "two adults standing side by side at a kitchen counter, the adult on the left stirring a pot with a wooden spoon and the adult on the right chopping vegetables on a board, both chatting and smiling",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos em pé lado a lado na bancada da cozinha, o da esquerda mexendo uma panela com colher de pau e o da direita picando legumes numa tábua, os dois conversando e sorrindo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -5065,7 +4825,6 @@
       "label": "Descontraídas · Passeio com sorvete (dois adultos)",
       "prompt": "two adults walking side by side at an easy pace, each holding an ice cream cone in the right hand, chatting and smiling at each other",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos caminhando lado a lado sem pressa, cada um com uma casquinha de sorvete na mão direita, conversando e sorrindo um para o outro",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -5090,7 +4849,6 @@
       "label": "Descontraídas · Bate-papo na escadaria (três amigos)",
       "prompt": "three adult friends sitting on wide outdoor steps, elbows resting on the knees, holding drinks and chatting casually with relaxed smiles",
       "edit_prompt": null,
-      "prompt_pt": "três amigos adultos sentados numa escadaria larga ao ar livre, cotovelos apoiados nos joelhos, segurando bebidas e conversando à vontade com sorrisos tranquilos",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -5115,7 +4873,6 @@
       "label": "Sexy · Dança lenta colada (dois adultos)",
       "prompt": "two adults in a slow, intimate dance with bodies pressed close, the adult on the left resting both hands low on the right adult's waist, the right adult's arms draped around the left adult's neck, foreheads touching and eyes closed",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos numa dança lenta e íntima, corpos colados, o da esquerda com as duas mãos na parte baixa da cintura do outro, os braços do da direita em volta do pescoço do da esquerda, testas encostadas e olhos fechados",
       "adult": true,
       "enabled": true,
       "requirements": {
@@ -5140,7 +4897,6 @@
       "label": "Sexy · Beijo no pescoço (dois adultos)",
       "prompt": "two adults close together, the adult behind wrapping both arms around the waist of the adult in front and pressing a slow kiss to the side of the neck, the adult in front tilting the head aside with eyes closed and a soft smile",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos bem juntos, o de trás envolvendo a cintura do da frente com os dois braços e dando um beijo lento na lateral do pescoço, o da frente inclinando a cabeça de lado com os olhos fechados e um sorriso suave",
       "adult": true,
       "enabled": true,
       "requirements": {
@@ -5165,7 +4921,6 @@
       "label": "Sexy · Quase beijo (dois adultos)",
       "prompt": "two adults face to face with lips almost touching, the left adult's right hand cradling the right adult's jaw and the right adult's hands resting on the left adult's chest, eyes half closed in anticipation",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos frente a frente com os lábios quase se tocando, a mão direita do da esquerda segurando o queixo do outro e as mãos do da direita apoiadas no peito do da esquerda, olhos semicerrados de expectativa",
       "adult": true,
       "enabled": true,
       "requirements": {
@@ -5190,7 +4945,6 @@
       "label": "Sexy · Olhares na cama (dois adultos)",
       "prompt": "two adults lying on their sides on a bed and facing each other, heads on the pillows, fingers lightly intertwined between them, gazing into each other's eyes with soft smiles",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos deitados de lado na cama, de frente um para o outro, cabeças nos travesseiros, dedos levemente entrelaçados entre eles, olhando nos olhos um do outro com sorrisos suaves",
       "adult": true,
       "enabled": true,
       "requirements": {
@@ -5215,7 +4969,6 @@
       "label": "Sexy · Sussurro ao ouvido (dois adultos)",
       "prompt": "two adults standing close, the adult on the left leaning in to whisper into the right adult's ear with lips brushing the earlobe, the adult on the right biting the lower lip with a slow smile and eyes on the camera",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos em pé bem próximos, o da esquerda se inclinando para sussurrar no ouvido do outro com os lábios roçando o lóbulo, o da direita mordendo o lábio inferior com um sorriso lento e o olhar na câmera",
       "adult": true,
       "enabled": true,
       "requirements": {
@@ -5240,7 +4993,6 @@
       "label": "Sexy · Puxar para perto (dois adultos)",
       "prompt": "two adults face to face, the adult on the left holding the right adult's shoulders with both hands and pulling the right adult closer, both holding an intense, playful gaze with faces a breath apart",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos frente a frente, o da esquerda segurando os ombros do outro com as duas mãos e puxando-o para perto, os dois num olhar intenso e provocante, rostos a um suspiro de distância",
       "adult": true,
       "enabled": true,
       "requirements": {
@@ -5265,7 +5017,6 @@
       "label": "Sexy · Abraço diante do espelho (dois adultos)",
       "prompt": "two adults in front of a full-length mirror, the adult behind wrapping both arms around the waist of the adult in front and resting the chin on the shoulder of the adult in front, both watching their reflection with a sultry gaze",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos diante de um espelho de corpo inteiro, o de trás envolvendo a cintura do da frente com os dois braços e apoiando o queixo no ombro dele, os dois olhando o próprio reflexo com olhar sedutor",
       "adult": true,
       "enabled": true,
       "requirements": {
@@ -5290,7 +5041,6 @@
       "label": "Dupla · Costas com costas",
       "prompt": "two adults standing back to back with the shoulder blades touching, arms crossed over the chest, weight even on both feet and heads turned slightly toward the camera",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos em pé costas com costas, escápulas encostadas, braços cruzados no peito, peso igual nos dois pés e cabeças viradas levemente para a câmera",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -5315,7 +5065,6 @@
       "label": "Dupla · Testa com testa",
       "prompt": "two adults standing face to face with foreheads gently touching, eyes closed and hands resting on each other's upper arms",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos em pé frente a frente com as testas encostadas de leve, olhos fechados e mãos apoiadas nos braços um do outro",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -5340,7 +5089,6 @@
       "label": "Dupla · Cabeça no ombro (sentados)",
       "prompt": "two adults sitting side by side, the adult on the right resting the head on the left adult's shoulder and the left adult's arm around the right adult's shoulders, both relaxed",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos sentados lado a lado, o da direita com a cabeça apoiada no ombro do da esquerda, que passa o braço em volta dos ombros do outro, os dois relaxados",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -5365,7 +5113,6 @@
       "label": "Trio · Lado a lado, braços nos ombros",
       "prompt": "three adults standing side by side in a row with arms around each other's shoulders, weight relaxed, facing the camera with easy smiles",
       "edit_prompt": null,
-      "prompt_pt": "três adultos em pé lado a lado, em fila, com os braços nos ombros uns dos outros, peso relaxado, de frente para a câmera com sorrisos tranquilos",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -5390,7 +5137,6 @@
       "label": "Grupo · Escada em dois níveis (quatro pessoas)",
       "prompt": "four people sitting on a staircase in two staggered rows, two on the lower step and two on the step above, elbows resting on the knees and bodies angled toward the center",
       "edit_prompt": null,
-      "prompt_pt": "quatro pessoas sentadas numa escada em duas fileiras desencontradas, duas no degrau de baixo e duas no de cima, cotovelos apoiados nos joelhos e corpos virados para o centro",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -5415,7 +5161,6 @@
       "label": "Família · Criança no colo (três pessoas)",
       "prompt": "two adults standing side by side with a small child held on the right hip of the adult on the left, the adult on the right with an arm around the waist of the adult on the left, all three facing the camera",
       "edit_prompt": null,
-      "prompt_pt": "dois adultos em pé lado a lado com uma criança pequena no quadril direito do adulto da esquerda, o da direita com o braço na cintura do da esquerda, os três de frente para a câmera",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -5441,7 +5186,6 @@
       "label": "Sala de estar familiar",
       "prompt": "a cozy family living room with a large sectional sofa, a soft rug, a wooden coffee table, framed photos on the walls and toys in a basket",
       "edit_prompt": null,
-      "prompt_pt": "uma sala de estar aconchegante com sofá grande de canto, tapete macio, mesa de centro de madeira, fotos emolduradas nas paredes e brinquedos num cesto",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -5466,7 +5210,6 @@
       "label": "Parque · gramado ensolarado",
       "prompt": "a sunny city park lawn with soft green grass, tall shade trees and a winding path in the background",
       "edit_prompt": null,
-      "prompt_pt": "um gramado de parque ensolarado com grama verde e macia, árvores altas de sombra e um caminho sinuoso ao fundo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -5491,7 +5234,6 @@
       "label": "Parque de diversões",
       "prompt": "an amusement park with a lit ferris wheel, colorful game stalls, string lights and a paved walkway",
       "edit_prompt": null,
-      "prompt_pt": "um parque de diversões com roda-gigante iluminada, barracas de jogos coloridas, varais de luzes e um caminho pavimentado",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -5516,7 +5258,6 @@
       "label": "Bar de karaokê",
       "prompt": "a karaoke bar with a small stage, a screen showing lyrics, colored spotlights, booth seats and low tables",
       "edit_prompt": null,
-      "prompt_pt": "um bar de karaokê com palco pequeno, tela com a letra das músicas, refletores coloridos, cabines com bancos e mesas baixas",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -5541,7 +5282,6 @@
       "label": "Sala de reunião",
       "prompt": "a corporate meeting room with a long table, ergonomic chairs, a glass wall and a large screen",
       "edit_prompt": null,
-      "prompt_pt": "uma sala de reunião corporativa com mesa comprida, cadeiras ergonômicas, parede de vidro e uma tela grande",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -5566,7 +5306,6 @@
       "label": "Acampamento · fogueira",
       "prompt": "a campsite at night with a crackling campfire, log benches around it, tents and dark pine trees behind",
       "edit_prompt": null,
-      "prompt_pt": "um acampamento à noite com fogueira estalando, bancos de tronco em volta, barracas e pinheiros escuros ao fundo",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -5591,7 +5330,6 @@
       "label": "Pista de dança",
       "prompt": "a dance club with colored lights, light haze, a DJ booth and mirrored walls around an open dance floor",
       "edit_prompt": null,
-      "prompt_pt": "uma casa noturna com luzes coloridas, névoa leve, cabine de DJ e paredes espelhadas em volta da pista",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -5616,7 +5354,6 @@
       "label": "Suíte à luz de velas",
       "prompt": "a dim luxury suite with a large bed dressed in silk sheets, dozens of lit candles, a velvet armchair and heavy drapes",
       "edit_prompt": null,
-      "prompt_pt": "uma suíte luxuosa à meia-luz com cama grande de lençóis de seda, dezenas de velas acesas, poltrona de veludo e cortinas pesadas",
       "adult": false,
       "enabled": true,
       "requirements": {

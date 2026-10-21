@@ -40,7 +40,6 @@ POSSESSIVE = re.compile(rf'\b(?:his|her|their)\s+(?={BODY_PART})', re.I)
 STANDALONE_POSSESSIVE = re.compile(r'\b(?:hers|his)\b(?=\s*(?:[,;.]|$))', re.I)
 # A single person's pose opens with the posture and names nobody.
 SUBJECT = re.compile(r'^(?:a|an|the|one) (?:young |adult )?(?:man|woman|person|adult|model|guy|lady)\s+', re.I)
-SUBJECT_PT = re.compile(r'^(?:um|uma) (?:homem|mulher|pessoa|adult[oa]|modelo|rapaz|moça)\s+', re.I)
 SINGLE_GENDERED = re.compile(r'\b(?:a|an|the) (?:young |adult )?(?:man|woman|guy|lady)\b', re.I)
 PRONOUN = re.compile(r'\b(?:he|she|him|her)\b', re.I)
 GENDERED_NOUN = re.compile(r'\b(?:man|woman|guy|lady)\b', re.I)
@@ -65,17 +64,11 @@ SENSUAL = re.compile(r'\b(?:sensual\w*|seductive\w*|sexy|sexual\w*|erotic\w*|nak
 EXPLICIT = re.compile(r'\b(?:genital\w*|penis\w*|vagina\w*|vulva\w*|labia|clitor\w*|testic\w*|scrot\w*|anus|anal|'
                       r'nipples?|areola\w*|pubic|erection|orgasm\w*|penetrat\w*|sex|sexual(?:ly)?|intercourse|'
                       r'masturbat\w*|ejaculat\w*|aroused)\b', re.I)
-EXPLICIT_PT = re.compile(r'\b(?:genita\w*|pênis|penis|vagina\w*|vulva\w*|clitóris|testículos?|escroto|ânus|anal|'
-                         r'mamilos?|aréolas?|pubian\w*|ereção|orgasmo|penetra\w*|sexo|sexua\w*|masturba\w*)\b', re.I)
 # The pose describes positions only: hair, paint, clothing, background, light and the photo itself come from other
 # fields or do not belong in the option at all.
 NOT_POSE = re.compile(CLOTHING.pattern[:-3] + r'|background|backdrop|studio|lighting|lit|shadows?|captured|'
                       r'unchanged|intact|as in the input|haircut|hairstyle|bob|ponytail|braids?|bangs|shoulder-length|'
                       r'cropped hair|short hair|long hair|paint|painted|skin tone|jerseys?)\b', re.I)
-NOT_POSE_PT = re.compile(r'\b(?:roupas?|camis\w*|calças?|jeans|tênis|sapatos?|vestido|saia|jaqueta|casaco|blusa|'
-                         r'meias?|boné|chapéu|acessórios?|fundo|estúdio|ilumina\w*|luz|sombras?|corte de cabelo|'
-                         r'cabelo (?:curto|comprido|longo|chanel|raspado)|chanel|franja|rabo de cavalo|tranças?|'
-                         r'pintad\w*|pintura|maquiagem|tatuage\w*|inalterad\w*)\b', re.I)
 # The setting comes from the Cenário field: surfaces stay generic and nothing names color, material or the room.
 COLOR_MATERIAL = (r'(?:red|blue|green|yellow|orange|purple|pink|brown|black|white|gray|grey|beige|navy|teal|turquoise|'
                   r'golden|gold|silver|velvet|leather|wooden|wood|linen|cotton|silk|satin|fabric|upholstered|tufted|'
@@ -99,31 +92,6 @@ ROOM = re.compile(r'\s+(?:in|inside|at) (?:a|an|the) (?:[a-z-]+ ){0,2}(?:room|be
                   r'garden|park|beach|street|living room)\b', re.I)
 BACKGROUND_OBJECTS = re.compile(r'\b(?:lamps?|curtains?|windows?|plants?|paintings?|picture frames?|shelf|shelves|'
                                 r'bookcases?|vases?|candles?|wallpaper|decor\w*|furniture|throw blanket)\b', re.I)
-COLOR_MATERIAL_PT = (r'(?:vermelh[oa]s?|azu(?:l|is)|verdes?|amarel[oa]s?|laranjas?|rox[oa]s?|rosa|marro(?:m|ns)|'
-                     r'pret[oa]s?|branc[oa]s?|cinzas?|cinzent[oa]s?|bege|creme|dourad[oa]s?|pratead[oa]s?|'
-                     r'estofad[oa]s?|listrad[oa]s?|xadrez|estampad[oa]s?|florid[oa]s?|acolchoad[oa]s?)')
-SCENE_PT = [
-    (re.compile(r'\s+(?:de |em )(?:veludo|couro|madeira|linho|algodão|seda|cetim|tecido|mármore|vidro|metal|vime|'
-                r'palha)\b', re.I), ''),
-    (re.compile(rf'\s+{COLOR_MATERIAL_PT}(?:\s+e\s+{COLOR_MATERIAL_PT})*\b', re.I), ''),
-    (re.compile(r'\b(no|o|do|pelo|um) braço d[oa] (?:sofá|poltrona|cadeira|assento)\b', re.I),
-     lambda m: {'no': 'na', 'o': 'a', 'do': 'da', 'pelo': 'pela', 'um': 'uma'}[m.group(1).lower()]
-     + ' lateral do assento'),
-    (re.compile(r'\b(uma|na|da|a|numa|pela) (?:poltrona|cadeira|banqueta|almofada)s?\b', re.I),
-     lambda m: {'uma': 'um', 'na': 'no', 'da': 'do', 'a': 'o', 'numa': 'num', 'pela': 'pelo'}[m.group(1).lower()]
-     + ' assento'),
-    (re.compile(r'\b(?:sofá|poltrona|cadeira|banco|banqueta|divã|pufe|almofada)s?\b', re.I), 'assento'),
-    (re.compile(r'\b(um|no|do|o|num|pelo) colchão\b', re.I),
-     lambda m: {'um': 'uma', 'no': 'na', 'do': 'da', 'o': 'a', 'num': 'numa', 'pelo': 'pela'}[m.group(1).lower()]
-     + ' cama'),
-    (re.compile(r'\btapete\b', re.I), 'chão'),
-    (re.compile(r'\b(?:escrivaninha|bancada)\b', re.I), 'mesa'),
-    (re.compile(r'\s+(?:em|n[oa]|numa?|dentro d[oa]) (?:uma? )?(?:sala(?: de estar)?|quarto|cozinha|estúdio|'
-                r'escritório|banheiro|jardim|parque|praia|rua)\b', re.I), ''),
-]
-BACKGROUND_PT = re.compile(r'\b(?:luminárias?|abajur\w*|cortinas?|janelas?|plantas?|quadros?|prateleiras?|estantes?|'
-                           r'vasos?|velas?|papel de parede|decora\w*|móve(?:l|is))\b', re.I)
-
 
 # Words that cost length and give the image model nothing to draw.
 FILLER = [
@@ -148,14 +116,7 @@ def generic_scene(text: str) -> str:
     return re.sub(r'\bthe the\b', 'the', text)
 
 
-def generic_scene_pt(text: str) -> str:
-    for pattern, generic in SCENE_PT:
-        text = pattern.sub(generic, text)
-    return without_explicit(text, BACKGROUND_PT)
-
-
-PERSON_PLACE = re.compile(r'^(?:the (?:adult|person|child) (?:on|in|at)\b|(?:a|o) (?:pessoa|adult[oa]|criança) '
-                          r'(?:da|do|à|ao|no|na)\b)', re.I)
+PERSON_PLACE = re.compile(r'^the (?:adult|person|child) (?:on|in|at)\b', re.I)
 ITEM_LIMIT = 2000
 # Postures named in the text, in the vocabulary of the metadata.
 WORD_POSTURE = {'seated': 'seated', 'standing': 'standing', 'kneeling': 'kneeling', 'all_fours': 'all_fours',
@@ -185,7 +146,6 @@ DESCRIBE_SYSTEM = (
     '"edit_prompt": complete English instruction for editing a photo into this pose, with the same content as '
     '"prompt" and at most 140 words, starting with "Change the pose of ..." and ending with a period. Describe only the '
     'bodies: do not say what to keep.\n'
-    '"prompt_pt": the same description as "prompt", in Brazilian Portuguese, just as short.\n'
     '"participants": number of people. "children": true only when a child or baby is in the scene.\n'
     '"posture": one of ' + ', '.join(POSTURES) + ' (any when the people are in different postures).\n'
     '"gaze": one of ' + ', '.join(GAZES) + '. "orientation" (where the body faces, seen from the camera): one of '
@@ -217,7 +177,6 @@ GUIDANCE = {
     'sd_syntax': 'The text has weights or quality tags: write plain sentences.',
     'too_vague': 'The text is too short: say where the torso, arms, legs and head are.',
     'clothing': 'The text mentions clothing or accessories ({words}): remove them and describe only the body.',
-    'missing_pt': '"prompt_pt" is empty: write the Portuguese description.',
     'scene_details': 'The text names colors or materials: describe only the bodies and their contact, with generic '
                      'surfaces.',
 }
@@ -325,8 +284,6 @@ def draft_from_answer(data: dict, category: str) -> dict:
     if children and SENSUAL.search(wording):
         raise DescriptionRefused('A foto tem criança e a descrição saiu com conteúdo sensual: o rascunho foi '
                                  'descartado. Esse tipo de opção não pode ser criado.')
-    pt = without_explicit(_sentence(data.get('prompt_pt')).rstrip(' .'), EXPLICIT_PT)
-    pt = generic_scene_pt(without_explicit(pt, NOT_POSE_PT, 'com'))
     prompt, edit = (without_filler(generic_scene(without_explicit(without_explicit(t, EXPLICIT), NOT_POSE, 'with')))
                     for t in (prompt, edit))
     wording = f'{prompt} {edit}'.lower()
@@ -358,7 +315,6 @@ def draft_from_answer(data: dict, category: str) -> dict:
         requirements['children'] = True
     return {'category': category, 'label': _label(data.get('label'), participants, children, category),
             'prompt': _fit(prompt), 'edit_prompt': _fit(edit, '.') or None,
-            'prompt_pt': _fit(SUBJECT_PT.sub('', pt) if participants == 1 else pt) or None,
             'adult': data.get('adult') is True and not children, 'enabled': True,
             'requirements': requirements, 'provides': {}}
 
@@ -391,7 +347,7 @@ def review(draft: dict) -> tuple[list[dict], list[str]]:
 
 
 def repair_prompt(draft: dict, problems: list[str]) -> str:
-    answer = {k: draft[k] for k in ('label', 'prompt', 'edit_prompt', 'prompt_pt', 'adult')}
+    answer = {k: draft[k] for k in ('label', 'prompt', 'edit_prompt', 'adult')}
     answer.update(draft['requirements'])
     return ('Your previous answer for this photo:\n' + json.dumps(answer, ensure_ascii=False) + '\nFix these '
             'problems and answer again with the complete JSON object, keeping everything else:\n- '

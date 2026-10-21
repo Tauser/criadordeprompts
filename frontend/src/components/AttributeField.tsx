@@ -47,7 +47,7 @@ export function AttributeField({category, attribute, items, references, targetId
   // Explanations stay out of the form: they appear on hover or keyboard focus.
   const description = attribute.intent === 'free' ? 'Sem instrução: o modelo decide.'
     : attribute.intent === 'keep' ? 'Fica como está na foto.'
-    : item ? item.prompt_pt || item.prompt
+    : item ? item.prompt
     : source ? `Vem da imagem de referência “${source.label}”.` : null;
   const tipId = `${id}-tip`;
   const offered = suggestions.filter(s => !s.attribute || keyOf(s.attribute) !== key);

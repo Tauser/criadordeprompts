@@ -144,7 +144,6 @@ def test_common_pose_and_action_texts_are_concrete(client):
     for item in items:
         assert not vague.search(item['prompt']), item['id']
         assert item['requirements']['posture'] and item['requirements']['gaze'], item['id']
-        assert item['prompt_pt'], item['id']
 
 
 def test_delete_runs_removes_unshared_files_only(client):

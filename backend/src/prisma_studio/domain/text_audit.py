@@ -75,8 +75,6 @@ def audit_item(item: Item) -> list[Finding]:
     if scene:
         add('scene_details', 'style', 'O texto da pose cita cor ou material (' + ', '.join(scene) + '): isso briga '
             'com o Cenário escolhido. Descreva só o corpo e o contato, com superfícies genéricas.')
-    if not (item.prompt_pt or '').strip():
-        add('missing_pt', 'style', 'Sem descrição em português.')
 
     req = item.requirements
     if body and req.support_any_of:

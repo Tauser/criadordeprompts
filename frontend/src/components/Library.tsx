@@ -34,7 +34,7 @@ const LEVELS = [['conflict', 'Conflito', 'error'], ['ambiguity', 'Ambíguo', 'wa
 const levelOf = (level: TextFinding['level']) => LEVELS.find(l => l[0] === level) ?? LEVELS[2];
 
 const blank = (category: Category): Item => ({id: `user.${category}.${uuid().slice(0, 8)}`, category,
-  label: '', prompt: '', prompt_pt: '', adult: false, enabled: true, requirements: {}, provides: {}});
+  label: '', prompt: '', adult: false, enabled: true, requirements: {}, provides: {}});
 
 export function Library({snapshot, onSaved, notify, setDirty}: Props) {
   const [category, setCategory] = useState<Category | 'all'>('all');
@@ -43,21 +43,14 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
   const [draft, setDraft] = useState<Item | null>(null);
   const [original, setOriginal] = useState<string>('');
   const [saving, setSaving] = useState(false);
-  const [translating, setTranslating] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const lastClicked = useRef<number | null>(null);
   const shiftHeld = useRef(false);                 // Shift+clique seleciona um intervalo
-  // The translation belongs to the item that asked for it: opening another item or leaving the page drops it.
+  // Answers that arrive after another item was opened must not touch it.
   const openId = useRef<string | null>(null);
   openId.current = draft?.id ?? null;
   const draftRef = useRef(draft);
   draftRef.current = draft;
-  const translationJob = useRef<{item: string; job?: string} | null>(null);
-  useEffect(() => () => {
-    const job = translationJob.current?.job;
-    translationJob.current = null;
-    if (job) api.cancelTranslation(job).catch(() => undefined);
-  }, []);
   const dirty = draft !== null && JSON.stringify(draft) !== original;
   // Wording review of the open item: text that contradicts its own metadata or can be read two ways.
   const [findings, setFindings] = useState<TextFinding[]>([]);
@@ -84,7 +77,7 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
 
   const matching = useMemo(() => snapshot.items.filter(item => (!incomplete || missingMetadata(item).length > 0)
     && (!review || !!report?.[item.id]?.length)
-    && (!query || (item.label + ' ' + item.prompt + ' ' + (item.prompt_pt ?? '')).toLowerCase().includes(query.toLowerCase()))),
+    && (!query || (item.label + ' ' + item.prompt).toLowerCase().includes(query.toLowerCase()))),
     [snapshot, query, incomplete, review, report]);
   const items = useMemo(() => matching.filter(item => category === 'all' || item.category === category)
     .sort((a, b) => compareCategoryThenLabel(a, b)), [matching, category]);
@@ -122,12 +115,6 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
 
   const open = (item: Item | null) => {
     if (dirty && !confirm('Descartar as alterações não salvas?')) return;
-    const pendingJob = translationJob.current;
-    if (pendingJob && pendingJob.item !== item?.id) {
-      translationJob.current = null;
-      setTranslating(false);
-      if (pendingJob.job) api.cancelTranslation(pendingJob.job).catch(() => undefined);
-    }
     setDraft(item ? structuredClone(item) : null);
     setOriginal(item ? JSON.stringify(item) : '');
   };
@@ -147,7 +134,7 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
     if (!draft) return;
     if (!draft.label.trim() || !draft.prompt.trim()) {notify('Preencha o nome e a descrição em inglês.', true); return;}
     const others = userItems().filter(i => i.id !== draft.id);
-    const cleaned = {...draft, prompt_pt: draft.prompt_pt || null, edit_prompt: draft.edit_prompt?.trim() || null};
+    const cleaned = {...draft, edit_prompt: draft.edit_prompt?.trim() || null};
     if (await persist([...others, cleaned])) {
       if (openId.current === draft.id) setOriginal(JSON.stringify(draft));
       notify(cleaned.adult ? 'Opção salva. Ela é +18: na tela Criar, só aparece com "Mostrar opções adultas (+18)" ligado em Conteúdo.'
@@ -162,38 +149,6 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
     if (await persist(userItems().filter(i => i.id !== draft.id))) {
       if (openId.current === draft.id) {setDraft(null); setOriginal('');}
       notify('Biblioteca atualizada.');
-    }
-  };
-  const translate = async () => {
-    if (!draft?.prompt_pt?.trim() || translationJob.current) return;
-    const item = draft.id, label = draft.label || 'opção', source = draft.prompt_pt;
-    const mine = {item} as {item: string; job?: string};
-    translationJob.current = mine;
-    const current = () => translationJob.current === mine;
-    setTranslating(true);
-    try {
-      const job = await api.translate(source);
-      mine.job = job.id;
-      if (!current()) {api.cancelTranslation(job.id).catch(() => undefined); return;}
-      for (let i = 0; i < 180 && current(); i++) {
-        await new Promise(r => setTimeout(r, 1500));
-        if (!current()) return;
-        const state = await api.translation(job.id);
-        if (state.status === 'completed' && state.text) {
-          if (!current()) return;
-          if (openId.current !== item || draftRef.current?.prompt_pt !== source) {
-            notify(`O texto de “${label}” mudou durante a tradução. Nada foi alterado.`); return;
-          }
-          const text = state.text, open = draftRef.current;
-          if (open?.prompt && !confirm(`Substituir a descrição em inglês por:\n\n${text}`)) return;
-          setDraft(d => d && d.id === item ? {...d, prompt: text} : d);
-          return;
-        }
-        if (['failed', 'cancelled'].includes(state.status)) throw new Error(state.error || 'A tradução falhou.');
-      }
-      if (current()) throw new Error('A tradução demorou demais.');
-    } catch (error) {if (current()) notify((error as Error).message, true);} finally {
-      if (current()) {translationJob.current = null; setTranslating(false);}
     }
   };
   // Bulk actions. Built-in options cannot be deleted (they come from the catalog); they can be deactivated,
@@ -241,10 +196,10 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
   const fromPhoto = (item: string, photo: ReferenceDraft) => {
     const open = draftRef.current;
     if (!open || open.id !== item) return;
-    if ((open.prompt.trim() || open.prompt_pt?.trim() || open.edit_prompt?.trim())
+    if ((open.prompt.trim() || open.edit_prompt?.trim())
         && !confirm('Substituir o nome, os textos e os metadados pelo rascunho da foto?')) return;
     setDraft(d => d && d.id === item ? {...d, label: photo.label, prompt: photo.prompt, edit_prompt: photo.edit_prompt ?? null,
-      prompt_pt: photo.prompt_pt ?? '', adult: photo.adult, requirements: {...photo.requirements}} : d);
+      adult: photo.adult, requirements: {...photo.requirements}} : d);
     notify('Rascunho preenchido a partir da foto. Revise e salve.');
   };
   const prov = (key: string, value: string) => setDraft(d => d && {...d, provides: {...d.provides, [key]: value || null}});
@@ -320,7 +275,7 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
               <button className={'item' + (draft?.id === item.id ? ' selected' : '')} onClick={() => open(item)}>
                 <strong>{item.label}</strong>
                 {tagsOf(item) && <span className="muted small">{tagsOf(item)}</span>}
-                {item.prompt_pt && <span className="item-pt">{item.prompt_pt}</span>}
+                <span className="item-text">{item.prompt}</span>
                 {missingMetadata(item).length > 0 && <span className="missing-meta">Falta: {missingMetadata(item).map(metadataLabel).join(', ')}</span>}
               </button>
             </li>
@@ -350,12 +305,6 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
             {(draft.category === 'pose' || draft.category === 'action') && snapshot.origins[draft.id] === undefined &&
               <DescribeFromPhoto key={draft.id} category={draft.category} onDraft={photo => fromPhoto(draft.id, photo)} />}
             <label>Nome<input value={draft.label} maxLength={80} onChange={e => setDraft({...draft, label: e.target.value})} /></label>
-            <label>Descrição em português (para você consultar)
-              <textarea rows={3} value={draft.prompt_pt ?? ''} onChange={e => setDraft({...draft, prompt_pt: e.target.value})} /></label>
-            <span className="translate">
-              {translating ? <span className="muted small">Traduzindo no modelo local…</span>
-                : <button type="button" className="btn-link" disabled={!draft.prompt_pt?.trim()} onClick={translate}>Traduzir para inglês</button>}
-            </span>
             <label>Descrição em inglês (é o texto enviado ao modelo)
               <textarea rows={4} value={draft.prompt} onChange={e => setDraft({...draft, prompt: e.target.value})} /></label>
             <TranslateButton key={`prompt-${draft.id}`} label="a descrição em inglês" text={draft.prompt}

@@ -11,7 +11,6 @@ HUG = {
               'adult on the right, the adult on the right resting the left hand on the chest of the adult on the left, '
               'both looking at the camera.',
     'edit_prompt': 'change the pose of the two adults so they stand side by side in a hug, keeping the faces unchanged',
-    'prompt_pt': 'dois adultos em pé lado a lado, abraçados pela cintura, olhando para a câmera',
 }
 
 
@@ -152,12 +151,9 @@ def test_sexual_anatomy_never_enters_the_draft():
                                'prompt': 'lying on the back on a bed, the torso upright on the pillows, the genitals '
                                          'exposed toward the camera, the right knee raised',
                                'edit_prompt': 'Change the pose so that the person lies on the back on a bed, nipples '
-                                              'visible, the right knee raised.',
-                               'prompt_pt': 'deitado de costas na cama, o tronco ereto nos travesseiros, a vagina '
-                                            'à mostra, o joelho direito erguido'}, 'pose')
+                                              'visible, the right knee raised.'}, 'pose')
     assert draft['prompt'] == 'lying on the back on a bed, the torso upright on the bed, the right knee raised'
     assert draft['edit_prompt'] == 'Change the pose so that the person lies on the back on a bed, the right knee raised.'
-    assert draft['prompt_pt'] == 'deitado de costas na cama, o tronco ereto nos travesseiros, o joelho direito erguido'
 
 
 def test_a_long_description_is_cut_after_a_whole_part():
@@ -171,12 +167,9 @@ def test_hair_clothing_and_background_are_left_out_of_the_detail():
                                'prompt': 'two adults standing side by side; the adult on the left with a short dark bob '
                                          'haircut, head tilted back, right fist raised; the adult on the right with '
                                          'cropped hair, left fist raised; both wearing striped jerseys and jeans, '
-                                         'standing against a plain studio backdrop with soft lighting',
-                               'prompt_pt': 'dois adultos em pé lado a lado; a pessoa da esquerda com cabelo chanel, '
-                                            'cabeça inclinada para trás; fundo cinza de estúdio'}, 'action')
+                                         'standing against a plain studio backdrop with soft lighting'}, 'action')
     assert draft['prompt'] == ('two adults standing side by side; the adult on the left, head tilted back, right fist '
                                'raised; the adult on the right, left fist raised')
-    assert draft['prompt_pt'] == 'dois adultos em pé lado a lado; a pessoa da esquerda, cabeça inclinada para trás'
 
 
 def test_the_edit_instruction_loses_the_photo_and_what_to_keep_whole():
@@ -193,13 +186,9 @@ def test_the_setting_stays_out_of_the_pose():
     draft = draft_from_answer({**HUG, 'participants': 2, 'posture': 'seated', 'support_any_of': ['seat'],
                                'prompt': 'two adults sitting on a gray velvet sofa in a cozy living room, the adult on '
                                          'the left resting the right elbow on the armrest, the adult on the right '
-                                         'holding a red mug with both hands, a floor lamp glowing behind them',
-                               'prompt_pt': 'dois adultos sentados numa poltrona de veludo cinza na sala de estar, o '
-                                            'adulto da esquerda com o cotovelo direito no braço do sofá'}, 'action')
+                                         'holding a red mug with both hands, a floor lamp glowing behind them'}, 'action')
     assert draft['prompt'] == ('two adults sitting on a seat, the adult on the left resting the right elbow on the side '
                                'of the seat, the adult on the right holding a mug with both hands')
-    assert draft['prompt_pt'] == ('dois adultos sentados num assento, o adulto da esquerda com o cotovelo direito na '
-                                  'lateral do assento')
     assert draft['requirements']['support_any_of'] == ['seat']
 
 

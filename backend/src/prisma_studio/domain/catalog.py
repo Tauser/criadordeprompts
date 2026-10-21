@@ -38,11 +38,18 @@ class Item(BaseModel):
     prompt: str = Field(min_length=1, max_length=2000, description='English text sent to the model')
     edit_prompt: str | None = Field(default=None, min_length=1, max_length=2000,
                                    description='Optional complete edit instruction; generation still uses prompt')
-    prompt_pt: str | None = Field(default=None, max_length=2000)
     adult: bool = False
     enabled: bool = True
     requirements: Requirements = Requirements()
     provides: Provides = Provides()
+
+    @model_validator(mode='before')
+    @classmethod
+    def _without_portuguese_copy(cls, data):
+        """Options saved before the Portuguese copy was dropped still load; the old text is discarded."""
+        if isinstance(data, dict) and 'prompt_pt' in data:
+            data = {k: v for k, v in data.items() if k != 'prompt_pt'}
+        return data
 
     @field_validator('edit_prompt')
     @classmethod

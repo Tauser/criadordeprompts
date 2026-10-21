@@ -62,7 +62,7 @@ export interface Requirements {
   support_any_of?: Support[] | null; minimum_framing?: Framing | null; children?: boolean | null;
 }
 export interface Item {
-  id: string; category: Category; label: string; prompt: string; prompt_pt?: string | null; edit_prompt?: string | null;
+  id: string; category: Category; label: string; prompt: string; edit_prompt?: string | null;
   adult: boolean; enabled: boolean; requirements: Requirements;
   provides: {supports?: Support[] | null; framing?: Framing | null; view?: Orientation | null; period?: Period | null;
     place?: Place | null};
@@ -125,7 +125,7 @@ export interface CoherenceJob {
 
 export interface TextFinding {code: string; level: 'conflict' | 'ambiguity' | 'style'; message: string}
 // A pose or action drafted from a reference photo by the local model; it is only a draft, never saved by the server.
-export type ReferenceDraft = Pick<Item, 'category' | 'label' | 'prompt' | 'edit_prompt' | 'prompt_pt' | 'adult' | 'requirements'>;
+export type ReferenceDraft = Pick<Item, 'category' | 'label' | 'prompt' | 'edit_prompt' | 'adult' | 'requirements'>;
 export interface ReferenceDescription {id: string; status: string; stage?: 'describe' | 'repair'; draft?: ReferenceDraft;
   findings?: TextFinding[]; error?: string; warning?: string}
 // A quick Turbo preview of a pose or action draft; the image is kept only in the server's memory.

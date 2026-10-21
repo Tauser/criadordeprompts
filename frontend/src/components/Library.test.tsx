@@ -13,7 +13,7 @@ afterEach(() => {cleanup(); vi.clearAllMocks(); vi.unstubAllGlobals();});
 
 const twoItems: LibrarySnapshot = {revision: 1, origins: {'environment.a': 'builtin', 'environment.b': 'builtin'},
   items: ['a', 'b'].map(id => ({id: `environment.${id}`, category: 'environment', label: id === 'a' ? 'Jardim' : 'Praia',
-    prompt: id, prompt_pt: id === 'a' ? 'um jardim' : 'uma praia', adult: false, enabled: true,
+    prompt: id, adult: false, enabled: true,
     requirements: {}, provides: {}}))};
 
 it('does not mark a newly opened item dirty when saving the previous item finishes', async () => {
@@ -54,18 +54,6 @@ it('reviews the whole library grouped by level and opens a flagged option in the
   expect(api.saveLibrary).not.toHaveBeenCalled();
   fireEvent.click(screen.getByLabelText(/Revisar biblioteca/));
   expect(screen.getByRole('button', {name: /Praia/})).toBeTruthy();
-});
-
-it('cancels a translation whose creation answer arrives after switching items', async () => {
-  let resolve!: (job: {id: string; status: string}) => void;
-  vi.mocked(api.translate).mockReturnValue(new Promise(done => {resolve = done;}));
-  render(<Library snapshot={twoItems} onSaved={vi.fn()} notify={vi.fn()} setDirty={vi.fn()} />);
-  fireEvent.click(screen.getByRole('button', {name: /Jardim/}));
-  fireEvent.click(screen.getByRole('button', {name: 'Traduzir para inglês'}));
-  fireEvent.click(screen.getByRole('button', {name: /Praia/}));
-  await act(async () => resolve({id: 'old-translation', status: 'queued'}));
-  expect(api.cancelTranslation).toHaveBeenCalledWith('old-translation');
-  expect(api.translation).not.toHaveBeenCalled();
 });
 
 it('saves the complete edit instruction separately from the generation description', async () => {
@@ -111,7 +99,7 @@ it('deactivates selected built-in options instead of deleting them', async () =>
 const photoDraft = {category: 'action' as const, label: 'Abraço de lado (dois adultos)',
   prompt: 'two adults standing side by side, the adult on the left wrapping the right arm around the waist of the adult on the right',
   edit_prompt: 'Change the pose of the two adults so they stand side by side in a hug.',
-  prompt_pt: 'dois adultos em pé lado a lado, abraçados pela cintura', adult: false,
+  adult: false,
   requirements: {participants: 2, posture: 'standing' as const, gaze: 'any' as const, orientation: 'front' as const,
     support_any_of: [], minimum_framing: 'half' as const}};
 
