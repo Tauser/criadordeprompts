@@ -172,6 +172,16 @@ export function removeCharacter(ws: Workspace, id: string): Workspace {
   return next;
 }
 
+// A saved character ("ficha") used in this request: its main photo is a reference that is another person in the scene.
+// Unlike addReference, it never becomes the photo to edit, even when the request has none yet.
+export function addSavedCharacter(ws: Workspace, id: string, file: FileInfo, notes: string): Workspace {
+  if (ws.request.references.length >= 10) throw new Error('Use até dez imagens.');
+  const next = clone(ws);
+  next.request.references.push({id, label: file.name});
+  next.files[id] = file;
+  return describeCharacter(addCharacter(next, id), id, notes);
+}
+
 export function describeCharacter(ws: Workspace, id: string, description: string): Workspace {
   const next = clone(ws);
   next.request.characters = (next.request.characters ?? []).map(c => c.reference_id === id ? {...c, description} : c);

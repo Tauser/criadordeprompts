@@ -1,11 +1,25 @@
 import {describe, expect, it} from 'vitest';
-import {addReference, applyPreset, applyReference, initialWorkspace, removeReference, requestForSubmit, setAttribute, setTarget} from './workspace';
+import {addReference, addSavedCharacter, applyPreset, applyReference, initialWorkspace, removeReference, requestForSubmit, setAttribute, setTarget} from './workspace';
 import {wordDiff} from '../lib/diff';
 import type {StudioRequest} from '../api/types';
 
 const file = (name: string) => ({hash: name.padEnd(64, '0'), width: 10, height: 10, name});
 
 describe('workspace', () => {
+  it('adds a saved character as another person with its notes, without making it the photo to edit', () => {
+    const ws = addSavedCharacter(initialWorkspace('edit'), 'ref-ana', file('ana'), 'Roupa de sempre');
+    expect(ws.request.target_id).toBeNull();
+    expect(ws.request.references).toEqual([{id: 'ref-ana', label: 'ana'}]);
+    expect(ws.request.characters).toEqual([{reference_id: 'ref-ana', description: 'Roupa de sempre'}]);
+    expect(ws.files['ref-ana'].hash).toBe(file('ana').hash);
+  });
+
+  it('refuses a saved character when the scene already has the maximum of extra people', () => {
+    let ws = initialWorkspace('generate');
+    for (const id of ['a', 'b', 'c']) ws = addSavedCharacter(ws, id, file(id), '');
+    expect(() => addSavedCharacter(ws, 'd', file('d'), '')).toThrow();
+  });
+
   it('clears group clothing scope when switching to keeping the original clothing', () => {
     const ws = initialWorkspace('edit');
     ws.request.wardrobe_scope = 'all';

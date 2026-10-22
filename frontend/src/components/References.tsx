@@ -1,10 +1,11 @@
 import {useEffect, useRef, useState} from 'react';
 import {api, fileUrl} from '../api/client';
-import type {CharacterPosition} from '../api/types';
+import type {CharacterPosition, SavedCharacter} from '../api/types';
+import {imageSize} from '../lib/characters';
 import {CATEGORY_LABELS} from '../lib/labels';
 import {sortBy} from '../lib/sort';
 import {uuid} from '../lib/uuid';
-import {MAX_CHARACTERS, ROLES, addCharacter, addReference, applyReference, characterNumber, describeCharacter,
+import {MAX_CHARACTERS, ROLES, addCharacter, addReference, addSavedCharacter, applyReference, characterNumber, describeCharacter,
   placeCharacter, referenceRoles, removeCharacter, removeReference, setTarget, type Workspace} from '../state/workspace';
 import {Switch, Tip} from './Controls';
 import {Icon} from './Icon';
@@ -36,6 +37,36 @@ export function References({workspace, slots, disabled, update, notify, maskRequ
   const [menu, setMenu] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const addRef = useRef<(files: File[]) => void>(() => undefined);
+  // Fichas de personagem saved on the "Personagens" screen; this form only reads them.
+  const [saved, setSaved] = useState<SavedCharacter[] | null>(null);
+  const [savedFailed, setSavedFailed] = useState(false);
+  useEffect(() => {
+    let stopped = false;
+    api.characters()
+      .then(result => {if (!stopped) setSaved(result.characters);})
+      .catch(() => {if (!stopped) setSavedFailed(true);});
+    return () => {stopped = true;};
+  }, []);
+  const castFull = (request.characters ?? []).length >= MAX_CHARACTERS;
+
+  // The ficha's main photo becomes a reference, and its character in the scene; its notes describe that person.
+  const useSaved = async (id: string) => {
+    const character = saved?.find(c => c.id === id);
+    if (!character || !character.photos[0]) return;
+    if (castFull) {notify(`Use até ${MAX_CHARACTERS} personagens extras.`, true); return;}
+    if (request.references.length >= 10) {notify('Use até dez imagens.', true); return;}
+    setBusy(true);
+    try {
+      const hash = character.photos[0];
+      const size = await imageSize(fileUrl(hash));
+      const file = {hash, width: size.width, height: size.height, name: character.name};
+      update(ws => addSavedCharacter(ws, 'ref-' + uuid().slice(0, 8), file, character.notes));
+    } catch (error) {
+      notify((error as Error).message, true);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const add = async (list: FileList | File[] | null) => {
     const all = Array.from(list ?? []);
@@ -125,7 +156,6 @@ export function References({workspace, slots, disabled, update, notify, maskRequ
           const isTarget = ref.id === request.target_id;
           const roles = referenceRoles(workspace, ref.id);
           const person = characterNumber(workspace, ref.id);
-          const castFull = (request.characters ?? []).length >= MAX_CHARACTERS;
           const slot = isTarget ? 1 : slots[ref.id];
           const role = isTarget ? 'Foto alvo' : person ? `Personagem ${person}` : roles.length ? 'Referência' : 'Não usada';
           const actions = [
@@ -177,6 +207,18 @@ export function References({workspace, slots, disabled, update, notify, maskRequ
           );
         })}
       </ul>}
+      <div className="character-pick">
+        <label>Usar personagem da ficha
+          <select aria-label="Usar personagem da ficha" value="" disabled={disabled || busy || castFull || !saved?.length} onChange={e => {
+            const id = e.target.value;
+            if (id) void useSaved(id);
+          }}>
+            <option value="">{saved === null ? (savedFailed ? 'Indisponível' : 'Carregando…') : saved.length ? 'Escolha uma ficha' : 'Nenhuma ficha salva'}</option>
+            {saved?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </label>
+        {castFull && <ul className="field-issues"><li>Já há {MAX_CHARACTERS} personagens extras na cena. Tire um para usar outra ficha.</li></ul>}
+      </div>
       {characters.map(({ref, person, character}) => (
         <div key={ref.id} className="character-note">
           <label htmlFor={`character-${ref.id}`}>Personagem {person} · onde está e o que faz <span className="muted">(opcional, em inglês)</span></label>

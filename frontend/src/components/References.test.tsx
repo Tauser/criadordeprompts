@@ -6,7 +6,8 @@ import {api} from '../api/client';
 import {initialWorkspace} from '../state/workspace';
 import {References} from './References';
 
-vi.mock('../api/client', () => ({api: {upload: vi.fn()}, fileUrl: (hash: string) => `/api/files/${hash}`}));
+vi.mock('../api/client', () => ({api: {upload: vi.fn(), characters: vi.fn(async () => ({characters: []}))},
+  fileUrl: (hash: string) => `/api/files/${hash}`}));
 afterEach(() => {cleanup(); vi.unstubAllGlobals(); vi.clearAllMocks();});
 
 it.each(['generate', 'edit'] as const)('adds uploaded photos in %s mode without randomUUID', async mode => {
@@ -24,6 +25,27 @@ it.each(['generate', 'edit'] as const)('adds uploaded photos in %s mode without 
   expect(screen.getByText('1 / 10')).toBeTruthy();
   if (mode === 'edit') expect(screen.getByText('Foto alvo')).toBeTruthy();
   await waitFor(() => expect(api.upload).toHaveBeenCalledWith(image, 'foto.png'));
+  expect(notify).not.toHaveBeenCalled();
+});
+
+vi.mock('../lib/characters', async importOriginal => ({...await importOriginal<typeof import('../lib/characters')>(),
+  imageSize: vi.fn(async () => ({width: 800, height: 1200}))}));
+
+it('uses a saved character: its main photo is another person in the scene, described by the notes', async () => {
+  vi.mocked(api.characters).mockResolvedValue({characters: [{id: 'c1', name: 'Ana', notes: 'Roupa de sempre',
+    photos: ['b'.repeat(64)], created_at: 1, updated_at: 1}]});
+  const notify = vi.fn();
+  function Editor() {
+    const [workspace, update] = useState(initialWorkspace('edit'));
+    return <References workspace={workspace} update={update} disabled={false} slots={{}} notify={notify} />;
+  }
+  render(<Editor />);
+  await waitFor(() => expect(screen.getByRole('option', {name: 'Ana'})).toBeTruthy());
+  fireEvent.change(screen.getByLabelText('Usar personagem da ficha'), {target: {value: 'c1'}});
+  expect(await screen.findByRole('img', {name: 'Ana'})).toBeTruthy();
+  expect(screen.getByText('Personagem 2')).toBeTruthy();
+  expect(screen.getByDisplayValue('Roupa de sempre')).toBeTruthy();
+  expect(screen.queryByText('Foto alvo')).toBeNull();
   expect(notify).not.toHaveBeenCalled();
 });
 
