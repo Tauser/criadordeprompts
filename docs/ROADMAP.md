@@ -41,8 +41,8 @@ Os nós já estão no ComfyUI; falta baixar os modelos.
 
 | # | Item | O que resolve | Esforço |
 |---|---|---|---|
-| 1.1 | **SDPose (pontos do corpo)** | Mede a cabeça contra os ombros (cabeça desproporcional) e conta braços e pernas (membro a mais). Vira aviso e critério para escolher a melhor variação. | M |
-| 1.2 | **RT-DETR (detector de pessoas)** | Conta pessoas pelo corpo, inclusive de costas ou com o rosto escondido. Também acha cama, sofá e cadeira, para conferir o apoio da pose. | M |
+| 1.1 | ⏸ **SDPose (pontos do corpo)** | Testado em 21/10 e deixado de fora. A medida da cabeça contra o tronco não separou a cabeça colada das imagens normais, e com pessoas sobrepostas o rosto saía marcado no lugar errado. Também não conta membros: o esqueleto tem sempre o mesmo número de pontos. O modelo fica instalado para 3.4 e 4.2. | M |
+| 1.2 | ✅ **RT-DETR (detector de pessoas)** (corte de 0,75) | Conta pessoas pelo corpo, inclusive de costas ou com o rosto escondido. Também acha cama, sofá e cadeira, para conferir o apoio da pose. | M |
 
 Antes de entrar no Studio, cada medida é calibrada no banco de casos (0.1), para não gerar alarme falso.
 
@@ -54,7 +54,7 @@ Antes de entrar no Studio, cada medida é calibrada no banco de casos (0.1), par
 | 2.2 | **Fichas de personagem** | Uma aba "Personagens": nome, fotos e traços que não mudam. Na edição, escolhe-se "Ana" num campo, em vez de anexar a foto de novo. | G |
 | 2.3 | **Folha de referência** | Gera o personagem de frente, de perfil e de três quartos em fundo neutro; a melhor vira a referência oficial da ficha. | M |
 | 2.4 | **Posição de cada pessoa** | Esquerda, direita, frente ou atrás, no lugar do "ao lado" de hoje. | P |
-| 2.5 | Aviso de rosto descrito em texto | Quando o personagem tem foto de referência, escrever "olhos azuis" faz o modelo ignorar a foto. | P |
+| 2.5 | ✅ Aviso de rosto descrito em texto | Quando o personagem tem foto de referência, escrever "olhos azuis" faz o modelo ignorar a foto. | P |
 | 2.6 | Conferir se o personagem mudou | Compara o rosto do resultado com a ficha e marca a variação mais parecida. Depende de um modelo de identidade, que ainda não está no ComfyUI; precisa ser avaliado. | M |
 
 ## Fase 3 — Controle da cena
@@ -62,7 +62,7 @@ Antes de entrar no Studio, cada medida é calibrada no banco de casos (0.1), par
 | # | Item | O que resolve | Esforço |
 |---|---|---|---|
 | 3.1 | **Máscara por texto (SAM 3)** | Escreve-se "a mulher" ou "a camiseta" e a máscara sai sozinha. | M |
-| 3.2 | Corrigir área no resultado | Botão no resultado que abre o editor de máscara já com essa imagem. | P |
+| 3.2 | ✅ Corrigir área no resultado | Botão no resultado que abre o editor de máscara já com essa imagem. | P |
 | 3.3 | Pedido por região | Mais de uma máscara, cada uma com seu pedido ("esta pessoa faz isso, aquela faz aquilo"). | G |
 | 3.4 | Pose por esqueleto (ControlNet do Qwen) | Força a pose exata. Primeiro é preciso testar se o modelo aceita; se não, fica a pose por foto, que já existe. | M |
 
