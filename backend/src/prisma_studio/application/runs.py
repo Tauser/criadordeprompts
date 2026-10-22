@@ -70,6 +70,8 @@ class RunService:
         if request.mask and output.width:
             raise RequestRejected('Na edição com máscara a imagem mantém o tamanho da foto. '
                                   'Remova o tamanho personalizado.')
+        if request.mask and output.upscale:
+            raise RequestRejected('Com máscara, a foto mantém o tamanho original. Desligue "Ampliar no fim".')
         width, height = (output.width, output.height) if output.width else (
             generation_size(output.resolution, output.aspect) if request.mode == 'generate' else (None, None))
         settings = {
@@ -81,6 +83,7 @@ class RunService:
             'engine': request.engine.model_dump(), 'checks': [asdict(c) for c in checklist(compiled.blocks)],
             'compiler_version': compiled.version, 'participants': assessment.participants_total, 'blocks': [b.id for b in compiled.blocks],
             'face_detail': face_detail.enabled(output.face_detail, assessment.participants_total),
+            'upscale': output.upscale,
         }
         return self._insert(request_id, request.mode, request.model_dump(mode='json'),
                             {'references': files, 'mask': mask}, settings, prompt=compiled.text,
