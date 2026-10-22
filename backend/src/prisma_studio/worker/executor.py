@@ -14,7 +14,8 @@ from ..infrastructure.comfy.workflows import (FACE_MODEL, FACE_SIZE, MAX_EDIT_PI
                                               face_detect_graph, image_graph, image_outputs, text_graph, text_output)
 from ..infrastructure.db.database import now
 from ..infrastructure.storage.files import (MAX_RESULT_BYTES, composite_on_original, crop_square, face_crop_box,
-                                            fit_multiple_of_32, normalized_png, oriented_size, paste_faces)
+                                            face_on_picture, fit_multiple_of_32, normalized_png, oriented_size,
+                                            paste_faces)
 
 log = logging.getLogger('prisma.executor')
 TASK_DONE = {'completed', 'failed', 'cancelled', 'lost'}
@@ -258,6 +259,8 @@ class Executor:
             for index, box in enumerate(found[:FACE_SLOTS]):
                 if max(box['width'], box['height']) > face_detail.MAX_FACE:
                     continue                      # already large enough to carry its own detail
+                if not face_on_picture(box, size):
+                    continue                      # the detector reported a box outside the picture
                 slot = image['position'] * FACE_SLOTS + index
                 crop = face_crop_box(box, size)
                 task = faces.get(slot) or self.repository.add_task(run['id'], 'face', slot, seed=image['seed'])

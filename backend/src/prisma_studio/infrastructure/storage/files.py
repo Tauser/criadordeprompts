@@ -133,11 +133,18 @@ def composite_on_original(original: bytes, generated: bytes, mask: bytes, feathe
 def face_crop_box(box: dict, image_size: tuple[int, int], scale: float = 1.6) -> tuple[int, int, int]:
     """Square (left, top, side) around a detected face, `scale` times its larger side, kept inside the picture."""
     width, height = image_size
-    side = min(round(max(box['width'], box['height']) * scale), width, height)
+    side = max(1, min(round(max(box['width'], box['height']) * scale), width, height))
     cx, cy = box['x'] + box['width'] / 2, box['y'] + box['height'] / 2
     left = min(max(0, round(cx - side / 2)), width - side)
     top = min(max(0, round(cy - side / 2)), height - side)
     return left, top, side
+
+
+def face_on_picture(box: dict, image_size: tuple[int, int]) -> bool:
+    """Whether the detected box overlaps the picture with some area; a box fully outside has nothing to redraw."""
+    width, height = image_size
+    return (min(box['x'] + box['width'], width) > max(box['x'], 0)
+            and min(box['y'] + box['height'], height) > max(box['y'], 0))
 
 
 def crop_square(data: bytes, crop: tuple[int, int, int], size: int) -> bytes:
@@ -159,8 +166,12 @@ def face_mask(side: int, box: dict, crop: tuple[int, int, int]) -> Image.Image:
     feather = max(2.0, side * 0.04)
     mask = Image.new('L', (side, side), 0)
     inset = feather * 1.2
-    shrunk = (max(inset, oval[0]), max(inset, oval[1]), min(side - inset, oval[2]), min(side - inset, oval[3]))
-    ImageDraw.Draw(mask).ellipse(shrunk, fill=255)
+    low, high = inset, side - inset
+    if high <= low:
+        return mask
+    x0, y0 = min(max(oval[0], low), high), min(max(oval[1], low), high)
+    x1, y1 = min(max(oval[2], x0), high), min(max(oval[3], y0), high)   # a box outside the crop stays a valid ellipse
+    ImageDraw.Draw(mask).ellipse((x0, y0, x1, y1), fill=255)
     return mask.filter(ImageFilter.GaussianBlur(feather / 2))
 
 

@@ -91,6 +91,14 @@ def test_crop_box_is_square_scaled_and_inside_the_picture():
     assert face_crop_box({'x': 0, 'y': 0, 'width': 900, 'height': 900}, (300, 200))[2] == 200
 
 
+def test_a_face_hanging_over_the_edge_still_pastes():
+    base = png(64, 48, (10, 10, 10))
+    box = {'x': 58, 'y': 10, 'width': 12, 'height': 14}           # half of it past the right edge
+    crop = face_crop_box(box, (64, 48))
+    out = Image.open(io.BytesIO(paste_faces(base, [(png(256, 256, (250, 250, 250)), box, crop)])))
+    assert out.size == (64, 48) and out.getpixel((0, 0)) == (10, 10, 10)
+
+
 def test_paste_changes_only_the_face_oval():
     base = png(200, 160, (10, 10, 10))
     box = {'x': 80, 'y': 50, 'width': 40, 'height': 50}
@@ -163,6 +171,16 @@ def test_a_failing_detection_never_fails_the_run(env):  # noqa: F811
     assert run['status'] == 'completed'
     assert env.repo.tasks(run['id'], 'face_detect')[0]['status'] == 'failed'
     assert env.repo.tasks(run['id'], 'image')[0]['result']['detail'] == {'found': 0, 'refined': 0, 'expected': 2}
+
+
+def test_a_box_outside_the_picture_is_skipped_and_the_run_completes(env):  # noqa: F811
+    env.comfy.faces = [FACE, {**OTHER, 'x': 70}, {**OTHER, 'x': -30, 'width': 10}]   # 64x48 picture
+    run = env.run_until(env.service.create(couple(), 'faces-10', {}, None)['id'])
+    assert run['status'] == 'completed'
+    image = env.repo.tasks(run['id'], 'image')[0]
+    assert image['status'] == 'completed' and image['result']['files']
+    assert image['result']['detail'] == {'found': 3, 'refined': 1, 'expected': 2}
+    assert [t['position'] for t in env.repo.tasks(run['id'], 'face')] == [0]
 
 
 def test_deleting_the_run_removes_the_raw_image_too(env):  # noqa: F811
