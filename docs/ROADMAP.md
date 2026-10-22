@@ -80,7 +80,7 @@ Antes de entrar no Studio, cada medida é calibrada no banco de casos (0.1), par
 
 | # | Item | O que resolve | Esforço |
 |---|---|---|---|
-| 5.1 | Pedidos salvos | Reaproveitar uma cena inteira, como os presets do SwarmUI. | M |
+| 5.1 | ✅ Pedidos salvos (sem as fotos) | Reaproveitar uma cena inteira, como os presets do SwarmUI. | M |
 | 5.2 | Fila em lote por conto | Várias cenas de uma vez, rodando enquanto você faz outra coisa. Depende das fichas (2.2). | G |
 | 5.3 | Aviso no celular | Notificação quando a geração termina. | P |
 | 5.4 | ✅ Busca e paginação no Histórico | Pendente desde a revisão de 17/10. | M |
