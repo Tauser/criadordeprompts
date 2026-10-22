@@ -118,6 +118,15 @@ class Output(_Strict):
 
 
 class Request(_Strict):
+    @model_validator(mode='before')
+    @classmethod
+    def _without_removed_fields(cls, data):
+        # Drafts kept in a browser outlive removed features: "Trocar pessoas" sent `swaps`, and a phone still holding
+        # such a draft got "Pedido: valor não permitido" on every edit.
+        if isinstance(data, dict) and 'swaps' in data:
+            data = {k: v for k, v in data.items() if k != 'swaps'}
+        return data
+
     schema_version: Literal[1] = 1
     mode: Literal['generate', 'edit']
     content_mode: Literal['standard', 'adult'] = 'standard'

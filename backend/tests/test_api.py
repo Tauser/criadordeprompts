@@ -247,6 +247,17 @@ def test_contract_errors_name_the_fields(client):
                       'output.width': 'Largura: use um múltiplo de 32.', 'engine.steps': 'Passos: o valor mínimo é 1.'}
 
 
+def test_a_draft_from_a_removed_feature_still_prepares(client):
+    # A phone kept a draft from "Trocar pessoas" and every edit failed with "Pedido: valor não permitido".
+    body = {'mode': 'generate', 'attributes': {'pose': {'intent': 'set', 'value': {'kind': 'text', 'text': 'sitting'}}},
+            'swaps': []}
+    assert client.post('/api/prepare', json=body).status_code == 200
+    unknown = client.post('/api/prepare', json={**body, 'mystery': 1})
+    assert unknown.status_code == 422
+    message = unknown.json()['issues'][0]['message']
+    assert '"mystery" não existe mais' in message and 'Limpar' in message
+
+
 def wardrobe_run(client, n, text):
     request = {'mode': 'generate', 'attributes': {'wardrobe': {'intent': 'set', 'value': {'kind': 'text', 'text': text}}}}
     created = client.post('/api/runs', json={'request_id': f'history-run-{n:08d}', 'request': request})

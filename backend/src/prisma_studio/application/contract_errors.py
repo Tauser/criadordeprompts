@@ -13,7 +13,9 @@ FIELD_LABELS = {
     'output.resolution': 'Resolução', 'output.aspect': 'Formato', 'output.profile': 'Execução', 'output': 'Tamanho',
     'engine.steps': 'Passos', 'engine.cfg': 'CFG', 'engine.denoise': 'Denoise',
     'engine.negative_prompt': 'Prompt negativo', 'participants.requested': 'Pessoas no resultado',
-    'participants.existing': 'Pessoas na foto', 'context': 'Cena',
+    'participants.existing': 'Pessoas na foto', 'context': 'Cena', 'output.upscale': 'Ampliar no fim',
+    'output.face_detail': 'Detalhe dos rostos', 'engine.sampler': 'Sampler', 'engine.scheduler': 'Scheduler',
+    'engine.loras': 'LoRAs', 'wardrobe_scope': 'Roupa para', 'mask': 'Máscara',
 }
 
 
@@ -51,6 +53,10 @@ def _message(error: dict) -> str:
         return f'no máximo {ctx.get("max_length")} itens.'
     if kind == 'missing':
         return 'campo obrigatório.'
+    if kind == 'extra_forbidden':
+        field = '.'.join(str(p) for p in error.get('loc', ()))
+        return (f'o campo "{field}" não existe mais nesta versão do Studio. Clique em Limpar para começar um pedido '
+                'novo ou recarregue a página.')
     return 'valor não permitido.'
 
 

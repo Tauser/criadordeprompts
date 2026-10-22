@@ -698,3 +698,19 @@ details.tech h3 { margin: 6px 0; }
 .character-pick { display: flex; flex-wrap: wrap; align-items: end; gap: 6px 10px; }
 .character-pick label { flex: 1 1 240px; min-width: 0; }
 .character-pick .field-issues { flex-basis: 100%; }
+
+/* Phones and tablets scroll the document itself. An inner scroller as tall as the screen left an empty band below it
+   when the browser bars or the keyboard changed the viewport height on a phone. */
+@media (max-width: 1100px) {
+  html, body, #root { height: auto; }
+  .app { height: auto; min-height: 100dvh; grid-template-rows: 60px auto; }
+  .app-body, .page { height: auto; overflow: visible; }
+  .topbar { position: sticky; top: 0; }
+}
+@media (max-width: 680px) {
+  /* Five tabs no longer fit a phone: they scroll sideways instead of widening the whole page past the screen. */
+  .topbar { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .topnav { justify-content: flex-start; overflow-x: auto; scrollbar-width: none; }
+  .topnav::-webkit-scrollbar { display: none; }
+  .topnav button { flex: none; }
+}
