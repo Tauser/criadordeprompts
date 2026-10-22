@@ -86,6 +86,19 @@ it('removes several of your own options at once and leaves built-in ones alone',
   await waitFor(() => expect(api.saveLibrary).toHaveBeenCalledWith(3, []));
 });
 
+it('shows only your own options when asked', () => {
+  const snapshot: LibrarySnapshot = {revision: 3,
+    origins: {'environment.mine': 'user', 'environment.edited': 'custom', 'environment.base': 'builtin'},
+    items: [['mine', 'Meu bar'], ['edited', 'Praia editada'], ['base', 'Praia']].map(([id, label]) => ({
+      id: `environment.${id}`, category: 'environment', label, prompt: id, adult: false, enabled: true,
+      requirements: {}, provides: {}}))};
+  render(<Library snapshot={snapshot} onSaved={vi.fn()} notify={vi.fn()} setDirty={vi.fn()} />);
+  fireEvent.click(screen.getByLabelText(/Só as minhas \(2\)/));
+  expect(screen.queryByLabelText('Selecionar Meu bar')).not.toBeNull();
+  expect(screen.queryByLabelText('Selecionar Praia editada')).not.toBeNull();
+  expect(screen.queryByLabelText('Selecionar Praia')).toBeNull();
+});
+
 it('deactivates selected built-in options instead of deleting them', async () => {
   vi.mocked(api.saveLibrary).mockResolvedValue(twoItems);
   render(<Library snapshot={twoItems} onSaved={vi.fn()} notify={vi.fn()} setDirty={vi.fn()} />);

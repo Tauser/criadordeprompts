@@ -39,6 +39,7 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
   const [category, setCategory] = useState<Category | 'all'>('all');
   const [query, setQuery] = useState('');
   const [incomplete, setIncomplete] = useState(false);
+  const [mine, setMine] = useState(false);          // options created or edited by the user
   const [draft, setDraft] = useState<Item | null>(null);
   const [original, setOriginal] = useState<string>('');
   const [saving, setSaving] = useState(false);
@@ -72,10 +73,12 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
     return () => {current = false;};
   }, [review, snapshot]);
 
+  const isMine = (item: Item) => snapshot.origins[item.id] !== 'builtin';
   const matching = useMemo(() => snapshot.items.filter(item => (!incomplete || missingMetadata(item).length > 0)
+    && (!mine || snapshot.origins[item.id] !== 'builtin')
     && (!review || !!report?.[item.id]?.length)
     && (!query || (item.label + ' ' + item.prompt).toLowerCase().includes(query.toLowerCase()))),
-    [snapshot, query, incomplete, review, report]);
+    [snapshot, query, incomplete, mine, review, report]);
   const items = useMemo(() => matching.filter(item => category === 'all' || item.category === category)
     .sort((a, b) => compareCategoryThenLabel(a, b)), [matching, category]);
   const perCategory = useMemo(() => {
@@ -107,8 +110,9 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
     return next;
   });
   const tagsOf = (item: Item) => [category === 'all' && CATEGORY_LABELS[item.category], item.adult && '+18',
-    !item.enabled && 'desativada', snapshot.origins[item.id] !== 'builtin' && 'sua'].filter(Boolean).join(' · ');
-  const incompleteCount =useMemo(() => snapshot.items.filter(i => missingMetadata(i).length).length, [snapshot]);
+    !item.enabled && 'desativada', isMine(item) && 'sua'].filter(Boolean).join(' · ');
+  const incompleteCount = useMemo(() => snapshot.items.filter(i => missingMetadata(i).length).length, [snapshot]);
+  const mineCount = useMemo(() => snapshot.items.filter(i => snapshot.origins[i.id] !== 'builtin').length, [snapshot]);
 
   const open = (item: Item | null) => {
     if (dirty && !confirm('Descartar as alterações não salvas?')) return;
@@ -206,6 +210,9 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
           <input type="search" placeholder="Buscar por nome ou descrição" value={query} onChange={e => setQuery(e.target.value)} aria-label="Buscar opções" /></label>
         <label className="check"><input type="checkbox" checked={incomplete} onChange={e => setIncomplete(e.target.checked)} />
           Só metadados incompletos ({incompleteCount})</label>
+        <label className="check" title="Mostra só as opções que você criou ou editou.">
+          <input type="checkbox" checked={mine} onChange={e => setMine(e.target.checked)} />
+          Só as minhas ({mineCount})</label>
         <label className="check" title="Revisa o texto de todas as opções salvas e mostra só as que têm avisos, agrupadas por nível. Nada é alterado.">
           <input type="checkbox" checked={review} onChange={e => setReview(e.target.checked)} />
           Revisar biblioteca{report ? ` (${Object.keys(report).length})` : ''}</label>
@@ -237,7 +244,7 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
         {review ? <div className="review-groups" aria-label="Revisão da biblioteca">
           {reviewError && <p className="issue error review-note">{reviewError}</p>}
           {!report ? !reviewError && <p className="muted small review-note">Revisando a biblioteca…</p>
-            : !items.length ? <p className="muted small review-note">Nenhuma opção com avisos{query || category !== 'all' || incomplete ? ' neste filtro' : ''}.</p>
+            : !items.length ? <p className="muted small review-note">Nenhuma opção com avisos{query || category !== 'all' || incomplete || mine ? ' neste filtro' : ''}.</p>
             : LEVELS.map(([level, name, tone]) => {
               const rows = items.filter(item => report[item.id]?.some(f => f.level === level));
               return rows.length > 0 && <section key={level} aria-label={name}>
