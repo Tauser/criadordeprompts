@@ -1,4 +1,4 @@
-import type {CoherenceJob, Health, PeopleCount, Stats, Item, LibrarySnapshot, PoseTest, Prepared, Run,
+import type {CoherenceJob, Health, PeopleCount, SavedRequest, Stats, Item, LibrarySnapshot, PoseTest, Prepared, Run,
   StudioRequest, TextFinding} from './types';
 
 export class ApiError extends Error {
@@ -72,6 +72,10 @@ export const api = {
   poseTest: (id: string) => call<PoseTest>('GET', `/api/library/pose-tests/${id}`),
   cancelPoseTest: (id: string) => call<unknown>('POST', `/api/library/pose-tests/${id}/cancel`),
   translation: (id: string) => call<{id: string; status: string; text?: string; error?: string}>('GET', `/api/translations/${id}`),
+  presets: () => call<{presets: SavedRequest[]}>('GET', '/api/presets'),
+  createPreset: (name: string, request: StudioRequest) => call<SavedRequest>('POST', '/api/presets', {name, request}),
+  renamePreset: (id: string, name: string) => call<SavedRequest>('PUT', `/api/presets/${id}`, {name}),
+  deletePreset: (id: string) => call<{deleted: string}>('DELETE', `/api/presets/${id}`),
 };
 
 export const fileUrl = (hash: string) => `/api/files/${hash}`;

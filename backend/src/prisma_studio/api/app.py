@@ -14,10 +14,11 @@ from urllib.parse import urlsplit
 from fastapi import FastAPI, File, HTTPException, Request as HttpRequest, UploadFile
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from .. import __version__
 from ..application.library import LibraryService
+from ..application.presets import preset_request
 from ..application.runs import RequestRejected, RunService, prepare
 from ..application.coherence import CoherenceService, review_text
 from ..application.contract_errors import contract_issues
@@ -34,7 +35,8 @@ from ..infrastructure.comfy.progress import ProgressTracker
 from ..infrastructure.comfy.workflows import PROFILES, generation_size
 from ..infrastructure.db.backup import BackupScheduler
 from ..infrastructure.db.database import Database
-from ..infrastructure.db.repository import RUN_STATUSES, InvalidTransition, LibraryRepository, RunRepository
+from ..infrastructure.db.repository import (RUN_STATUSES, InvalidTransition, LibraryRepository, PresetRepository,
+                                            RunRepository)
 from ..infrastructure.discovery import LocalDiscovery
 from ..infrastructure.instance_lock import InstanceLock
 from ..infrastructure.storage.files import FileStore
@@ -84,6 +86,27 @@ class LibrarySave(BaseModel):
     items: list[dict]
 
 
+class PresetCreate(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    name: str = Field(min_length=1, max_length=80)
+    request: dict
+
+    @field_validator('name', mode='before')
+    @classmethod
+    def _trim(cls, value):
+        return value.strip() if isinstance(value, str) else value
+
+
+class PresetRename(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    name: str | None = Field(default=None, min_length=1, max_length=80)
+
+    @field_validator('name', mode='before')
+    @classmethod
+    def _trim(cls, value):
+        return value.strip() if isinstance(value, str) else value
+
+
 class TranslationCreate(BaseModel):
     text: str
 
@@ -101,6 +124,7 @@ class Container:
         self.db = Database(config.data_dir / 'studio.db')
         self.store = FileStore(config.data_dir / 'files')
         self.runs = RunRepository(self.db)
+        self.presets = PresetRepository(self.db)
         self.comfy = comfy or ComfyClient(config.comfy_url)
         self.progress = progress if progress is not None else ProgressTracker(config.comfy_url, self.comfy.client_id)
         self.library = LibraryService(config.catalog_path, LibraryRepository(self.db))
@@ -298,6 +322,28 @@ def create_app(config: Config | None = None, container: Container | None = None)
     @app.post('/api/library/pose-tests/{job_id}/cancel')
     def cancel_pose_test(job_id: str):
         return c.pose_tests.cancel(job_id)
+
+    # pedidos salvos (templates without photos) -------------------------------------
+    @app.get('/api/presets')
+    def list_presets():
+        return {'presets': c.presets.list()}
+
+    @app.post('/api/presets')
+    def create_preset(body: PresetCreate):
+        return c.presets.create(body.name, preset_request(body.request))
+
+    @app.put('/api/presets/{preset_id}')
+    def rename_preset(preset_id: str, body: PresetRename):
+        preset = c.presets.get(preset_id) if body.name is None else c.presets.rename(preset_id, body.name)
+        if preset is None:
+            raise HTTPException(404, 'Pedido salvo não encontrado.')
+        return preset
+
+    @app.delete('/api/presets/{preset_id}')
+    def delete_preset(preset_id: str):
+        if not c.presets.delete(preset_id):
+            raise HTTPException(404, 'Pedido salvo não encontrado.')
+        return {'deleted': preset_id}
 
     # files -----------------------------------------------------------------------
     @app.post('/api/files')

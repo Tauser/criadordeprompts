@@ -291,6 +291,44 @@ class LibraryRepository:
         return revision + 1
 
 
+PRESET_LIMIT = 200
+
+
+class PresetRepository:
+    """Saved request templates ("Pedidos salvos"). The request is stored already stripped of photos."""
+
+    def __init__(self, db: Database):
+        self.db = db
+
+    def list(self) -> list[dict]:
+        return [_preset(r) for r in self.db.query('SELECT * FROM presets ORDER BY created_at DESC, rowid DESC')]
+
+    def get(self, preset_id: str) -> dict | None:
+        row = self.db.one('SELECT * FROM presets WHERE id=?', (preset_id,))
+        return _preset(row) if row else None
+
+    def create(self, name: str, request: dict) -> dict:
+        with self.db.transaction() as tx:
+            count = tx.execute('SELECT COUNT(*) AS total FROM presets').fetchone()['total']
+            if count >= PRESET_LIMIT:
+                raise InvalidTransition(f'Já há {PRESET_LIMIT} pedidos salvos. Apague algum antes de salvar outro.')
+            preset_id, at = new_id(), now()
+            tx.execute('INSERT INTO presets(id, name, request_json, created_at, updated_at) VALUES (?,?,?,?,?)',
+                       (preset_id, name, dumps(request), at, at))
+        return self.get(preset_id)
+
+    def rename(self, preset_id: str, name: str) -> dict | None:
+        with self.db.transaction() as tx:
+            cursor = tx.execute('UPDATE presets SET name=?, updated_at=? WHERE id=?', (name, now(), preset_id))
+            if cursor.rowcount == 0:
+                return None
+        return self.get(preset_id)
+
+    def delete(self, preset_id: str) -> bool:
+        with self.db.transaction() as tx:
+            return tx.execute('DELETE FROM presets WHERE id=?', (preset_id,)).rowcount > 0
+
+
 RUN_STATUSES = set(RUN_TRANSITIONS) | TERMINAL | {s for targets in RUN_TRANSITIONS.values() for s in targets}
 
 
@@ -318,6 +356,11 @@ def _task(row) -> dict:
     for key in [k for k in data if k.endswith('_json')]:
         data[key[:-5]] = loads(data.pop(key))
     return data
+
+
+def _preset(row) -> dict:
+    return {'id': row['id'], 'name': row['name'], 'request': loads(row['request_json']),
+            'created_at': row['created_at'], 'updated_at': row['updated_at']}
 
 
 def _result_files(result: dict | None) -> set[str]:

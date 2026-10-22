@@ -77,6 +77,16 @@ MIGRATIONS = [
         SELECT MIN(rowid) FROM tasks GROUP BY run_id, kind, position);
     CREATE UNIQUE INDEX IF NOT EXISTS tasks_slot ON tasks(run_id, kind, position);
     """,
+    # 3: "Pedidos salvos" — reusable request choices without photos (see application/presets.py).
+    """
+    CREATE TABLE presets (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        request_json TEXT NOT NULL,
+        created_at REAL NOT NULL,
+        updated_at REAL NOT NULL
+    );
+    """,
 ]
 
 
