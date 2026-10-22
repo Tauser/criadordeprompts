@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import type {SavedCharacter, SavedRequest} from '../api/types';
 import {initialRequest} from '../state/workspace';
-import {buildSceneRequest, EDIT_PRESET_WARNING} from './scenes';
+import {buildSceneRequest, NO_PHOTO_WARNING} from './scenes';
 
 const size = async () => ({width: 800, height: 1000});
 const hashA = 'a'.repeat(64), hashB = 'b'.repeat(64);
@@ -16,6 +16,13 @@ const generatePreset = (): SavedRequest => {
   request.details = 'Rua à noite, chuva.';
   request.attributes.style = {intent: 'set', value: {kind: 'text', text: 'film still'}};
   return {id: 'p-rua', name: 'Rua à noite', request, created_at: 1, updated_at: 1};
+};
+
+const editPreset = (): SavedRequest => {
+  const request = initialRequest('edit');
+  request.details = 'Troca a roupa.';
+  request.attributes.wardrobe = {intent: 'set', value: {kind: 'text', text: 'red coat'}};
+  return {id: 'p-roupa', name: 'Trocar roupa', request, created_at: 1, updated_at: 1};
 };
 
 describe('buildSceneRequest', () => {
@@ -51,9 +58,32 @@ describe('buildSceneRequest', () => {
     expect(next.request.details).toBe('Rua à noite, chuva.');
   });
 
-  it('refuses an edit preset: the queue only generates new scenes', async () => {
-    const edit = {...generatePreset(), request: initialRequest('edit')};
-    await expect(buildSceneRequest({preset: edit, main: null, people: [], note: ''}, size)).rejects.toThrow(EDIT_PRESET_WARNING);
+  it('an edit scene without its photo is refused with the warning', async () => {
+    await expect(buildSceneRequest({preset: editPreset(), main: null, people: [], note: ''}, size)).rejects.toThrow(NO_PHOTO_WARNING);
+  });
+
+  it('an edit scene edits its photo: the photo is the target, the extra ficha is added to it, the count is kept', async () => {
+    const photo = {hash: 'c'.repeat(64), width: 900, height: 1200, name: 'foto.png'};
+    const built = await buildSceneRequest({preset: editPreset(), main: ana, people: [{character: bruno, position: 'right'}],
+      note: '  Chuva.  ', photo, existing: 2}, size);
+    const [photoId, brunoId] = built.request.references.map(r => r.id);
+
+    expect(built.request.mode).toBe('edit');
+    expect(built.request.target_id).toBe(photoId);
+    expect(built.request.references.map(r => r.label)).toEqual(['foto.png', 'Bruno']);
+    expect(built.request.characters).toEqual([{reference_id: brunoId, description: 'holding a red umbrella', position: 'right'}]);
+    expect(built.request.participants.existing).toBe(2);
+    expect(built.request.attributes.face).toEqual({intent: 'keep'});   // the main person does not apply to an edit
+    expect(built.request.attributes.wardrobe).toEqual({intent: 'set', value: {kind: 'text', text: 'red coat'}});
+    expect(built.request.details).toBe('Troca a roupa.\nChuva.');
+    expect(built.files).toEqual({[photoId]: photo.hash, [brunoId]: hashB});
+  });
+
+  it('an edit scene without a count of people says one person', async () => {
+    const photo = {hash: 'c'.repeat(64), width: 900, height: 1200, name: 'foto.png'};
+    const built = await buildSceneRequest({preset: editPreset(), main: null, people: [], note: '', photo}, size);
+    expect(built.request.participants.existing).toBe(1);
+    expect(built.request.characters).toBeUndefined();
   });
 
   it('a ficha without a photo stops only its own scene', async () => {
