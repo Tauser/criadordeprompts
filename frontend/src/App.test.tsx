@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import {act, cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react';
+import {act, cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {App} from './App';
 
@@ -60,6 +60,17 @@ describe('Studio', () => {
     const body = calls.find(c => c.path === '/api/runs' && c.body)?.body;
     expect(body.request.wardrobe_scope).toBe('all');
     expect(body.request.participants.requested).toBe(2);
+  });
+
+  it('sends "Ampliar no fim" with the chosen factor', async () => {
+    render(<App />);
+    const group = await screen.findByRole('radiogroup', {name: 'Ampliar no fim'});
+    fireEvent.click(within(group).getByRole('radio', {name: '2×'}));
+    const generate = screen.getByRole('button', {name: 'Gerar imagem'});
+    await waitFor(() => expect((generate as HTMLButtonElement).disabled).toBe(false));
+    await act(async () => {fireEvent.click(generate);});
+    const body = calls.find(c => c.path === '/api/runs' && c.body)?.body;
+    expect(body.request.output.upscale).toBe(2);
   });
 
   it('names the fields the contract rejects', async () => {

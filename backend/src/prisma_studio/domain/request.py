@@ -108,6 +108,7 @@ class Output(_Strict):
     verify: bool = False
     refine: bool = False
     face_detail: bool | None = None          # None = automatic: on with two or more people
+    upscale: Literal[1.5, 2.0] | None = None  # Ampliar no fim: SeedVR2 redraws each picture this much larger
 
     @model_validator(mode='after')
     def _size(self):

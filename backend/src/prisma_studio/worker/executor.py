@@ -11,8 +11,9 @@ from ..domain.verification import FACE_CHECKS, JUDGE_SYSTEM, Check, judge_prompt
 from ..infrastructure.comfy.client import ComfyNotSent, ComfyRejected, ComfyUnavailable
 from ..infrastructure.comfy.validation import validate_graph
 from ..infrastructure.comfy.workflows import (FACE_MODEL, FACE_SIZE, MAX_EDIT_PIXELS, PEOPLE_MODEL, PEOPLE_OUTPUT_NODE,
-                                              ImageJob, TextJob, face_boxes, face_detect_graph, image_graph,
-                                              image_outputs, people_count, text_graph, text_output)
+                                              UPSCALE_MODEL, UPSCALE_VAE, ImageJob, TextJob, face_boxes,
+                                              face_detect_graph, image_graph, image_outputs, people_count, text_graph,
+                                              text_output, upscale_graph)
 from ..infrastructure.db.database import now
 from ..infrastructure.storage.files import (MAX_RESULT_BYTES, composite_on_original, crop_square, face_crop_box,
                                             face_on_picture, fit_multiple_of_32, normalized_png, oriented_size,
@@ -24,14 +25,16 @@ MAX_UNEXPECTED_ERRORS = 3
 MASK_FEATHER = 12                         # pixels of soft transition, always inside the drawn area
 FACE_SLOTS = 16                           # face task position = image position * FACE_SLOTS + face index
 EXTRA_FACES = 2                           # the detector looks past the expected count, so an extra person shows up
-IMAGE_KINDS = {'image', 'face'}
+IMAGE_KINDS = {'image', 'face', 'upscale'}
 PHASES = {'UNETLoader': 'loading_models', 'CLIPLoader': 'loading_models', 'VAELoader': 'loading_models',
           'QwenImage21Cache': 'loading_models', 'LoadImage': 'loading_images', 'LoadImageMask': 'loading_images',
           'TextEncodeQwenImage21': 'encoding', 'KSampler': 'sampling', 'SamplerCustom': 'sampling',
           'VAEDecode': 'decoding', 'GrowMask': 'compositing', 'FeatherMask': 'compositing',
           'ImageCompositeMasked': 'compositing', 'SaveImage': 'saving', 'TextGenerate': 'generating_text',
           'BatchImagesNode': 'loading_images', 'PreviewAny': 'saving', 'VAEEncode': 'encoding',
-          'LoadMediaPipeFaceLandmarker': 'loading_models', 'MediaPipeFaceLandmarker': 'detecting_faces'}
+          'LoadMediaPipeFaceLandmarker': 'loading_models', 'MediaPipeFaceLandmarker': 'detecting_faces',
+          'SeedVR2Preprocess': 'upscaling', 'SeedVR2Conditioning': 'upscaling', 'SeedVR2PostProcessing': 'upscaling',
+          'ResizeImageMaskNode': 'upscaling', 'VAEEncodeTiled': 'upscaling', 'VAEDecodeTiled': 'upscaling'}
 
 
 def extra_people(result: dict | None) -> bool:
@@ -51,6 +54,7 @@ class Executor:
         self._object_info: dict | None = None
         self._face_model: bool | None = None
         self._people_model: bool | None = None
+        self._upscale_model: bool | None = None
         self._missing: dict[str, int] = {}
         self._errors: dict[str, int] = {}
         self.reachable: bool | None = None
@@ -128,6 +132,8 @@ class Executor:
                 self._generating(run)
             elif status == 'detailing':
                 self._detailing(run)
+            elif status == 'upscaling':
+                self._upscaling(run)
             elif status == 'verifying':
                 self._verifying(run)
         except ComfyUnavailable:
@@ -223,6 +229,12 @@ class Executor:
         elif settings.get('face_detail') or settings.get('participants'):
             self.repository.transition(run['id'], 'detailing')
         else:
+            self._after_faces(run, done)
+
+    def _after_faces(self, run: dict, done: list[dict]) -> None:
+        if run['settings'].get('upscale'):
+            self.repository.transition(run['id'], 'upscaling')
+        else:
             self._images_ready(run, done)
 
     def _images_ready(self, run: dict, done: list[dict]) -> None:
@@ -281,6 +293,53 @@ class Executor:
                 continue
             people = people_count(detect['result'].get('people')) if detect['status'] == 'completed' else None
             self._paste_faces(image, data, len(found), people, settings.get('participants'), pending)
+        if not waiting:
+            done = [t for t in self.repository.tasks(run['id'], 'image') if t['status'] == 'completed']
+            self._after_faces(run, done)
+
+    def _upscaling(self, run: dict) -> None:
+        """Ampliar no fim: each finished picture is redrawn larger by SeedVR2. Like the face pass it only improves a
+        result: a failure keeps the picture as it was, and without the models the stage is skipped."""
+        settings = run['settings']
+        factor = settings['upscale']
+        if not self._upscale_model_installed():
+            for image in self.repository.tasks(run['id'], 'image'):
+                if image['status'] == 'completed' and 'upscale' not in image['result']:
+                    self.repository.task_transition(image['id'], 'completed', result_json={
+                        **image['result'], 'upscale': {'factor': factor, 'skipped': True}})
+            self._images_ready(run, [t for t in self.repository.tasks(run['id'], 'image') if t['status'] == 'completed'])
+            return
+        upscales = {t['position']: t for t in self.repository.tasks(run['id'], 'upscale')}
+        waiting = False
+        for image in self.repository.tasks(run['id'], 'image'):
+            if self._stop.is_set():
+                return
+            if image['status'] != 'completed' or 'upscale' in image['result']:
+                continue
+            file_hash, seed = image['result']['files'][0], image['seed']
+            task = upscales.get(image['position']) or self.repository.add_task(run['id'], 'upscale', image['position'],
+                                                                              seed=seed)
+
+            def build(file_hash=file_hash, seed=seed):
+                name = self.comfy.upload(self.store.read(file_hash), f'prisma_{file_hash[:24]}.png', 'image/png')
+                return upscale_graph(name, factor, seed, prefix=f'prisma/{run["id"][:8]}_up')
+            task = self._drive_optional(task, build)
+            if task['status'] not in TASK_DONE:
+                waiting = True
+                continue
+            if task['status'] == 'completed':
+                self._store_outputs(task, run)
+                upscaled = self.repository.task(task['id'])['result']['files'][0]
+                size = oriented_size(self.store.read(upscaled))
+                # raw_files keep the pictures as they were before this stage (the first generated one, and the
+                # face-detailed one when both passes ran), so deleting the run removes all of them.
+                raw = list(dict.fromkeys([*(image['result'].get('raw_files') or []), *image['result']['files']]))
+                result = {**image['result'], 'files': [upscaled], 'raw_files': raw,
+                          'upscale': {'factor': factor, 'size': list(size)}}
+            else:
+                result = {**image['result'], 'upscale': {'factor': factor,
+                                                         'error': task['error'] or 'Não foi possível ampliar.'}}
+            self.repository.task_transition(image['id'], 'completed', result_json=result)
         if not waiting:
             done = [t for t in self.repository.tasks(run['id'], 'image') if t['status'] == 'completed']
             self._images_ready(run, done)
@@ -468,6 +527,19 @@ class Executor:
             except Exception:                       # noqa: BLE001 - a missing close-up never blocks the verdict
                 return False
         return self._face_model
+
+    def _upscale_model_installed(self) -> bool:
+        """Ampliar no fim is optional: without the SeedVR2 nodes and models the pictures keep their generated size."""
+        if self._upscale_model is None:             # asked once per Studio start
+            try:
+                if self._object_info is None:
+                    self._object_info = self.comfy.object_info()
+                self._upscale_model = ('SeedVR2Conditioning' in self._object_info
+                                       and UPSCALE_MODEL in str(self._object_info.get('UNETLoader', {}))
+                                       and UPSCALE_VAE in str(self._object_info.get('VAELoader', {})))
+            except Exception:                       # noqa: BLE001 - a missing upscaler never blocks the run
+                return False
+        return self._upscale_model
 
     def _people_model_installed(self) -> bool:
         """Counting bodies is optional: without RT-DETR the faces alone are counted."""

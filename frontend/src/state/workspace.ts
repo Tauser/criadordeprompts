@@ -285,7 +285,7 @@ export function requestForSubmit(ws: Workspace): StudioRequest {
   if (request.prompt_mode === 'structured') request.manual_prompt = null;
   if (request.attributes.wardrobe?.intent !== 'set') request.wardrobe_scope = 'primary';
   if (request.mode === 'generate') {request.target_id = null; request.mask = false;}
-  if (request.mask) {request.output.width = null; request.output.height = null;}   // a mask keeps the photo's size
+  if (request.mask) {request.output.width = null; request.output.height = null; request.output.upscale = null;}   // a mask keeps the photo's size
   return request;
 }
 

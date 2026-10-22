@@ -29,6 +29,8 @@ LORA_NODES = 30                    # LoraLoaderModelOnly nodes of image graphs: 
 IMAGE_INPUT_NODES = 200            # LoadImage nodes of image graphs: 201, 202...
 TEXT_IMAGE_NODES = 300             # LoadImage nodes of text graphs: 300, 301...
 FACE_SIZE = 1024                   # side of the square face crop sent back to the image model
+UPSCALE_MODEL = 'seedvr2_3b_int8_convrot.safetensors'   # ComfyUI models/diffusion_models: Ampliar no fim
+UPSCALE_VAE = 'seedvr2_ema_vae_fp16.safetensors'         # ComfyUI models/vae
 
 
 @dataclass(frozen=True)
@@ -245,6 +247,29 @@ def _overlap(a: dict, b: dict) -> float:
         return 0.0
     shared = width * height
     return shared / (a['width'] * a['height'] + b['width'] * b['height'] - shared)
+
+
+def upscale_graph(image_name: str, factor: float, seed: int, prefix: str = 'prisma/studio_up') -> dict:
+    """SeedVR2 redraws the picture `factor` times larger in one step; the output is saved under IMAGE_OUTPUT_NODE."""
+    tiles = {'tile_size': 512, 'overlap': 128, 'temporal_size': 4096, 'temporal_overlap': 8}
+    return {
+        '1': {'class_type': 'LoadImage', 'inputs': {'image': image_name}},
+        '57': {'class_type': 'ResizeImageMaskNode', 'inputs': {
+            'input': ['1', 0], 'resize_type': 'scale by multiplier', 'resize_type.multiplier': factor,
+            'scale_method': 'lanczos'}},
+        '58': {'class_type': 'SeedVR2Preprocess', 'inputs': {'resized_images': ['57', 0]}},
+        '51': {'class_type': 'VAELoader', 'inputs': {'vae_name': UPSCALE_VAE}},
+        '52': {'class_type': 'UNETLoader', 'inputs': {'unet_name': UPSCALE_MODEL, 'weight_dtype': 'default'}},
+        '48': {'class_type': 'VAEEncodeTiled', 'inputs': {'pixels': ['58', 0], 'vae': ['51', 0], **tiles}},
+        '61': {'class_type': 'SeedVR2Conditioning', 'inputs': {'model': ['52', 0], 'vae_conditioning': ['48', 0]}},
+        '54': {'class_type': 'KSampler', 'inputs': {
+            'model': ['52', 0], 'positive': ['61', 0], 'negative': ['61', 1], 'latent_image': ['48', 0], 'seed': seed,
+            'steps': 1, 'cfg': 1.0, 'sampler_name': 'euler', 'scheduler': 'simple', 'denoise': 1.0}},
+        '55': {'class_type': 'VAEDecodeTiled', 'inputs': {'samples': ['54', 0], 'vae': ['51', 0], **tiles}},
+        '59': {'class_type': 'SeedVR2PostProcessing', 'inputs': {
+            'images': ['55', 0], 'original_resized_images': ['57', 0], 'color_correction_method': 'lab'}},
+        IMAGE_OUTPUT_NODE: {'class_type': 'SaveImage', 'inputs': {'images': ['59', 0], 'filename_prefix': prefix}},
+    }
 
 
 def text_graph(job: TextJob) -> dict:

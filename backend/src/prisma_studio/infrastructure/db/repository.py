@@ -11,8 +11,9 @@ RUN_TRANSITIONS = {
     'preparing': {'refining', 'generating'},
     'refining': {'review', 'generating'},
     'review': {'generating'},
-    'generating': {'detailing', 'verifying', 'completed', 'uncertain'},
-    'detailing': {'verifying', 'completed'},
+    'generating': {'detailing', 'upscaling', 'verifying', 'completed', 'uncertain'},
+    'detailing': {'upscaling', 'verifying', 'completed'},
+    'upscaling': {'verifying', 'completed'},
     'verifying': {'completed'},
     'uncertain': {'generating', 'lost'},
 }

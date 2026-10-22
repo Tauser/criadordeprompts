@@ -600,13 +600,14 @@ def create_app(config: Config | None = None, container: Container | None = None)
                                     'updated_at')}
         settings = run['settings']
         view['settings'] = {k: settings.get(k) for k in ('profile', 'resolution', 'width', 'height', 'variations',
-                                                          'seed', 'verify', 'refine', 'face_detail', 'checks',
+                                                          'seed', 'verify', 'refine', 'face_detail', 'upscale', 'checks',
                                                           'compiler_version')}
         tasks = c.runs.tasks(run['id'])
         view['images'] = [{'task_id': t['id'], 'position': t['position'], 'seed': t['seed'], 'status': t['status'],
                            'files': (t['result'] or {}).get('files', []), 'score': (t['result'] or {}).get('score'),
                            'verdicts': (t['result'] or {}).get('verdicts'), 'detail': (t['result'] or {}).get('detail'),
-                           'raw_files': (t['result'] or {}).get('raw_files', [])} for t in tasks if t['kind'] == 'image']
+                           'raw_files': (t['result'] or {}).get('raw_files', []),
+                           'upscale': (t['result'] or {}).get('upscale')} for t in tasks if t['kind'] == 'image']
         if detail:
             view['request'] = run['request']
             view['files'] = run['files']

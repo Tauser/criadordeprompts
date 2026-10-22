@@ -8,9 +8,10 @@ export interface Step {id: string; label: string; state: StepState; fraction: nu
 export interface Progress {steps: Step[]; label: string; detail: string; fraction: number; elapsed: number}
 
 const OPEN = new Set(['submitting', 'queued', 'running', 'uncertain']);
-const KINDS: Record<string, string[]> = {refine: ['refine'], image: ['image'], faces: ['face_detect', 'face'], verify: ['verify']};
+const KINDS: Record<string, string[]> = {refine: ['refine'], image: ['image'], faces: ['face_detect', 'face'],
+  upscale: ['upscale'], verify: ['verify']};
 const STATUS_STEP: Record<string, string> = {created: 'prepare', preparing: 'prepare', refining: 'refine', review: 'refine',
-  generating: 'image', detailing: 'faces', verifying: 'verify'};
+  generating: 'image', detailing: 'faces', upscaling: 'upscale', verifying: 'verify'};
 
 const live = (task: Task) => task.live?.value != null && task.live.maximum ? task.live.value / task.live.maximum : null;
 
@@ -40,6 +41,8 @@ export function runProgress(run: Run, now: number): Progress {
   add('refine', 'Aprimorando', run.settings.refine);
   add('image', 'Gerando', true);
   add('faces', 'Rostos', run.settings.face_detail === true);
+  // Without the SeedVR2 models the stage is skipped: the step is not shown at all.
+  add('upscale', 'Ampliando', run.settings.upscale != null && !(run.images ?? []).some(i => i.upscale?.skipped));
   add('verify', 'Verificação', run.settings.verify);
 
   const nowStep = steps.find(s => s.state === 'now');

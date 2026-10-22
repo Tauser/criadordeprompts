@@ -94,6 +94,15 @@ describe('workspace restoration chains', () => {
     expect(request.output.width).toBeNull();
     expect(request.output.height).toBeNull();
   });
+
+  it('a masked edit is submitted without "Ampliar no fim", which the photo size rules out', () => {
+    let ws = addReference(initialWorkspace('edit'), 't', file('alvo'));
+    ws = {...ws, request: {...ws.request, mask: true, output: {...ws.request.output, upscale: 2}}};
+    expect(requestForSubmit(ws).output.upscale).toBeNull();
+    expect(ws.request.output.upscale).toBe(2);             // kept: it returns when the mask is removed
+    ws = {...ws, request: {...ws.request, mask: false}};
+    expect(requestForSubmit(ws).output.upscale).toBe(2);
+  });
 });
 
 describe('wordDiff', () => {

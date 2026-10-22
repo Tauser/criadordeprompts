@@ -418,15 +418,17 @@ const aspectBox = (aspect: string) => {
   return <i className="aspect-box" style={{width: Math.round(w * scale), height: Math.round(h * scale)}} aria-hidden="true" />;
 };
 
-function OutputCard({request, patch}: {request: StudioRequest; patch: Patch}) {
+export function OutputCard({request, patch}: {request: StudioRequest; patch: Patch}) {
   const [collapsed, toggle] = useCollapsed('output');
   const output = request.output;
   const edit = request.mode === 'edit', custom = output.width != null;
   const turbo = output.profile === 'turbo';
   const face = output.face_detail == null ? 'auto' : output.face_detail ? 'on' : 'off';
+  const upscale: 'none' | 1.5 | 2 = request.mask || output.upscale == null ? 'none' : output.upscale;
   const resolution = request.mask ? 0 : output.resolution;
   const summary = [turbo ? 'Turbo' : 'Completa', custom && !request.mask ? `${output.width}×${output.height}` : resolution ? String(resolution) : 'Original',
-    !edit && !custom ? output.aspect : null, `${output.variations} ${output.variations === 1 ? 'variação' : 'variações'}`].filter(Boolean).join(' · ');
+    !edit && !custom ? output.aspect : null, `${output.variations} ${output.variations === 1 ? 'variação' : 'variações'}`,
+    upscale === 'none' ? null : `ampliada ${String(upscale).replace('.', ',')}×`].filter(Boolean).join(' · ');
   return (
     <section className={'card output-card collapsible' + (collapsed ? ' is-collapsed' : '')} aria-labelledby="output-title">
       <div className="section-title">
@@ -461,6 +463,13 @@ function OutputCard({request, patch}: {request: StudioRequest; patch: Patch}) {
           <Segmented label="Detalhe dos rostos" value={face}
             onChange={value => patch(r => {r.output.face_detail = value === 'auto' ? null : value === 'on';})}
             options={[{value: 'auto', label: 'Auto · 2+ pessoas'}, {value: 'on', label: 'Sempre'}, {value: 'off', label: 'Nunca'}]} /></div>
+        <div className="control"><span className="control-label"
+          title="Gera no tamanho escolhido e amplia no fim com o SeedVR2. Medido: 1024 + 1,5× sai cerca de 2,5 vezes mais rápido que gerar em 1536.">
+          Ampliar no fim</span>
+          <Segmented label="Ampliar no fim" value={upscale} disabled={request.mask}
+            onChange={value => patch(r => {r.output.upscale = value === 'none' ? null : value;})}
+            options={[{value: 'none', label: 'Não'}, {value: 1.5, label: '1,5×'}, {value: 2, label: '2×'}]} />
+          {request.mask && <span className="field-issues">Com máscara, a foto mantém o tamanho original.</span>}</div>
         <div className="switches wide">
           <Switch checked={output.verify} onChange={on => patch(r => {r.output.verify = on;})}>
             <strong>Verificar o resultado</strong> <span className="muted">· o modelo local confere cada requisito</span></Switch>
