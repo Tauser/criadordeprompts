@@ -50,7 +50,7 @@ Antes de entrar no Studio, cada medida é calibrada no banco de casos (0.1), par
 
 | # | Item | O que resolve | Esforço |
 |---|---|---|---|
-| 2.1 | ⏸ **Preparo da referência** (recorte medido em 21/10: sem ganho; a remoção de fundo ainda não foi medida) | Recorte automático na pessoa e remoção do fundo antes de mandar ao modelo, para o fundo e a luz da foto não vazarem para a cena. Avisos para referência escura, de lado ou com óculos escuros. | M |
+| 2.1 | ⏸ **Preparo da referência** (recorte e remoção de fundo medidos em 21 e 22/10: sem ganho claro; a folha de referência já gera vistas em fundo neutro) | Recorte automático na pessoa e remoção do fundo antes de mandar ao modelo, para o fundo e a luz da foto não vazarem para a cena. Avisos para referência escura, de lado ou com óculos escuros. | M |
 | 2.2 | ✅ **Fichas de personagem** (aba Personagens) | Uma aba "Personagens": nome, fotos e traços que não mudam. Na edição, escolhe-se "Ana" num campo, em vez de anexar a foto de novo. | G |
 | 2.3 | ✅ **Folha de referência** (frente, três quartos, perfil e retrato, na ficha) | Gera o personagem de frente, de perfil e de três quartos em fundo neutro; a melhor vira a referência oficial da ficha. | M |
 | 2.4 | ✅ **Posição de cada pessoa** (medida: 4 de 4 no lado pedido) | Esquerda, direita, frente ou atrás, no lugar do "ao lado" de hoje. | P |
@@ -61,7 +61,7 @@ Antes de entrar no Studio, cada medida é calibrada no banco de casos (0.1), par
 
 | # | Item | O que resolve | Esforço |
 |---|---|---|---|
-| 3.1 | **Máscara por texto (SAM 3)** | Escreve-se "a mulher" ou "a camiseta" e a máscara sai sozinha. | M |
+| 3.1 | ✅ **Máscara por texto (SAM 3)** (1 a 3 s por máscara) | Escreve-se "a mulher" ou "a camiseta" e a máscara sai sozinha. | M |
 | 3.2 | ✅ Corrigir área no resultado | Botão no resultado que abre o editor de máscara já com essa imagem. | P |
 | 3.3 | Pedido por região | Mais de uma máscara, cada uma com seu pedido ("esta pessoa faz isso, aquela faz aquilo"). | G |
 | 3.4 | Pose por esqueleto (ControlNet do Qwen) | Força a pose exata. Primeiro é preciso testar se o modelo aceita; se não, fica a pose por foto, que já existe. | M |
@@ -70,7 +70,7 @@ Antes de entrar no Studio, cada medida é calibrada no banco de casos (0.1), par
 
 | # | Item | O que resolve | Esforço |
 |---|---|---|---|
-| 4.1 | **Gerar em 1024 e ampliar no fim** | 1024, depois detalhe de rosto, depois ampliação (SeedVR2 ou upscaler). Fica mais rápido e evita os picos de memória com LoRA. Medido contra 1536 no banco de casos. | M |
+| 4.1 | ✅ **Gerar em 1024 e ampliar no fim** (SeedVR2; medido: 28 s contra 72 s no Completo) | 1024, depois detalhe de rosto, depois ampliação (SeedVR2 ou upscaler). Fica mais rápido e evita os picos de memória com LoRA. Medido contra 1536 no banco de casos. | M |
 | 4.2 | Detalhe de mãos | Passada como a do rosto, para mãos e dedos. Usa os pontos do SDPose (1.1). | M |
 | 4.3 | Cache int8 no Completo | Para os picos de memória em 1536 com LoRA, com aviso quando a memória estiver no limite. | P |
 | 4.4 | Prompt mais enxuto | Tirar repetições do texto montado; menos espaço para contradição. Medido no banco de casos. | M |
