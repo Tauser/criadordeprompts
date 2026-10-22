@@ -51,6 +51,7 @@ export function Studio({library, comfyOnline, notify}: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [pendingSubmit, setPendingSubmit] = useState<PendingSubmit | null>(loadPending);
   const [reconcile, setReconcile] = useState(0);
+  const [maskRequest, setMaskRequest] = useState(0);   // bumped each time "Corrigir área" asks for the mask editor
   const inFlight = useRef(false);
   const [activeRun, setActiveRun] = useState<string | null>(load<string | null>(ACTIVE_KEY, null) ?? load<string | null>(LEGACY.active, null));
   const [grid, setGrid] = useState<GridCell[] | null>(() => {const saved = load<GridCell[] | null>(GRID_KEY, null); return Array.isArray(saved) ? saved : null;});
@@ -231,13 +232,18 @@ export function Studio({library, comfyOnline, notify}: Props) {
     if (!activeRun) return;
     try {await api.cancel(activeRun);} catch (error) {notify((error as Error).message, true);}
   };
-  const reuse = (hash: string) => {
+  const reuse = (hash: string, options?: {mask: boolean}) => {
     const base = request.mode === 'edit' ? workspace : drafts.edit;
     let next = base;
     if (next.request.target_id) next = removeReference(next, next.request.target_id);
     const id = 'ref-' + uuid().slice(0, 8);
     next = addReference(next, id, {hash, width: 0, height: 0, name: 'resultado.png'});
     next = setTarget(next, id);
+    // "Corrigir área": a previous mask is dropped and the mask editor opens on this picture.
+    if (options?.mask) {
+      next = {...next, maskHash: null, request: {...next.request, mask: false}};
+      setMaskRequest(n => n + 1);
+    }
     fetch(`/api/files/${hash}`).then(r => r.blob()).then(blob => createImageBitmap(blob)).then(bitmap =>
       update(ws => ({...ws, files: {...ws.files, [id]: {...ws.files[id], width: bitmap.width, height: bitmap.height}}}))).catch(() => undefined);
     if (request.mode !== 'edit') {setDrafts(d => ({...d, generate: workspace})); }
@@ -319,7 +325,7 @@ export function Studio({library, comfyOnline, notify}: Props) {
             <button className="quiet" onClick={clearForm} title="Volta campos, imagens, máscara e saída deste modo ao início">
               <Icon name="refresh" size={14} />Limpar</button>
           </div>
-          <References workspace={workspace} slots={prepared?.slots ?? {}} disabled={false} update={update} notify={notify} />
+          <References workspace={workspace} slots={prepared?.slots ?? {}} disabled={false} update={update} notify={notify} maskRequest={maskRequest} />
           <section className="card" aria-labelledby="ask-title">
             <div className="section-title">
               <h2 id="ask-title">{request.mode === 'edit' ? 'O que mudar' : 'O que pedir'}</h2>

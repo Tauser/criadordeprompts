@@ -8,7 +8,7 @@ import {relativeTime} from '../lib/time';
 import {ComparePicker, type ComparePlan} from './CompareGrid';
 import {Icon} from './Icon';
 
-interface Props {run: Run | null; connection: string; onReuse: (hash: string) => void; notify: (m: string, e?: boolean) => void;
+interface Props {run: Run | null; connection: string; onReuse: (hash: string, options?: {mask: boolean}) => void; notify: (m: string, e?: boolean) => void;
   onRepeat: (sameSeed: boolean, redo?: {profile: 'qwen21' | 'turbo'; seed: number}) => Promise<void>;
   items?: Item[]; onCompare?: (plan: ComparePlan) => Promise<void>}
 
@@ -150,6 +150,8 @@ export function RunPanel({run, connection, onReuse, notify, onRepeat, items = []
         <div className="row stage-actions">
           {shown && <>
             <button className="primary" onClick={() => onReuse(shown.files[0])}><Icon name="edit" size={15} />Editar este resultado</button>
+            <button className="secondary" title="Edita só uma parte deste resultado: pinte a área e descreva o que muda."
+                    onClick={() => onReuse(shown.files[0], {mask: true})}><Icon name="mask" size={15} />Corrigir área</button>
             <a className="button secondary" title={`seed ${shown.seed}`} href={fileUrl(shown.files[0])} download={`prisma-${shown.seed}.png`}><Icon name="download" size={15} />Baixar</a>
           </>}
           <span className="spacer" />

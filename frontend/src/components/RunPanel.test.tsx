@@ -22,6 +22,22 @@ it('redoes the variation on screen in the full profile, with its own seed', () =
   expect(onRepeat).toHaveBeenCalledWith(true, {profile: 'qwen21', seed: 101});      // t1 is the best one, shown first
 });
 
+it('reuses the picture on screen for an edit, without the mask flag', () => {
+  const onReuse = vi.fn();
+  render(<RunPanel run={run('qwen21')} connection="online" onReuse={onReuse} notify={vi.fn()} onRepeat={vi.fn()} />);
+  fireEvent.click(screen.getByRole('button', {name: 'Editar este resultado'}));
+  expect(onReuse).toHaveBeenCalledWith('1'.padEnd(64, '0'));      // t1 is the best one, shown first
+});
+
+it('"Corrigir área" reuses the picture on screen and asks for the mask editor', () => {
+  const onReuse = vi.fn();
+  render(<RunPanel run={run('qwen21')} connection="online" onReuse={onReuse} notify={vi.fn()} onRepeat={vi.fn()} />);
+  const button = screen.getByRole('button', {name: 'Corrigir área'});
+  expect(button.getAttribute('title')).toBe('Edita só uma parte deste resultado: pinte a área e descreva o que muda.');
+  fireEvent.click(button);
+  expect(onReuse).toHaveBeenCalledWith('1'.padEnd(64, '0'), {mask: true});
+});
+
 it('offers no redo for a result that is already in the full profile', () => {
   render(<RunPanel run={run('qwen21')} connection="online" onReuse={vi.fn()} notify={vi.fn()} onRepeat={vi.fn()} />);
   expect(screen.queryByRole('button', {name: 'Refazer no Completo'})).toBeNull();
