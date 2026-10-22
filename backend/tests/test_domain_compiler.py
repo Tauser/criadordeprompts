@@ -356,3 +356,10 @@ def test_face_described_without_a_reference_providing_identity_does_not_warn(lib
     assert 'face_described' not in codes(assessment)
     transfer_only = generate_request({**BASE_SCENE, 'face': ref('b')}, references=[{'id': 'b', 'label': 'Bia'}])
     assert 'face_described' not in codes(assess(transfer_only, library))
+
+
+def test_a_pose_that_names_the_chin_or_lips_is_not_a_described_face(library):
+    # Poses name these parts for position, not identity; a warning here would be noise.
+    request = generate_request({'face': ref('b'), 'pose': text('sitting with the chin lifted and the lips parted')},
+                               references=[{'id': 'b', 'label': 'Bia'}])
+    assert 'face_described' not in codes(assess(request, library))

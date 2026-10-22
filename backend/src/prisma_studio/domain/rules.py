@@ -411,9 +411,9 @@ FACE_WORDS = (
     r'bald|careca|loir[oa]s?|ruiv[oa]s?|'
     r'cabelos? (?:curtos?|longos?|cacheados?|ondulados?|lisos?|pretos?|castanhos?|grisalhos?|brancos?)|'
     r'beards?|mustaches?|moustaches?|goatee|stubble|barbas?|barbudo|bigodes?|cavanhaque|'
-    r'freckles?|freckled|sardas?|sardento|'
-    r'nose|lips?|jaw|cheekbones?|chin|nariz|l[áa]bios?|queixo|mand[íi]bula|ma[çc][ãa]s? do rosto|bochechas?'
+    r'freckles?|freckled|sardas?|sardento'
     r')\b'
+    # Chin, lips, nose and jaw stay out: poses name them for position ("chin lifted"), not for who the person is.
 )
 
 
