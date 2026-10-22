@@ -4,6 +4,7 @@ import type {SavedCharacter} from '../api/types';
 import {CHARACTER_NAME_MAX, CHARACTER_NOTES_MAX, CHARACTER_PHOTOS_MAX, faceWordsIn} from '../lib/characters';
 import {sortBy} from '../lib/sort';
 import {Icon} from './Icon';
+import {ReferenceSheet} from './ReferenceSheet';
 
 interface Props {notify: (message: string, error?: boolean) => void}
 type Editing = SavedCharacter | 'new' | null;
@@ -22,8 +23,10 @@ export function Characters({notify}: Props) {
     return () => {stopped = true;};
   }, []);
 
-  const saved = (character: SavedCharacter) => {
+  const replaced = (character: SavedCharacter) =>
     setList(current => sortBy([...(current ?? []).filter(c => c.id !== character.id), character], c => c.name));
+  const saved = (character: SavedCharacter) => {
+    replaced(character);
     setEditing(null);
   };
   const removed = (id: string) => {
@@ -34,7 +37,7 @@ export function Characters({notify}: Props) {
   if (editing) return (
     <div className="characters-page">
       <CharacterEditor key={editing === 'new' ? 'new' : editing.id} character={editing === 'new' ? null : editing}
-                       notify={notify} onSaved={saved} onDeleted={removed} onClose={() => setEditing(null)} />
+                       notify={notify} onSaved={saved} onUpdated={replaced} onDeleted={removed} onClose={() => setEditing(null)} />
     </div>
   );
 
@@ -75,12 +78,13 @@ interface EditorProps {
   character: SavedCharacter | null;
   notify: (message: string, error?: boolean) => void;
   onSaved: (character: SavedCharacter) => void;
+  onUpdated: (character: SavedCharacter) => void;   // a photo saved from the folha: the ficha stays open
   onDeleted: (id: string) => void;
   onClose: () => void;
 }
 type Errors = Partial<Record<'name' | 'photos', string>>;
 
-function CharacterEditor({character, notify, onSaved, onDeleted, onClose}: EditorProps) {
+function CharacterEditor({character, notify, onSaved, onUpdated, onDeleted, onClose}: EditorProps) {
   const [name, setName] = useState(character?.name ?? '');
   const [notes, setNotes] = useState(character?.notes ?? '');
   const [photos, setPhotos] = useState<string[]>(character?.photos ?? []);
@@ -107,6 +111,13 @@ function CharacterEditor({character, notify, onSaved, onDeleted, onClose}: Edito
     } finally {
       setBusy(false);
     }
+  };
+  // Adds the folha's image to the saved ficha, keeping the photos of the editor (the main one is photos[0]).
+  const addToSheet = async (hash: string) => {
+    if (!character) return;
+    const result = await api.updateCharacter(character.id, {photos: [...photos, hash]});
+    setPhotos(result.photos);
+    onUpdated(result);
   };
   const makeMain = (index: number) => setPhotos(current => [current[index], ...current.filter((_, i) => i !== index)]);
   const removePhoto = (index: number) => setPhotos(current => current.filter((_, i) => i !== index));
@@ -197,6 +208,9 @@ function CharacterEditor({character, notify, onSaved, onDeleted, onClose}: Edito
           </ul>
         )}
         {errors.photos && <ul className="field-issues"><li>{errors.photos}</li></ul>}
+        {character && photos.length > 0 && (
+          <ReferenceSheet name={character.name} mainPhoto={photos[0]} photos={photos} onAdd={addToSheet} />
+        )}
       </div>
 
       {error && <ul className="field-issues"><li>{error}</li></ul>}
