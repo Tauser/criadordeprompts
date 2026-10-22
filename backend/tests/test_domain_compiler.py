@@ -302,3 +302,57 @@ def test_adult_content_with_person_photos_needs_the_consent_confirmation(library
     assert 'confirm_consent' not in codes(assess(confirmed, library))
     without_photos = generate_request({'pose': cat('pose.adult')}, content_mode='adult', confirmations=['adults_only'])
     assert 'confirm_consent' not in codes(assess(without_photos, library))
+
+
+BASE_SCENE = {'subject': cat('subject.woman'), 'environment': cat('env.garden')}
+
+
+@pytest.mark.parametrize('description, warns', [
+    ('short blond hair, blue eyes', True),
+    ('olhos verdes e barba', True),
+    ('wearing a red coat, standing on the left', False),
+])
+def test_face_described_for_a_character_with_a_reference(library, description, warns):
+    request = generate_request(BASE_SCENE, references=[{'id': 'b', 'label': 'Bia'}],
+                               characters=[{'reference_id': 'b', 'description': description}])
+    assessment = assess(request, library)
+    assert assessment.valid
+    assert ('face_described' in codes(assessment, 'warning')) is warns
+
+
+def test_face_described_warning_quotes_the_words_and_never_blocks(library):
+    request = generate_request(BASE_SCENE, references=[{'id': 'b', 'label': 'Bia'}],
+                               characters=[{'reference_id': 'b', 'description': 'short blond hair, blue eyes'}])
+    assessment = assess(request, library)
+    issue = next(i for i in assessment.issues if i.code == 'face_described')
+    assert issue.field == 'characters.0' and issue.level == 'warning'
+    assert '"short blond hair"' in issue.message
+    assert run(request, library)[1] is not None
+
+
+def test_face_transfer_with_face_text_in_another_attribute_warns(library):
+    request = generate_request({'face': ref('b'), 'subject': text('a woman with green eyes')},
+                               references=[{'id': 'b', 'label': 'Bia'}])
+    assessment = assess(request, library)
+    assert assessment.valid
+    assert 'face_described' in codes(assessment, 'warning')
+    assert next(i for i in assessment.issues if i.code == 'face_described').field == 'attributes.subject'
+
+
+def test_hair_transfer_with_face_text_in_details_warns(library):
+    request = generate_request({'hair': ref('b'), 'environment': cat('env.garden')},
+                               references=[{'id': 'b', 'label': 'Bia'}], details='barba e sardas')
+    assessment = assess(request, library)
+    assert 'face_described' in codes(assessment, 'warning')
+    assert next(i for i in assessment.issues if i.code == 'face_described').field == 'details'
+
+
+def test_face_described_without_a_reference_providing_identity_does_not_warn(library):
+    own_text = generate_request({**BASE_SCENE, 'face': text('blue eyes, short blond hair')})
+    assert 'face_described' not in codes(assess(own_text, library))
+    missing = generate_request(BASE_SCENE, characters=[{'reference_id': 'x', 'description': 'blue eyes'}])
+    assessment = assess(missing, library)
+    assert 'missing_reference' in codes(assessment, 'error')
+    assert 'face_described' not in codes(assessment)
+    transfer_only = generate_request({**BASE_SCENE, 'face': ref('b')}, references=[{'id': 'b', 'label': 'Bia'}])
+    assert 'face_described' not in codes(assess(transfer_only, library))
