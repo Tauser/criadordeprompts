@@ -23,7 +23,9 @@ import {SavedRequests} from './SavedRequests';
 import {TranslateButton} from './Translate';
 
 type Drafts = Record<'generate' | 'edit', Workspace>;
-const DRAFTS_KEY = 'prisma.drafts.v1', ACTIVE_KEY = 'prisma.active-run', PENDING_KEY = 'prisma.pending-request', GRID_KEY = 'prisma.compareGrid';
+const DRAFTS_KEY = 'prisma.drafts.v1';
+export const ACTIVE_KEY = 'prisma.active-run';
+const PENDING_KEY = 'prisma.pending-request', GRID_KEY = 'prisma.compareGrid';
 // Drafts saved before the rename are read once from the old keys.
 const LEGACY = {drafts: 'kppb.drafts.v1', active: 'kppb.active-run'};
 

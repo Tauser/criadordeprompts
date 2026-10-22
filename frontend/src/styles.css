@@ -556,6 +556,15 @@ button.badge:hover { filter: brightness(1.1); }
 .compare-cell { margin: 0; display: grid; gap: 6px; min-width: 0; }
 .compare-cell figcaption { font-size: 13px; }
 .compare-cell .issue { font-size: 12.5px; }
+/* Cenas do conto */
+.scene-list, .scene-results { display: grid; gap: 12px; list-style: none; margin: 0; padding: 0; }
+.scene-card { display: grid; gap: 14px; }
+.scene-head { margin-bottom: 0; flex-wrap: wrap; }
+.scene-head h2 { font-size: 16px; font-weight: 600; }
+.scene-row { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 14px; align-items: start; }
+.scene-row-body { display: grid; gap: 6px; min-width: 0; align-content: start; }
+.scene-row-body .row { margin-top: 2px; }
+@media (max-width: 600px) { .scene-row { grid-template-columns: 96px minmax(0, 1fr); } }
 .compare-image { position: relative; aspect-ratio: 3 / 4; border-radius: 12px; overflow: hidden; background: var(--sunken); }
 .compare-image > a { display: block; width: 100%; height: 100%; }
 .compare-image img { display: block; width: 100%; height: 100%; object-fit: cover; }
