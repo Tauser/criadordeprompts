@@ -24,6 +24,7 @@ from ..application.coherence import CoherenceService, review_text
 from ..application.contract_errors import contract_issues
 from ..application.people_count import PeopleCounter
 from ..application.pose_test import PoseTester
+from ..application.text_mask import TextMasker
 from ..application.translation import TranslationService
 from ..config import Config
 from ..domain.catalog import Item
@@ -32,7 +33,7 @@ from ..domain.text_audit import audit_item
 from ..domain.vocabulary import CATEGORIES, Confirmation
 from ..infrastructure.comfy.client import ComfyClient, ComfyRejected, ComfyUnavailable
 from ..infrastructure.comfy.progress import ProgressTracker
-from ..infrastructure.comfy.workflows import PROFILES, generation_size
+from ..infrastructure.comfy.workflows import PROFILES, TEXT_MASK_CHARS, generation_size
 from ..infrastructure.db.backup import BackupScheduler
 from ..infrastructure.db.database import Database
 from ..infrastructure.db.repository import (RUN_STATUSES, CharacterRepository, InvalidTransition, LibraryRepository,
@@ -151,6 +152,15 @@ class TranslationCreate(BaseModel):
     text: str
 
 
+class TextMaskCreate(BaseModel):
+    text: str = Field(min_length=1, max_length=TEXT_MASK_CHARS)
+
+    @field_validator('text', mode='before')
+    @classmethod
+    def _trim(cls, value):
+        return value.strip() if isinstance(value, str) else value
+
+
 class PoseTestCreate(BaseModel):
     model_config = ConfigDict(extra='forbid')
     item: dict
@@ -173,10 +183,18 @@ class Container:
         self.service = RunService(self.runs, self.library, self.store, self.executor)
         self.translation = TranslationService(self.comfy)
         self.people = PeopleCounter(self.comfy, self.store, self.runs.file)
+        self.text_masks = TextMasker(self.comfy, self.store, self.runs.file, self.save_result)
         self.coherence = CoherenceService(self.comfy)
         self.pose_tests = PoseTester(self.comfy)
         self.monitor = monitor or SystemMonitor(config.data_dir)
         self.backups = BackupScheduler(self.db.path, config.data_dir / 'backups')
+
+    def save_result(self, data: bytes) -> str:
+        """Stores a picture the Studio made itself, under the same write lock as uploads; returns its hash."""
+        with self.db.write_lock:
+            stored = self.store.put(data)
+            self.runs.record_file(stored)
+        return stored.hash
 
 
 def create_app(config: Config | None = None, container: Container | None = None) -> FastAPI:
@@ -531,6 +549,19 @@ def create_app(config: Config | None = None, container: Container | None = None)
     @app.post('/api/people-counts/{job_id}/cancel')
     def cancel_people_count(job_id: str):
         return c.people.cancel(job_id)
+
+    # text mask (SAM 3) -------------------------------------------------------------
+    @app.post('/api/files/{file_hash}/text-mask')
+    def start_text_mask(file_hash: str, body: TextMaskCreate):
+        return c.text_masks.start(file_hash, body.text)
+
+    @app.get('/api/text-masks/{job_id}')
+    def text_mask(job_id: str):
+        return c.text_masks.status(job_id)
+
+    @app.post('/api/text-masks/{job_id}/cancel')
+    def cancel_text_mask(job_id: str):
+        return c.text_masks.cancel(job_id)
 
     # translation -------------------------------------------------------------------
     @app.post('/api/translations')

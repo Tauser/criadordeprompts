@@ -1,5 +1,5 @@
 import type {CoherenceJob, Health, PeopleCount, SavedCharacter, SavedCharacterInput, SavedRequest, Stats, Item, LibrarySnapshot,
-  PoseTest, Prepared, Run, StudioRequest, TextFinding} from './types';
+  PoseTest, Prepared, Run, StudioRequest, TextFinding, TextMask} from './types';
 
 export class ApiError extends Error {
   constructor(public status: number, public body: {error?: string; issues?: unknown[]; details?: unknown[]}) {
@@ -62,6 +62,9 @@ export const api = {
   countPeople: (hash: string) => call<PeopleCount>('POST', `/api/files/${hash}/people`),
   peopleCount: (id: string) => call<PeopleCount>('GET', `/api/people-counts/${id}`),
   cancelPeopleCount: (id: string) => call<unknown>('POST', `/api/people-counts/${id}/cancel`),
+  startTextMask: (hash: string, text: string) => call<TextMask>('POST', `/api/files/${hash}/text-mask`, {text}),
+  textMask: (id: string) => call<TextMask>('GET', `/api/text-masks/${id}`),
+  cancelTextMask: (id: string) => call<unknown>('POST', `/api/text-masks/${id}/cancel`),
   translate: (text: string) => call<{id: string; status: string}>('POST', '/api/translations', {text}),
   cancelTranslation: (id: string) => call<unknown>('POST', `/api/translations/${id}/cancel`),
   reviewCoherence: (request: StudioRequest) => call<CoherenceJob>('POST', '/api/coherence', request),

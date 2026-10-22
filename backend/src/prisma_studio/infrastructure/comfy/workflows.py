@@ -11,6 +11,8 @@ VAE = 'qwen_image_2.1_vae_bf16.safetensors'
 PE_MODEL = 'qwen3.5_9b_qwen_image_2.1_pe_i2i.int8_convrot.safetensors'
 FACE_MODEL = 'mediapipe_face_fp32.safetensors'   # ComfyUI models/detection: judge close-ups and face detail
 PEOPLE_MODEL = 'rt_detr_v4-x-hgnet_fp16.safetensors'   # ComfyUI models/diffusion_models: people counted by body
+SAM_MODEL = 'sam3.1_multiplex_fp16.safetensors'        # the checkpoint of SAM 3: masks what a text describes
+TEXT_MASK_CHARS = 120              # SAM 3's text encoder reads at most 32 tokens; a longer text is refused
 PERSON_SCORE = 0.75             # measured: whole people scored 0.79+, false and half-hidden hits 0.51-0.61
 TURBO_SIGMAS = '1.0, 0.978453, 0.95418, 0.926626, 0.89508, 0.845148, 0.704534, 0.414568, 0.0'
 PROFILES = {
@@ -186,6 +188,21 @@ def face_detect_graph(image: str, faces: int, min_confidence: float = 0.5, peopl
             PEOPLE_OUTPUT_NODE: {'class_type': 'PreviewAny', 'inputs': {'source': ['74', 0]}},
         })
     return graph
+
+
+def text_mask_graph(image: str, text: str) -> dict:
+    """SAM 3 finds what `text` describes in the image. The mask comes back as a picture through the image output:
+    white where the object is, black elsewhere, at the picture's size."""
+    return {
+        'A': {'class_type': 'CheckpointLoaderSimple', 'inputs': {'ckpt_name': SAM_MODEL}},
+        'B': {'class_type': 'CLIPTextEncode', 'inputs': {'clip': ['A', 1], 'text': text}},
+        'C': {'class_type': 'LoadImage', 'inputs': {'image': image}},
+        'D': {'class_type': 'SAM3_Detect', 'inputs': {
+            'model': ['A', 0], 'image': ['C', 0], 'conditioning': ['B', 0], 'threshold': 0.5,
+            'refine_iterations': 2, 'individual_masks': False}},
+        'E': {'class_type': 'MaskToImage', 'inputs': {'mask': ['D', 0]}},
+        IMAGE_OUTPUT_NODE: {'class_type': 'SaveImage', 'inputs': {'images': ['E', 0], 'filename_prefix': 'prisma/textmask'}},
+    }
 
 
 def people_count(text: str | None) -> int | None:

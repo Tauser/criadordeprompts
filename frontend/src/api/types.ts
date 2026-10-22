@@ -82,6 +82,8 @@ export interface Prepared {
 export interface Suggestion {field: Category; attribute: Attribute | null; context: Partial<StudioRequest['context']>;
   label: string; reason: string; source: 'pose' | 'action' | 'scene'; auto: boolean}
 export interface PeopleCount {id: string; status: string; count?: number; error?: string}
+// A mask selected by text (SAM 3): `mask` is the stored mask's file hash, null when nothing matched (`empty`).
+export interface TextMask {id: string; status: string; mask: string | null; empty?: boolean; error: string | null; warning?: string}
 
 // A "Pedido salvo": the choices of a request without its photos, seed, people count, supports or consents.
 export interface SavedRequest {id: string; name: string; request: StudioRequest; created_at: number; updated_at: number}

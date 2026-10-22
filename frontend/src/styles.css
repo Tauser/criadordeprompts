@@ -609,6 +609,12 @@ details.tech h3 { margin: 6px 0; }
 .brush-size input { width: 140px; accent-color: #fff; padding: 0; border: 0; background: none; }
 .brush-size .num { min-width: 46px; }
 .mask-warning { color: #ffb3bd; font-size: 13px; flex-basis: 100%; text-align: center; }
+.mask-text { display: flex; align-items: flex-end; justify-content: center; flex-wrap: wrap; gap: 8px; flex-basis: 100%; }
+.mask-text-field { display: flex; flex-direction: column; gap: 4px; min-width: min(360px, 100%); font-size: 13px; color: rgba(255,255,255,.8); }
+.mask-text input { height: 36px; padding: 0 12px; border: 0; border-radius: 10px; background: rgba(255,255,255,.1); color: #fff; font: inherit; }
+.mask-text .mask-warning, .mask-text .mask-busy { flex-basis: auto; text-align: left; }
+.mask-text .mask-busy { color: rgba(255,255,255,.65); }
+.mask-text .mask-note { color: rgba(255,255,255,.7); }
 
 /* library (P7) */
 .category-chips { margin-bottom: 0; }

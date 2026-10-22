@@ -30,6 +30,8 @@ class FakeComfy:
         self.loras = ['anatomy_fix_qwen21.safetensors', 'realism/ultra_real.safetensors']
         self.faces = []                    # boxes the MediaPipe face detector reports (or a function of none)
         self.people: list[dict] = []       # bodies RT-DETR reports
+        self.sam_mask = None               # PNG SAM 3 returns for a text graph; None = a small white area on black
+        self.binaries: dict[str, bytes] = {}   # output pictures by file name
 
     def _check(self):
         if self.offline:
@@ -80,7 +82,10 @@ class FakeComfy:
     def outputs(self, prompt_id):
         graph = self.jobs[prompt_id]['graph']
         if IMAGE_OUTPUT_NODE in graph:
-            return {IMAGE_OUTPUT_NODE: {'images': [{'filename': f'{prompt_id}.png', 'subfolder': 'prisma', 'type': 'output'}]}}
+            name = f'{prompt_id}.png'
+            if graph.get('D', {}).get('class_type') == 'SAM3_Detect':
+                self.binaries[name] = self.sam_mask if self.sam_mask is not None else _sam_mask()
+            return {IMAGE_OUTPUT_NODE: {'images': [{'filename': name, 'subfolder': 'prisma', 'type': 'output'}]}}
         if any(node['class_type'] == 'MediaPipeFaceLandmarker' for node in graph.values()):
             faces = self.faces() if callable(self.faces) else self.faces
             out = {TEXT_OUTPUT_NODE: {'text': [json.dumps([faces])]}}
@@ -107,9 +112,20 @@ class FakeComfy:
 
     def view(self, filename, subfolder, kind):
         self._check()
+        if filename in self.binaries:
+            return self.binaries[filename]
         import hashlib
         digest = hashlib.sha256(filename.encode()).digest()
         return png(color=(digest[0], digest[1], digest[2]))
+
+
+def _sam_mask():
+    """A 40x30 picture, smaller than the test photos: white (found) in the middle, black elsewhere."""
+    image = Image.new('RGB', (40, 30), (0, 0, 0))
+    image.paste((255, 255, 255), (10, 8, 30, 26))
+    buffer = io.BytesIO()
+    image.save(buffer, format='PNG')
+    return buffer.getvalue()
 
 
 class _PermissiveInfo(dict):

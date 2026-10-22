@@ -251,7 +251,7 @@ export function References({workspace, slots, disabled, update, notify, maskRequ
         </div>
       )}
       {masking && target && request.target_id && target.width > 0 && (
-        <MaskEditor src={fileUrl(target.hash)} width={target.width} height={target.height}
+        <MaskEditor photo={target.hash} width={target.width} height={target.height}
                     onSave={saveMask} onCancel={() => setMasking(false)} />
       )}
     </section>
