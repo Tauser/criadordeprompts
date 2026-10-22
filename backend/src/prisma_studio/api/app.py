@@ -35,8 +35,8 @@ from ..infrastructure.comfy.progress import ProgressTracker
 from ..infrastructure.comfy.workflows import PROFILES, generation_size
 from ..infrastructure.db.backup import BackupScheduler
 from ..infrastructure.db.database import Database
-from ..infrastructure.db.repository import (RUN_STATUSES, InvalidTransition, LibraryRepository, PresetRepository,
-                                            RunRepository)
+from ..infrastructure.db.repository import (RUN_STATUSES, CharacterRepository, InvalidTransition, LibraryRepository,
+                                            MissingPhoto, PresetRepository, RunRepository)
 from ..infrastructure.discovery import LocalDiscovery
 from ..infrastructure.instance_lock import InstanceLock
 from ..infrastructure.storage.files import FileStore
@@ -107,6 +107,46 @@ class PresetRename(BaseModel):
         return value.strip() if isinstance(value, str) else value
 
 
+def _distinct_photos(value):
+    if value is not None and len(set(value)) != len(value):
+        raise ValueError('Cada foto só pode aparecer uma vez.')
+    return value
+
+
+class CharacterCreate(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    name: str = Field(min_length=1, max_length=60)
+    notes: str = Field(default='', max_length=500)
+    photos: list[str] = Field(min_length=1, max_length=6)
+
+    @field_validator('name', mode='before')
+    @classmethod
+    def _trim(cls, value):
+        return value.strip() if isinstance(value, str) else value
+
+    @field_validator('photos')
+    @classmethod
+    def _distinct(cls, value):
+        return _distinct_photos(value)
+
+
+class CharacterUpdate(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    name: str | None = Field(default=None, min_length=1, max_length=60)
+    notes: str | None = Field(default=None, max_length=500)
+    photos: list[str] | None = Field(default=None, min_length=1, max_length=6)
+
+    @field_validator('name', mode='before')
+    @classmethod
+    def _trim(cls, value):
+        return value.strip() if isinstance(value, str) else value
+
+    @field_validator('photos')
+    @classmethod
+    def _distinct(cls, value):
+        return _distinct_photos(value)
+
+
 class TranslationCreate(BaseModel):
     text: str
 
@@ -125,6 +165,7 @@ class Container:
         self.store = FileStore(config.data_dir / 'files')
         self.runs = RunRepository(self.db)
         self.presets = PresetRepository(self.db)
+        self.characters = CharacterRepository(self.db)
         self.comfy = comfy or ComfyClient(config.comfy_url)
         self.progress = progress if progress is not None else ProgressTracker(config.comfy_url, self.comfy.client_id)
         self.library = LibraryService(config.catalog_path, LibraryRepository(self.db))
@@ -344,6 +385,34 @@ def create_app(config: Config | None = None, container: Container | None = None)
         if not c.presets.delete(preset_id):
             raise HTTPException(404, 'Pedido salvo não encontrado.')
         return {'deleted': preset_id}
+
+    # fichas de personagem (saved story characters) ----------------------------------
+    @app.get('/api/characters')
+    def list_characters():
+        return {'characters': c.characters.list()}
+
+    @app.post('/api/characters')
+    def create_character(body: CharacterCreate):
+        try:
+            return c.characters.create(body.name, body.notes, body.photos)
+        except MissingPhoto as error:
+            return JSONResponse({'error': str(error)}, status_code=422)
+
+    @app.put('/api/characters/{character_id}')
+    def update_character(character_id: str, body: CharacterUpdate):
+        try:
+            character = c.characters.update(character_id, name=body.name, notes=body.notes, photos=body.photos)
+        except MissingPhoto as error:
+            return JSONResponse({'error': str(error)}, status_code=422)
+        if character is None:
+            return JSONResponse({'error': 'Personagem não encontrado.'}, status_code=404)
+        return character
+
+    @app.delete('/api/characters/{character_id}')
+    def delete_character(character_id: str):
+        if not c.characters.delete(character_id):
+            return JSONResponse({'error': 'Personagem não encontrado.'}, status_code=404)
+        return {'deleted': character_id}
 
     # files -----------------------------------------------------------------------
     @app.post('/api/files')

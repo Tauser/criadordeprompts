@@ -176,6 +176,8 @@ class RunRepository:
             hashes |= set(_hashes(loads(row['files_json'])))
         for row in connection.execute('SELECT result_json FROM tasks WHERE result_json IS NOT NULL').fetchall():
             hashes |= _result_files(loads(row['result_json']))
+        for row in connection.execute('SELECT photos_json FROM characters').fetchall():
+            hashes |= set(loads(row['photos_json']) or [])   # character photos are kept until the character goes
         return hashes
 
     def delete_with_files(self, run_id: str, keep: set[str], remove) -> int:
@@ -329,6 +331,66 @@ class PresetRepository:
             return tx.execute('DELETE FROM presets WHERE id=?', (preset_id,)).rowcount > 0
 
 
+CHARACTER_LIMIT = 100
+
+
+class MissingPhoto(ValueError):
+    """A character names a photo the Studio does not have (never uploaded, or no longer kept)."""
+
+
+class CharacterRepository:
+    """Fichas de personagem: a story character kept once. Its photos are protected from cleanup by referenced_files."""
+
+    def __init__(self, db: Database):
+        self.db = db
+
+    def list(self) -> list[dict]:
+        return [_character(r) for r in self.db.query(
+            'SELECT * FROM characters ORDER BY name COLLATE NOCASE, created_at, rowid')]
+
+    def get(self, character_id: str) -> dict | None:
+        row = self.db.one('SELECT * FROM characters WHERE id=?', (character_id,))
+        return _character(row) if row else None
+
+    def create(self, name: str, notes: str, photos: list[str]) -> dict:
+        with self.db.transaction() as tx:
+            count = tx.execute('SELECT COUNT(*) AS total FROM characters').fetchone()['total']
+            if count >= CHARACTER_LIMIT:
+                raise InvalidTransition(f'Já há {CHARACTER_LIMIT} personagens. Apague algum antes de criar outro.')
+            _require_photos(tx, photos)
+            character_id, at = new_id(), now()
+            tx.execute('INSERT INTO characters(id, name, notes, photos_json, created_at, updated_at) '
+                       'VALUES (?,?,?,?,?,?)', (character_id, name, notes, dumps(photos), at, at))
+        return self.get(character_id)
+
+    def update(self, character_id: str, *, name: str | None = None, notes: str | None = None,
+               photos: list[str] | None = None) -> dict | None:
+        """Only the fields given (not None) change. Returns None when the character does not exist."""
+        with self.db.transaction() as tx:
+            if tx.execute('SELECT 1 FROM characters WHERE id=?', (character_id,)).fetchone() is None:
+                return None
+            if photos is not None:
+                _require_photos(tx, photos)
+            changes = {'name': name, 'notes': notes, 'photos_json': dumps(photos) if photos is not None else None}
+            changes = {k: v for k, v in changes.items() if v is not None}
+            if changes:
+                sets = ', '.join(f'{k}=?' for k in changes)
+                tx.execute(f'UPDATE characters SET {sets}, updated_at=? WHERE id=?',
+                           (*changes.values(), now(), character_id))
+        return self.get(character_id)
+
+    def delete(self, character_id: str) -> bool:
+        """The character's photos stay on disk; the cleanup removes them only once nothing else uses them."""
+        with self.db.transaction() as tx:
+            return tx.execute('DELETE FROM characters WHERE id=?', (character_id,)).rowcount > 0
+
+
+def _require_photos(tx, photos: list[str]) -> None:
+    for file_hash in photos:
+        if tx.execute('SELECT 1 FROM files WHERE hash=?', (file_hash,)).fetchone() is None:
+            raise MissingPhoto('Foto não encontrada no Studio. Envie-a novamente.')
+
+
 RUN_STATUSES = set(RUN_TRANSITIONS) | TERMINAL | {s for targets in RUN_TRANSITIONS.values() for s in targets}
 
 
@@ -360,6 +422,11 @@ def _task(row) -> dict:
 
 def _preset(row) -> dict:
     return {'id': row['id'], 'name': row['name'], 'request': loads(row['request_json']),
+            'created_at': row['created_at'], 'updated_at': row['updated_at']}
+
+
+def _character(row) -> dict:
+    return {'id': row['id'], 'name': row['name'], 'notes': row['notes'], 'photos': loads(row['photos_json']),
             'created_at': row['created_at'], 'updated_at': row['updated_at']}
 
 

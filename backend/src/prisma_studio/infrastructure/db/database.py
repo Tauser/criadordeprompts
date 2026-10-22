@@ -87,6 +87,17 @@ MIGRATIONS = [
         updated_at REAL NOT NULL
     );
     """,
+    # 4: "Fichas de personagem" — saved story characters: a name, photos (file hashes) and notes without the face.
+    """
+    CREATE TABLE characters (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        notes TEXT NOT NULL DEFAULT '',
+        photos_json TEXT NOT NULL,
+        created_at REAL,
+        updated_at REAL
+    );
+    """,
 ]
 
 
