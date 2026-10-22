@@ -16,14 +16,21 @@ interface Props {
   disabled: boolean;
   update: (next: Workspace | ((ws: Workspace) => Workspace)) => void;
   notify: (message: string, error?: boolean) => void;
+  maskRequest?: number;   // each change opens the mask editor on the photo (from "Corrigir área")
 }
 
-export function References({workspace, slots, disabled, update, notify}: Props) {
+export function References({workspace, slots, disabled, update, notify, maskRequest = 0}: Props) {
   const [busy, setBusy] = useState(false);
   const [masking, setMasking] = useState(false);
+  const maskRow = useRef<HTMLDivElement>(null);
   const request = workspace.request;
   const edit = request.mode === 'edit';
   const target = request.target_id ? workspace.files[request.target_id] : null;
+  useEffect(() => {
+    if (!maskRequest) return;
+    setMasking(true);
+    maskRow.current?.scrollIntoView?.({block: 'center', behavior: 'smooth'});
+  }, [maskRequest]);
 
   const [menu, setMenu] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -180,7 +187,7 @@ export function References({workspace, slots, disabled, update, notify}: Props) 
         </div>
       ))}
       {edit && target && (
-        <div className="mask-row">
+        <div className="mask-row" ref={maskRow}>
           <Switch checked={request.mask} disabled={disabled}
                   onChange={on => on ? setMasking(true) : update(ws => ({...ws, maskHash: null, request: {...ws.request, mask: false}}))}>
             <strong>Editar só uma área</strong></Switch>
@@ -191,7 +198,7 @@ export function References({workspace, slots, disabled, update, notify}: Props) 
           </>}
         </div>
       )}
-      {masking && target && request.target_id && (
+      {masking && target && request.target_id && target.width > 0 && (
         <MaskEditor src={fileUrl(target.hash)} width={target.width} height={target.height}
                     onSave={saveMask} onCancel={() => setMasking(false)} />
       )}
