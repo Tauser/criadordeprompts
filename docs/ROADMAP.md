@@ -50,7 +50,7 @@ Antes de entrar no Studio, cada medida é calibrada no banco de casos (0.1), par
 
 | # | Item | O que resolve | Esforço |
 |---|---|---|---|
-| 2.1 | **Preparo da referência** | Recorte automático na pessoa e remoção do fundo antes de mandar ao modelo, para o fundo e a luz da foto não vazarem para a cena. Avisos para referência escura, de lado ou com óculos escuros. | M |
+| 2.1 | ⏸ **Preparo da referência** (recorte medido em 21/10: sem ganho; a remoção de fundo ainda não foi medida) | Recorte automático na pessoa e remoção do fundo antes de mandar ao modelo, para o fundo e a luz da foto não vazarem para a cena. Avisos para referência escura, de lado ou com óculos escuros. | M |
 | 2.2 | **Fichas de personagem** | Uma aba "Personagens": nome, fotos e traços que não mudam. Na edição, escolhe-se "Ana" num campo, em vez de anexar a foto de novo. | G |
 | 2.3 | **Folha de referência** | Gera o personagem de frente, de perfil e de três quartos em fundo neutro; a melhor vira a referência oficial da ficha. | M |
 | 2.4 | ✅ **Posição de cada pessoa** (medida: 4 de 4 no lado pedido) | Esquerda, direita, frente ou atrás, no lugar do "ao lado" de hoje. | P |
