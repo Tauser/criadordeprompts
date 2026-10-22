@@ -231,6 +231,29 @@ export function switchMode(drafts: Record<'generate' | 'edit', Workspace>, from:
   return {drafts: saved, workspace: target};
 }
 
+/** A "Pedido salvo" loaded into the form. Its choices replace the form's; the photos attached now stay, and so do the
+ * target and its mask while the mode is still "edit", because a saved request never carries photos. Its mode wins. */
+export function applyPreset(ws: Workspace, preset: StudioRequest): Workspace {
+  const targetId = preset.mode === 'edit' ? ws.request.target_id ?? null : null;
+  const masked = !!targetId && ws.request.mask;
+  const attributes: StudioRequest['attributes'] = {};
+  for (const [category, attribute] of Object.entries(preset.attributes) as [Category, Attribute][]) {
+    // The API sends null for the empty parts of an attribute; the form uses them only when present.
+    attributes[category] = {intent: attribute.intent,
+      ...(attribute.value ? {value: attribute.value} : {}), ...(attribute.reference_id ? {reference_id: attribute.reference_id} : {})};
+  }
+  return {
+    request: {
+      ...clone(preset), attributes, references: ws.request.references, target_id: targetId, mask: masked, characters: [],
+      participants: {requested: preset.participants.requested ?? null, existing: targetId ? ws.request.participants.existing ?? null : null},
+      confirmations: [],
+    },
+    files: ws.files, restore: {}, maskHash: masked ? ws.maskHash : null,
+    existingFrom: targetId ? ws.existingFrom ?? null : null,
+    auto: {}, touched: Object.keys(attributes) as Category[],
+  };
+}
+
 export function enterManual(ws: Workspace, composed: string): Workspace {
   const next = clone(ws);
   next.request.prompt_mode = 'manual';

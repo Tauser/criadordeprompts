@@ -8,7 +8,7 @@ import {load, save} from '../lib/storage';
 import {usePeopleCount, type PeopleDetection} from '../lib/usePeopleCount';
 import {useRun} from '../lib/useRun';
 import {uuid} from '../lib/uuid';
-import {addReference, applySuggestion, enterManual, filesForSubmit, initialWorkspace, leaveManual, removeReference,
+import {addReference, applyPreset, applySuggestion, enterManual, filesForSubmit, initialWorkspace, leaveManual, removeReference,
   requestForSubmit, setAttribute, setTarget, switchMode, syncAuto, type Workspace} from '../state/workspace';
 import {AttributeField} from './AttributeField';
 import {CollapseButton} from './Collapse';
@@ -19,6 +19,7 @@ import {History} from './History';
 import {PromptPreview, SETUP_STEPS, setupIssues} from './PromptPreview';
 import {References} from './References';
 import {RunPanel, useNow} from './RunPanel';
+import {SavedRequests} from './SavedRequests';
 import {TranslateButton} from './Translate';
 
 type Drafts = Record<'generate' | 'edit', Workspace>;
@@ -272,6 +273,11 @@ export function Studio({library, comfyOnline, notify}: Props) {
     setWorkspace(initialWorkspace(request.mode));
     setTab('basic');
   };
+  // A saved request replaces the choices; the photos attached now stay. Another mode is kept as its own draft.
+  const loadPreset = (preset: StudioRequest) => {
+    if (preset.mode !== request.mode) setDrafts(d => ({...d, [request.mode]: workspace}));
+    update(ws => applyPreset(ws, preset));
+  };
   const toggleManual =(enabled: boolean) => {
     if (enabled) update(ws => enterManual(ws, prepared?.prompt ?? ''));
     else if (request.manual_prompt === prepared?.prompt || confirm('Voltar aos campos descarta o texto manual. Continuar?')) update(leaveManual);
@@ -369,6 +375,7 @@ export function Studio({library, comfyOnline, notify}: Props) {
             )}
           </section>
           <OutputCard request={request} patch={patch} />
+          <SavedRequests current={() => requestForSubmit(workspace)} onLoad={loadPreset} notify={notify} />
         </div>
         <div className="column side-column">
           <div className="stage-wrap">

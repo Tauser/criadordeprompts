@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
-import {addReference, applyReference, initialWorkspace, removeReference, requestForSubmit, setAttribute, setTarget} from './workspace';
+import {addReference, applyPreset, applyReference, initialWorkspace, removeReference, requestForSubmit, setAttribute, setTarget} from './workspace';
 import {wordDiff} from '../lib/diff';
+import type {StudioRequest} from '../api/types';
 
 const file = (name: string) => ({hash: name.padEnd(64, '0'), width: 10, height: 10, name});
 
@@ -126,5 +127,39 @@ describe('characters', () => {
     expect(requestForSubmit(ws).characters).toEqual([{reference_id: 'b', description: 'on the left', position: 'right'}]);
     ws = removeReference(ws, 'b');
     expect(ws.request.characters).toEqual([]);
+  });
+
+  it('loads a saved request: its choices replace the form and the photos attached now stay', () => {
+    let ws = addReference(addReference(initialWorkspace('edit'), 't', file('alvo')), 'p', file('pers'));
+    ws = setAttribute(ws, 'hair', {intent: 'set', value: {kind: 'text', text: 'short red hair'}});
+    ws = {...ws, request: {...ws.request, mask: true, participants: {requested: 1, existing: 2}}, maskHash: 'm'.padEnd(64, '0')};
+    const preset: StudioRequest = {...initialWorkspace('edit').request, details: 'noite na rua',
+      attributes: {
+        environment: {intent: 'set', value: {kind: 'catalog', item_id: 'environment.garden'}},
+        face: {intent: 'keep'},
+      },
+      output: {...initialWorkspace('edit').request.output, seed: null, aspect: '9:16'}};
+    const next = applyPreset(ws, preset);
+    expect(next.request.attributes.environment).toEqual({intent: 'set', value: {kind: 'catalog', item_id: 'environment.garden'}});
+    expect(next.request.attributes.hair).toBeUndefined();
+    expect(next.request.details).toBe('noite na rua');
+    expect(next.request.output.seed).toBeNull();
+    expect(next.request.references.map(r => r.id)).toEqual(['t', 'p']);
+    expect(next.files.t.name).toBe('alvo');
+    expect(next.request.target_id).toBe('t');
+    expect(next.request.mask).toBe(true);
+    expect(next.maskHash).toBe('m'.padEnd(64, '0'));
+    expect(next.request.participants).toEqual({requested: null, existing: 2});
+  });
+
+  it('a saved generation clears the target and mask, and takes its own mode', () => {
+    let ws = addReference(initialWorkspace('edit'), 't', file('alvo'));
+    ws = {...ws, request: {...ws.request, mask: true}, maskHash: 'm'.padEnd(64, '0')};
+    const next = applyPreset(ws, {...initialWorkspace('generate').request, details: 'praia'});
+    expect(next.request.mode).toBe('generate');
+    expect(next.request.target_id).toBeNull();
+    expect(next.request.mask).toBe(false);
+    expect(next.maskHash).toBeNull();
+    expect(next.request.references.map(r => r.id)).toEqual(['t']);
   });
 });

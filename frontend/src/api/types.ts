@@ -83,6 +83,9 @@ export interface Suggestion {field: Category; attribute: Attribute | null; conte
   label: string; reason: string; source: 'pose' | 'action' | 'scene'; auto: boolean}
 export interface PeopleCount {id: string; status: string; count?: number; error?: string}
 
+// A "Pedido salvo": the choices of a request without its photos, seed, people count, supports or consents.
+export interface SavedRequest {id: string; name: string; request: StudioRequest; created_at: number; updated_at: number}
+
 export interface Verdict {verdict: 'met' | 'partial' | 'unmet' | 'unknown'; note: string}
 export interface RunImage {task_id: string; position: number; seed: number; status: string; files: string[];
   score?: number | null; verdicts?: Record<string, Verdict> | null;
