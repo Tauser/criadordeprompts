@@ -101,7 +101,8 @@ def test_adult_classification_never_changes_other_blocks(library):
     _, base = run(base_request, library)
     adult = Request.model_validate({**base_request.model_dump(), 'content_mode': 'adult'})
     _, compiled = run(adult, library)
-    assert compiled.text == base.text
+    grown = 'Every person is clearly a grown adult, at least twenty-five years old, with a mature face and body.'
+    assert compiled.text == base.text + '\n' + grown         # the only addition: adult content shows grown people
     with_item = Request.model_validate({**adult.model_dump(), 'attributes': {**adult.model_dump()['attributes'],
                                         'pose': cat('pose.adult')},
                                         'confirmations': ['adults_only', 'consent_or_fictional']})
@@ -109,6 +110,15 @@ def test_adult_classification_never_changes_other_blocks(library):
     for line in base.text.splitlines():
         if not line.startswith('Keep'):
             assert line in compiled.text
+
+
+def test_standard_mode_dresses_people_when_the_clothing_is_free(library):
+    _, free = run(generate_request({'pose': cat('pose.seated')}), library)
+    assert 'Every person is fully dressed in everyday clothing.' in free.text
+    _, adult = run(generate_request({'pose': cat('pose.seated')}, content_mode='adult'), library)
+    assert 'fully dressed' not in adult.text
+    _, kept = run(edit_request({**DEFAULT_KEEP, 'environment': cat('env.garden')}), library)
+    assert 'fully dressed' not in kept.text                  # the photo's own clothing is kept instead
 
 
 def test_no_aspect_is_both_kept_and_changed_in_random_requests(library):

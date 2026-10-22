@@ -66,6 +66,8 @@ ANATOMY_MIXED_AGES = ('Each person has exactly two arms, two hands, two legs and
                       'neither enlarged nor shrunk.')
 FACES = ("Every face is sharp and natural: each person's two eyes "
          'match in size, shape and color, are level with each other and look in the same direction.')
+CLOTHED = 'Every person is fully dressed in everyday clothing.'
+GROWN = 'Every person is clearly a grown adult, at least twenty-five years old, with a mature face and body.'
 ORIENTATIONS = {
     'front': 'The front of the body faces the camera.',
     'back': 'The body is seen from behind, with the back toward the camera.',
@@ -291,6 +293,10 @@ def _guidance(block: ir.Guidance) -> str:
         return ANATOMY_MIXED_AGES if block.value == 'mixed_ages' else ANATOMY
     if block.key == 'faces':
         return FACES
+    if block.key == 'clothing':
+        return CLOTHED
+    if block.key == 'age':
+        return GROWN
     if block.key == 'new_supports':
         return 'Add only the support surfaces the pose or action needs.'
     surface = SUPPORTS[block.value]

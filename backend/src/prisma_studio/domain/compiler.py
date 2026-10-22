@@ -8,7 +8,7 @@ from .request import CatalogValue, Request
 from .rules import Assessment, available_supports, body_gaze, effective_orientation, framing_already_there
 from .vocabulary import CATEGORIES, FRAMING_ORDER, SUPPORT_PRIORITY, agreed
 
-COMPILER_VERSION = '1.16.0'
+COMPILER_VERSION = '1.17.0'
 
 # Operation order: scene first, then person changes; style leads in generation.
 EDIT_ORDER = ('environment', 'lighting', 'style', 'camera', 'framing', 'subject', 'face', 'body', 'skin', 'hair',
@@ -100,6 +100,13 @@ def build_ir(request: Request, assessment: Assessment) -> list:
     total = assessment.participants_total
     if total and (total > 1 or request.participants.requested == 1):   # an explicit "one person" is an instruction too
         blocks.append(ir.Participants(total, edit))
+
+    # Measured: with the clothing left free, bedroom scenes came out nude in standard mode, so the mode says it.
+    if request.content_mode == 'standard' and request.attribute('wardrobe').intent == 'free':
+        blocks.append(ir.Guidance('clothing', 'dressed'))
+    # Adult content always shows grown people: "two adults" alone once gave a youthful face and build.
+    if request.content_mode == 'adult' and not any(r.children for r in assessment.requirements):
+        blocks.append(ir.Guidance('age', 'grown'))
 
     minimums = [r.minimum_framing for r in assessment.requirements if r.minimum_framing]
     if (minimums and request.attribute('framing').intent == 'free'
