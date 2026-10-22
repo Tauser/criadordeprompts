@@ -2,7 +2,7 @@
 import {act, cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {api} from '../api/client';
-import type {LibrarySnapshot} from '../api/types';
+import type {Item, LibrarySnapshot} from '../api/types';
 import {Library} from './Library';
 
 vi.mock('../api/client', () => ({api: {saveLibrary: vi.fn(), translate: vi.fn(), translation: vi.fn(),
@@ -118,4 +118,31 @@ it('says where a saved +18 option shows up', async () => {
   fireEvent.change(screen.getByLabelText('Nome'), {target: {value: 'Deitado de costas'}});
   fireEvent.click(screen.getByRole('button', {name: 'Salvar'}));
   await waitFor(() => expect(notify).toHaveBeenCalledWith(expect.stringMatching(/só aparece com "Mostrar opções adultas/)));
+});
+
+it('moves your own option to another category and drops what the new one does not use', async () => {
+  vi.mocked(api.saveLibrary).mockImplementation(async (_revision: number, items: unknown[]) =>
+    ({revision: 5, origins: {'user.environment.x': 'user'}, items: items as Item[]}));
+  const snapshot: LibrarySnapshot = {revision: 4, origins: {'user.environment.x': 'user', 'environment.b': 'builtin'},
+    items: [{id: 'user.environment.x', category: 'pose', label: 'Reclinar', prompt: 'reclining on a bed', adult: false,
+      enabled: true, requirements: {participants: 1, posture: 'lying', gaze: 'camera'}, provides: {}},
+    {id: 'environment.b', category: 'environment', label: 'Praia', prompt: 'b', adult: false, enabled: true,
+      requirements: {}, provides: {supports: ['floor']}}]};
+  render(<Library snapshot={snapshot} onSaved={vi.fn()} notify={vi.fn()} setDirty={vi.fn()} />);
+  fireEvent.click(screen.getByRole('button', {name: /Reclinar/}));
+  const category = screen.getByRole('combobox', {name: 'Categoria'}) as HTMLSelectElement;
+  expect(category.disabled).toBe(false);
+  fireEvent.change(category, {target: {value: 'expression'}});
+  expect(screen.getByText(/número de pessoas, postura: esses ajustes saem ao salvar/)).toBeTruthy();
+  fireEvent.click(screen.getByRole('button', {name: 'Salvar'}));
+  await waitFor(() => expect(api.saveLibrary).toHaveBeenCalled());
+  const saved = (vi.mocked(api.saveLibrary).mock.calls[0][1] as Item[]).find(i => i.id === 'user.environment.x')!;
+  expect(saved.category).toBe('expression');
+  expect(saved.requirements).toEqual({gaze: 'camera'});
+});
+
+it('keeps the category of the Studio options locked', () => {
+  render(<Library snapshot={twoItems} onSaved={vi.fn()} notify={vi.fn()} setDirty={vi.fn()} />);
+  fireEvent.click(screen.getByRole('button', {name: /Jardim/}));
+  expect((screen.getByRole('combobox', {name: 'Categoria'}) as HTMLSelectElement).disabled).toBe(true);
 });

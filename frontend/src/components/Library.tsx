@@ -3,6 +3,7 @@ import {api} from '../api/client';
 import {CATEGORIES, type Category, type Item, type LibrarySnapshot, type TextFinding} from '../api/types';
 import {CATEGORY_LABELS, FRAMING_LABELS, GAZE_LABELS, ORIENTATION_LABELS, PERIOD_LABELS, PLACE_LABELS,
   POSTURE_LABELS} from '../lib/labels';
+import {droppedBy, toCategory} from '../lib/libraryItem';
 import {metadataLabel, missingMetadata} from '../lib/metadata';
 import {compareText, sortBy} from '../lib/sort';
 import {uuid} from '../lib/uuid';
@@ -32,6 +33,10 @@ const compareCategoryThenLabel = (a: Item, b: Item) =>
 const LEVELS = [['conflict', 'Conflito', 'error'], ['ambiguity', 'Ambíguo', 'warning'], ['style', 'Redação', 'unknown']] as const;
 const levelOf = (level: TextFinding['level']) => LEVELS.find(l => l[0] === level) ?? LEVELS[2];
 
+const FIELD_NAMES: Record<string, string> = {participants: 'número de pessoas', posture: 'postura', orientation: 'orientação',
+  gaze: 'olhar', support_any_of: 'apoios', minimum_framing: 'enquadramento mínimo', children: 'crianças',
+  supports: 'superfícies', period: 'horário', place: 'ambiente', view: 'lado do corpo visto', framing: 'recorte'};
+
 const blank = (category: Category): Item => ({id: `user.${category}.${uuid().slice(0, 8)}`, category,
   label: '', prompt: '', adult: false, enabled: true, requirements: {}, provides: {}});
 
@@ -50,6 +55,10 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
   const openId = useRef<string | null>(null);
   openId.current = draft?.id ?? null;
   const dirty = draft !== null && JSON.stringify(draft) !== original;
+  // The backend refuses a category change only for the Studio's own options (built in or customized).
+  const studioItem = !!draft && ['builtin', 'custom'].includes(snapshot.origins[draft.id] ?? '');
+  const saved = original ? JSON.parse(original) as Item : null;
+  const dropped = draft && saved && saved.category !== draft.category ? droppedBy(saved, draft.category) : [];
   // Wording review of the open item: text that contradicts its own metadata or can be read two ways.
   const [findings, setFindings] = useState<TextFinding[]>([]);
   useEffect(() => {
@@ -291,10 +300,13 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
           </header>
           <div className="fields">
             <label>Categoria
-              <select value={draft.category} disabled={snapshot.origins[draft.id] !== undefined}
-                      onChange={e => setDraft({...draft, category: e.target.value as Category})}>
+              <select value={draft.category} disabled={studioItem}
+                      title={studioItem ? 'Opções do Studio não mudam de categoria; crie uma opção nova na outra categoria.' : undefined}
+                      onChange={e => setDraft(toCategory(draft, e.target.value as Category))}>
                 {SORTED_CATEGORIES.map(c => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
               </select>
+              {dropped.length > 0 && <span className="issue warning">Na categoria {CATEGORY_LABELS[draft.category]} não
+                existem {dropped.map(k => FIELD_NAMES[k] ?? k).join(', ')}: esses ajustes saem ao salvar.</span>}
             </label>
             <label>Nome<input value={draft.label} maxLength={80} onChange={e => setDraft({...draft, label: e.target.value})} /></label>
             <label>Descrição em inglês (é o texto enviado ao modelo)
