@@ -67,7 +67,8 @@ def build_ir(request: Request, assessment: Assessment) -> list:
     # In an edit, a character beyond the people already in the photo is a new person: it must be added, not swapped
     # onto the first person's face (unknown count: the photo is assumed to hold only the first person).
     present = (request.participants.existing or 1) if edit else 0
-    cast = [ir.Character(assessment.slots[c.reference_id], i + 2, c.description.strip(), added=edit and i + 2 > present)
+    cast = [ir.Character(assessment.slots[c.reference_id], i + 2, c.description.strip(), added=edit and i + 2 > present,
+                         position=c.position)
             for i, c in enumerate(request.characters)]
     at = next((i + 1 for i, b in enumerate(blocks) if isinstance(b, ir.Operation) and b.category == 'subject'), 1)
     scope_all = next((i for i, b in enumerate(blocks) if isinstance(b, ir.WardrobeScope) and b.target == 'all'), None)

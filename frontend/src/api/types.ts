@@ -15,7 +15,8 @@ export type Gaze = 'camera' | 'away' | 'down' | 'up' | 'back' | 'closed' | 'any'
 export type Value = {kind: 'catalog'; item_id: string} | {kind: 'text'; text: string};
 export interface Attribute {intent: Intent; value?: Value; reference_id?: string}
 export interface Reference {id: string; label: string}
-export interface Character {reference_id: string; description: string}
+export type CharacterPosition = 'left' | 'right' | 'behind' | 'front';
+export interface Character {reference_id: string; description: string; position?: CharacterPosition | null}
 
 export interface Output {
   profile: 'qwen21' | 'turbo';

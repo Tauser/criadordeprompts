@@ -83,6 +83,11 @@ FRAMINGS = {
 
 ORDINALS = {1: 'first', 2: 'second', 3: 'third', 4: 'fourth'}
 CHARACTER_ASPECTS = 'facial identity, body shape, skin tone and hairstyle'
+# Spelled from the picture, not from anyone's point of view: "her left" flips with the way the person faces.
+PLACES = {'left': 'on the left side of the picture, beside {beside}',
+          'right': 'on the right side of the picture, beside {beside}',
+          'behind': 'just behind {beside}, farther from the camera',
+          'front': 'just in front of {beside}, closer to the camera'}
 
 
 def _join(words) -> str:
@@ -245,12 +250,16 @@ def _character(block: ir.Character, source: str, blocks) -> str:
     if block.added:
         # Without an explicit "add", an edit model reads "has the face of <imageN>" as a face swap on the first person.
         beside = 'the first person' if block.ordinal == 2 else 'the other people'
-        text = (f'Add a {ordinal} person to the scene, next to {beside}, with the {CHARACTER_ASPECTS} of the person in '
+        place = PLACES[block.position].format(beside=beside) if block.position else f'next to {beside}'
+        text = (f'Add a {ordinal} person to the scene, {place}, with the {CHARACTER_ASPECTS} of the person in '
                 f'{source}; use {source} only for this person\'s identity. The first person keeps their own face and '
                 f'identity and takes no facial features from {source}.')
     else:
         text = (f'The {ordinal} person has the {CHARACTER_ASPECTS} of the person in {source}; '
                 f'use {source} only for this person\'s identity.')
+        if block.position:
+            beside = 'the first person' if block.ordinal == 2 else 'the other people'
+            text += f' The {ordinal} person is ' + PLACES[block.position].format(beside=beside) + '.'
     if any(isinstance(b, ir.WardrobeScope) and b.target == 'all' for b in blocks):
         text += f' The {ordinal} person wears the requested clothing, not the clothing from {source}.'
     action = next((b for b in blocks if isinstance(b, ir.Operation) and b.category == 'action'), None)

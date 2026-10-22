@@ -121,6 +121,9 @@ describe('characters', () => {
     expect(characterNumber(ws, 'b')).toBe(2);
     ws = describeCharacter(ws, 'b', '  on the left ');
     expect(requestForSubmit(ws).characters).toEqual([{reference_id: 'b', description: 'on the left'}]);
+    const {placeCharacter} = await import('./workspace');
+    ws = placeCharacter(ws, 'b', 'right');
+    expect(requestForSubmit(ws).characters).toEqual([{reference_id: 'b', description: 'on the left', position: 'right'}]);
     ws = removeReference(ws, 'b');
     expect(ws.request.characters).toEqual([]);
   });

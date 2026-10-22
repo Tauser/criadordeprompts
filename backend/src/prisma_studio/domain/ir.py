@@ -46,6 +46,7 @@ class Character:
     ordinal: int                          # 2 for the second person, 3 for the third...
     description: str = ''
     added: bool = False                   # edit: this person is not in the photo yet and must be added
+    position: str | None = None           # left, right, behind or front; None: beside the others
 
     @property
     def id(self) -> str:

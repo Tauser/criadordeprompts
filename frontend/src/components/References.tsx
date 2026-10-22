@@ -1,10 +1,11 @@
 import {useEffect, useRef, useState} from 'react';
 import {api, fileUrl} from '../api/client';
+import type {CharacterPosition} from '../api/types';
 import {CATEGORY_LABELS} from '../lib/labels';
 import {sortBy} from '../lib/sort';
 import {uuid} from '../lib/uuid';
-import {MAX_CHARACTERS, ROLES, addCharacter, addReference, applyReference, characterNumber, describeCharacter, referenceRoles,
-  removeCharacter, removeReference, setTarget, type Workspace} from '../state/workspace';
+import {MAX_CHARACTERS, ROLES, addCharacter, addReference, applyReference, characterNumber, describeCharacter,
+  placeCharacter, referenceRoles, removeCharacter, removeReference, setTarget, type Workspace} from '../state/workspace';
 import {Switch, Tip} from './Controls';
 import {Icon} from './Icon';
 import {MaskEditor} from './MaskEditor';
@@ -184,6 +185,15 @@ export function References({workspace, slots, disabled, update, notify, maskRequ
                  onChange={e => update(ws => describeCharacter(ws, ref.id, e.target.value))} />
           <TranslateButton label={`a descrição do personagem ${person}`} text={character.description} disabled={disabled}
                            onTranslated={text => update(ws => describeCharacter(ws, ref.id, text))} />
+          <select aria-label={`Posição do personagem ${person}`} value={character.position ?? ''} disabled={disabled}
+                  title="Onde a pessoa fica na imagem, olhando a foto de frente."
+                  onChange={e => update(ws => placeCharacter(ws, ref.id, (e.target.value || null) as CharacterPosition | null))}>
+            <option value="">Ao lado</option>
+            <option value="left">À esquerda</option>
+            <option value="right">À direita</option>
+            <option value="behind">Atrás</option>
+            <option value="front">Na frente</option>
+          </select>
         </div>
       ))}
       {edit && target && (

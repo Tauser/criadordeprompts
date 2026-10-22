@@ -363,3 +363,19 @@ def test_a_pose_that_names_the_chin_or_lips_is_not_a_described_face(library):
     request = generate_request({'face': ref('b'), 'pose': text('sitting with the chin lifted and the lips parted')},
                                references=[{'id': 'b', 'label': 'Bia'}])
     assert 'face_described' not in codes(assess(request, library))
+
+
+def test_a_character_can_be_placed_in_the_picture(library):
+    # The guides place people by side ("on the left, ... on the right") instead of "next to".
+    added = edit_request({**DEFAULT_KEEP, 'framing': keep()}, references=(('t', 'alvo'), ('b', 'Bia')),
+                         characters=[{'reference_id': 'b', 'position': 'left'}], context={'allow_reframing': True})
+    text = run(added, library)[1].text
+    assert 'Add a second person to the scene, on the left side of the picture, beside the first person' in text
+    assert 'next to the first person' not in text
+    present = added.model_copy(update={'participants': added.participants.model_copy(update={'existing': 2})})
+    assert 'The second person is on the left side of the picture, beside the first person.' in run(present, library)[1].text
+    behind = edit_request({**DEFAULT_KEEP}, references=(('t', 'alvo'), ('b', 'Bia')),
+                          characters=[{'reference_id': 'b', 'position': 'behind'}])
+    assert 'just behind the first person, farther from the camera' in run(behind, library)[1].text
+    assert 'next to the first person' in run(edit_request({**DEFAULT_KEEP}, references=(('t', 'alvo'), ('b', 'Bia')),
+                                                         characters=[{'reference_id': 'b'}]), library)[1].text

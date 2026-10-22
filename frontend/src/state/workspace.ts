@@ -1,5 +1,5 @@
 // Pure, serializable workspace logic. No DOM, no network: unit-tested in workspace.test.ts.
-import {CATEGORIES, type Attribute, type Category, type StudioRequest, type Suggestion} from '../api/types';
+import {CATEGORIES, type Attribute, type Category, type CharacterPosition, type StudioRequest, type Suggestion} from '../api/types';
 
 export interface FileInfo {hash: string; width: number; height: number; name: string}
 export interface Workspace {
@@ -175,6 +175,12 @@ export function removeCharacter(ws: Workspace, id: string): Workspace {
 export function describeCharacter(ws: Workspace, id: string, description: string): Workspace {
   const next = clone(ws);
   next.request.characters = (next.request.characters ?? []).map(c => c.reference_id === id ? {...c, description} : c);
+  return next;
+}
+
+export function placeCharacter(ws: Workspace, id: string, position: CharacterPosition | null): Workspace {
+  const next = clone(ws);
+  next.request.characters = (next.request.characters ?? []).map(c => c.reference_id === id ? {...c, position} : c);
   return next;
 }
 

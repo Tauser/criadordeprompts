@@ -60,6 +60,7 @@ class Character(_Strict):
     """Another person in the scene whose appearance comes from a reference image."""
     reference_id: str = Field(pattern=REF_ID)
     description: str = Field(default='', max_length=500)
+    position: Literal['left', 'right', 'behind', 'front'] | None = None   # where in the picture; None: beside
 
 
 class Participants(_Strict):
