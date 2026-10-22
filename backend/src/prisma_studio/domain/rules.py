@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from typing import Literal
 
 from .catalog import Item, Library
-from .request import CatalogValue, Request
+from .request import CatalogValue, Request, TextValue
 from .text_audit import FIXED_HEAD
 from .vocabulary import CATEGORIES, FRAMING_ORDER, agreed
 
@@ -128,6 +128,7 @@ def assess(request: Request, library: Library) -> Assessment:
     _check_supports(request, resolved, report)
     _check_framing(request, resolved, report)
     _check_scene(request, resolved, report)
+    _check_face_described(request, refs, report)
     _check_mask(request, report)
     _check_edit_load(request, resolved, report)
     total, existing = _participants(request, resolved, report)
@@ -397,6 +398,42 @@ def _check_scene(request, resolved, report) -> None:
     if visible and abs(FRAMING_ORDER[visible] - FRAMING_ORDER[usual]) >= 2:
         report('camera_vs_framing', 'attributes.camera', 'A lente e o enquadramento pedem recortes muito '
                'diferentes.', 'warning')
+
+
+# Text about the face or hair makes the image model follow the words and ignore the reference photo that gives the identity.
+FACE_WORDS = (
+    r'\b(?:'
+    r'(?:blue|green|brown|hazel|gr[ae]y|black|dark|light|amber)[- ]eyed|(?:blue|green|brown|hazel|gr[ae]y|black|dark|light|amber) eyes|'
+    r'olhos? (?:azuis|verdes|castanhos|pretos|negros|cinzas|claros|escuros|amendoados)|'
+    r'(?:(?:short|long|curly|wavy|straight|dark|light|red|black|brown|gr[ae]y|white|blond|blonde)\s+)*'
+    r'(?:blond(?:e|es)?|brunettes?|redheads?)(?:\s+hair)?|'
+    r'(?:(?:short|long|curly|wavy|straight|dark|light|red|black|brown|gr[ae]y|white)\s+)+hair|'
+    r'bald|careca|loir[oa]s?|ruiv[oa]s?|'
+    r'cabelos? (?:curtos?|longos?|cacheados?|ondulados?|lisos?|pretos?|castanhos?|grisalhos?|brancos?)|'
+    r'beards?|mustaches?|moustaches?|goatee|stubble|barbas?|barbudo|bigodes?|cavanhaque|'
+    r'freckles?|freckled|sardas?|sardento|'
+    r'nose|lips?|jaw|cheekbones?|chin|nariz|l[áa]bios?|queixo|mand[íi]bula|ma[çc][ãa]s? do rosto|bochechas?'
+    r')\b'
+)
+
+
+def _check_face_described(request, refs, report) -> None:
+    """A face or hair described in text while a reference photo supplies the identity: one warning, never an error."""
+    identity = [c for c in ('face', 'hair') if request.attribute(c).intent == 'transfer'
+                and request.attribute(c).reference_id in refs]
+    sources = [(f'characters.{i}', 'A descrição do personagem', c.description)
+               for i, c in enumerate(request.characters) if c.reference_id in refs]
+    if identity:
+        sources += [(f'attributes.{category}', 'O texto', attribute.value.text)
+                    for category, attribute in request.attributes.items()
+                    if category not in identity and attribute.intent == 'set' and isinstance(attribute.value, TextValue)]
+        sources.append(('details', 'O texto', request.details))
+    for where, label, source in sources:
+        match = re.search(FACE_WORDS, source, re.IGNORECASE)
+        if match:
+            report('face_described', where, f'{label} fala do rosto ou do cabelo ("{match.group(0)}"): com foto de '
+                   'referência, isso faz o modelo ignorar a foto. Descreva só roupa, pose e cena.', 'warning', 'model')
+            return
 
 
 MASK_RULES = (
