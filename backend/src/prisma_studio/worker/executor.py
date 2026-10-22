@@ -216,7 +216,7 @@ class Executor:
         if not done:
             self.repository.transition(run['id'], 'failed', error=next((t['error'] for t in tasks if t['error']),
                                                                        'Nenhuma imagem foi gerada.'))
-        elif settings.get('face_detail'):
+        elif settings.get('face_detail') or settings.get('participants'):
             self.repository.transition(run['id'], 'detailing')
         else:
             self._images_ready(run, done)
@@ -230,8 +230,8 @@ class Executor:
             self.repository.transition(run['id'], 'completed', best_task_id=best['id'])
 
     def _detailing(self, run: dict) -> None:
-        """Per image: detect the faces, redraw each small one from its crop, paste them back. A failure here only
-        leaves that face (or image) as generated: the pass improves a result, it never loses one."""
+        """Per image: count the faces; with face_detail, redraw each small one from its crop and paste it back. A
+        failure here only leaves that face (or image) as generated: the pass improves a result, it never loses one."""
         settings = run['settings']
         detects = {t['position']: t for t in self.repository.tasks(run['id'], 'face_detect')}
         faces = {t['position']: t for t in self.repository.tasks(run['id'], 'face')}
@@ -256,7 +256,8 @@ class Executor:
             size = oriented_size(data)
             found = face_boxes(detect['result'].get('text')) if detect['status'] == 'completed' else []
             pending = []
-            for index, box in enumerate(found[:FACE_SLOTS]):
+            redraw = found[:FACE_SLOTS] if settings.get('face_detail') else []
+            for index, box in enumerate(redraw):
                 if max(box['width'], box['height']) > face_detail.MAX_FACE:
                     continue                      # already large enough to carry its own detail
                 if not face_on_picture(box, size):

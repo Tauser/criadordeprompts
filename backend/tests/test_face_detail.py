@@ -148,14 +148,27 @@ def test_large_faces_are_left_alone(env):  # noqa: F811
     assert env.repo.tasks(run['id'], 'image')[0]['result']['detail'] == {'found': 1, 'refined': 0, 'expected': 2}
 
 
-def test_single_person_skips_the_pass_unless_asked(env):  # noqa: F811
+def test_single_person_only_counts_faces_unless_the_redraw_is_asked(env):  # noqa: F811
     env.comfy.faces = [FACE]
     run = env.run_until(env.service.create(single(), 'faces-4', {}, None)['id'])
-    assert run['settings']['face_detail'] is False and env.repo.tasks(run['id'], 'face_detect') == []
+    assert run['settings']['face_detail'] is False and len(env.repo.tasks(run['id'], 'face_detect')) == 1
+    assert env.repo.tasks(run['id'], 'face') == []
+    image = env.repo.tasks(run['id'], 'image')[0]
+    assert image['result']['detail'] == {'found': 1, 'refined': 0, 'expected': 1}
+    assert 'raw_files' not in image['result']
     run = env.run_until(env.service.create(single(face_detail=True), 'faces-5', {}, None)['id'])
     assert env.repo.tasks(run['id'], 'image')[0]['result']['detail']['refined'] == 1
     off = env.service.create(couple(face_detail=False), 'faces-6', {}, None)
     assert off['settings']['face_detail'] is False
+
+
+def test_single_person_run_flags_an_extra_face_without_changing_the_picture(env):  # noqa: F811
+    env.comfy.faces = [FACE, OTHER]
+    run = env.run_until(env.service.create(single(), 'faces-10', {}, None)['id'])
+    image = env.repo.tasks(run['id'], 'image')[0]
+    assert run['status'] == 'completed' and extra_people(image['result'])
+    assert len(image['result']['files']) == 1 and 'raw_files' not in image['result']
+    assert env.repo.tasks(run['id'], 'face') == []
 
 
 def test_a_failing_detection_never_fails_the_run(env):  # noqa: F811

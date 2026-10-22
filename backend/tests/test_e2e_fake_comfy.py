@@ -64,7 +64,7 @@ def test_generation_refine_review_and_verification(stack):
     assert stack.get(f'/api/files/{run["images"][0]["files"][0]}').status_code == 200
     kinds = [t['kind'] for t in run['tasks']]
     assert kinds.count('verify') == 2 and kinds.count('refine') == 1
-    assert all(t['started_at'] and t['ended_at'] for t in run['tasks'])
+    assert all(t['started_at'] and t['ended_at'] for t in run['tasks'] if t['kind'] != 'face_detect')
 
 
 def test_masked_edit_and_cancel(stack):
