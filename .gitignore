@@ -10,3 +10,4 @@ frontend/node_modules/
 *.log
 *.egg-info/
 *.tsbuildinfo
+benchmark/resultados/

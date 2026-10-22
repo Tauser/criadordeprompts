@@ -1,0 +1,26 @@
+{
+  "sobre": "Edições típicas com fotos neutras, seeds fixas e perfil Turbo. Cada caso mira um erro já visto: pose que não pega, pessoa a mais, cabeça colada, expressão travada, roupa só numa pessoa.",
+  "perfil": "turbo",
+  "resolucao": 1024,
+  "seeds": [3, 8],
+  "manter": ["face", "body", "skin", "hair", "wardrobe", "environment", "lighting", "style", "pose", "expression", "framing"],
+  "casos": [
+    {"nome": "01 pose · abraçar os joelhos", "foto": "01_wave.jpg", "pessoas": 1,
+     "mudar": {"pose": "pose.hug_knees"}, "contexto": {"allow_new_supports": true}},
+    {"nome": "02 ação · ler um livro", "foto": "02_chair.jpg", "pessoas": 1,
+     "mudar": {"action": "action.read"}},
+    {"nome": "03 pose de costas · olhar por cima do ombro", "foto": "04_kneel.jpg", "pessoas": 1,
+     "mudar": {"pose": "pose.lookback"}, "contexto": {"allow_new_supports": true}},
+    {"nome": "04 dupla na foto · toca aqui", "foto": "06_bench_talk.jpg", "pessoas": 2,
+     "mudar": {"action": "action.high_five"}},
+    {"nome": "05 acrescentar personagem · cavalinho", "foto": "01_wave.jpg", "pessoas": 1,
+     "personagens": ["04_kneel.jpg"], "mudar": {"action": "action.fun_piggyback"}},
+    {"nome": "06 acrescentar personagem · abraço no beco neon", "foto": "02_chair.jpg", "pessoas": 1,
+     "personagens": ["01_wave.jpg"], "mudar": {"action": "action.embrace", "environment": "environment.neon_alley"},
+     "contexto": {"allow_new_supports": true}},
+    {"nome": "07 trio na foto · riso", "foto": "08_row_cheer.jpg", "pessoas": 3,
+     "mudar": {"expression": "expression.laugh"}},
+    {"nome": "08 roupa para os dois", "foto": "05_side_hug.jpg", "pessoas": 2,
+     "mudar": {"wardrobe": "texto:a red raincoat over dark jeans"}, "roupa_para": "all"}
+  ]
+}
