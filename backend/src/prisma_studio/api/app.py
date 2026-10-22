@@ -34,7 +34,7 @@ from ..infrastructure.comfy.progress import ProgressTracker
 from ..infrastructure.comfy.workflows import PROFILES, generation_size
 from ..infrastructure.db.backup import BackupScheduler
 from ..infrastructure.db.database import Database
-from ..infrastructure.db.repository import InvalidTransition, LibraryRepository, RunRepository
+from ..infrastructure.db.repository import RUN_STATUSES, InvalidTransition, LibraryRepository, RunRepository
 from ..infrastructure.discovery import LocalDiscovery
 from ..infrastructure.instance_lock import InstanceLock
 from ..infrastructure.storage.files import FileStore
@@ -327,8 +327,18 @@ def create_app(config: Config | None = None, container: Container | None = None)
         return run_view(run)
 
     @app.get('/api/runs')
-    def list_runs(limit: int = 30):
-        return {'runs': [run_view(r, detail=False) for r in c.runs.list(min(max(limit, 1), 200))]}
+    def list_runs(limit: int = 30, q: str | None = None, mode: str | None = None, status: str | None = None,
+                  before: float | None = None):
+        if mode not in (None, '', 'generate', 'edit'):
+            raise HTTPException(422, 'Modo inválido.')
+        if status not in (None, '') and status not in RUN_STATUSES:
+            raise HTTPException(422, 'Situação inválida.')
+        limit = min(max(limit, 1), 200)
+        rows = c.runs.list(limit, q=(q or '').strip() or None, mode=mode or None, status=status or None,
+                           before=before)
+        more = len(rows) == limit
+        return {'runs': [run_view(r, detail=False) for r in rows],
+                'next_before': rows[-1]['created_at'] if more and rows else None}
 
     @app.get('/api/runs/by-request/{request_id}')
     def by_request(request_id: str):

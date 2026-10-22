@@ -44,7 +44,13 @@ export const api = {
     call<Run>('POST', '/api/runs', body, 60000),
   run: (id: string) => call<Run>('GET', `/api/runs/${id}`),
   runByRequest: (requestId: string) => call<Run>('GET', `/api/runs/by-request/${requestId}`),
-  runs: () => call<{runs: Run[]}>('GET', '/api/runs?limit=40'),
+  runs: (params: {limit?: number; q?: string; mode?: string; before?: number} = {}) => {
+    const query = new URLSearchParams({limit: String(params.limit ?? 30)});
+    if (params.q) query.set('q', params.q);
+    if (params.mode) query.set('mode', params.mode);
+    if (params.before !== undefined) query.set('before', String(params.before));
+    return call<{runs: Run[]; next_before: number | null}>('GET', `/api/runs?${query}`);
+  },
   deleteRuns: (ids: string[], keepFiles: string[]) =>
     call<{deleted: string[]; files_removed: number}>('POST', '/api/runs/delete', {ids, keep_files: keepFiles}),
   // `redo`: another quality and the seed of one chosen variation (a Turbo draft redone in full).
