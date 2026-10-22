@@ -83,9 +83,19 @@ def commit() -> str:
         return 'sem-git'
 
 
+def _font(size: int):
+    """A Windows font with accents; the built-in PIL font drops ç and ã."""
+    for name in ('segoeui.ttf', 'arial.ttf'):
+        try:
+            return ImageFont.truetype(name, size)
+        except OSError:
+            continue
+    return ImageFont.load_default(size=size)
+
+
 def sheet(rows: list[tuple[str, list[tuple[bytes | None, str]]]], title: str) -> Image.Image:
-    font = ImageFont.load_default(size=18)
-    small = ImageFont.load_default(size=15)
+    font = _font(18)
+    small = _font(15)
     cells = []
     for _, images in rows:
         line = []
@@ -166,9 +176,13 @@ def main() -> None:
         rows.setdefault(case['nome'], []).append((data, note))
 
     stamp = datetime.now().strftime('%Y%m%d-%H%M')
-    folder = BENCH / 'resultados' / f'{stamp}-{commit()}'
+    # The Studio that drew the pictures may run another checkout than this script: its compiler version is the truth.
+    versions = sorted({r['settings'].get('compiler_version') or '?' for r in results.values()})
+    version = '-'.join(versions)
+    folder = BENCH / 'resultados' / f'{stamp}-compilador-{version}'
     folder.mkdir(parents=True, exist_ok=True)
-    title = f'Banco de casos · {stamp} · commit {commit()} · {spec["perfil"]} {spec["resolucao"]}'
+    title = (f'Banco de casos · {stamp} · Studio com compilador {version} · script no commit {commit()} · '
+             f'{spec["perfil"]} {spec["resolucao"]}')
     sheet(list(rows.items()), title).save(folder / 'folha.png')
     (folder / 'prompts.json').write_text(json.dumps(
         {results[r]['id']: {'caso': c['nome'], 'seed': s, 'prompt': results[r]['effective_prompt']} for c, s, r in jobs},
