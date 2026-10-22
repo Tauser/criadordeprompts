@@ -73,7 +73,7 @@ Antes de entrar no Studio, cada medida é calibrada no banco de casos (0.1), par
 | 4.1 | ✅ **Gerar em 1024 e ampliar no fim** (SeedVR2; medido: 28 s contra 72 s no Completo) | 1024, depois detalhe de rosto, depois ampliação (SeedVR2 ou upscaler). Fica mais rápido e evita os picos de memória com LoRA. Medido contra 1536 no banco de casos. | M |
 | 4.2 | Detalhe de mãos | Passada como a do rosto, para mãos e dedos. Usa os pontos do SDPose (1.1). | M |
 | 4.3 | Cache int8 no Completo | Para os picos de memória em 1536 com LoRA, com aviso quando a memória estiver no limite. | P |
-| 4.4 | Prompt mais enxuto | Tirar repetições do texto montado; menos espaço para contradição. Medido no banco de casos. | M |
+| 4.4 | ✅ Prompt mais enxuto (personagem acrescentado: ~15% menos palavras, igual ou melhor em 9 imagens) | Tirar repetições do texto montado; menos espaço para contradição. Medido no banco de casos. | M |
 | 4.5 | Revisor de defeitos sim/não | Perguntas objetivas ao modelo de visão ("mão com seis dedos?"). Só depois de 1.1, e nunca como nota geral. | M |
 
 ## Fase 5 — Fluxo de trabalho
@@ -81,8 +81,8 @@ Antes de entrar no Studio, cada medida é calibrada no banco de casos (0.1), par
 | # | Item | O que resolve | Esforço |
 |---|---|---|---|
 | 5.1 | ✅ Pedidos salvos (sem as fotos) | Reaproveitar uma cena inteira, como os presets do SwarmUI. | M |
-| 5.2 | Fila em lote por conto | Várias cenas de uma vez, rodando enquanto você faz outra coisa. Depende das fichas (2.2). | G |
-| 5.3 | Aviso no celular | Notificação quando a geração termina. | P |
+| 5.2 | ✅ Fila em lote por conto (aba Cenas, só geração por enquanto) | Várias cenas de uma vez, rodando enquanto você faz outra coisa. Depende das fichas (2.2). | G |
+| 5.3 | ✅ Aviso quando termina (título da aba, som; notificação só em localhost) | Notificação quando a geração termina. | P |
 | 5.4 | ✅ Busca e paginação no Histórico | Pendente desde a revisão de 17/10. | M |
 | 5.5 | Acesso pela rede local | Falta a regra no firewall; ver [ACESSO-LAN.md](ACESSO-LAN.md). Precisa da sua autorização como administrador. | P |
 | 5.6 | Biblioteca: ângulo de câmera | Tirar só o trecho de câmera das 3 opções que o auditor marca, sem mexer no resto. | P |

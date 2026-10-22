@@ -280,16 +280,19 @@ def test_second_character_in_an_edit_counts_as_a_change(library):
     assert 'Add a second person to the scene, next to the first person' in compiled.text
     assert 'takes no facial features from <image2>' in compiled.text
     # Measured: otherwise the head comes straight from the reference, with its angle and light, and looks pasted on.
-    assert ('Draw the second person anew in this scene: their head turns and tilts with their own body, sits '
-            'naturally') in compiled.text
-    assert 'never its head angle, facial expression, lighting or framing' in compiled.text
+    assert ('Add a second person to the scene, next to the first person, drawn anew in this scene with the facial '
+            'identity, body shape, skin tone and hairstyle of the person in <image2> and nothing else from <image2>: '
+            'not its head angle, facial expression, lighting or framing.') in compiled.text
+    assert 'Their head turns and tilts with their own body, sits naturally' in compiled.text
+    # Everyone missing is added by name: the "at least N people" count would only repeat it.
+    assert 'distinct people' not in compiled.text
     assert "the first person's facial identity" in compiled.text
     assert 'Widen the framing only as much as needed' in compiled.text and 'framing and crop' not in compiled.text
     # Both already in the photo: the character only gives the second person an identity.
     present = request.model_copy(update={'participants': request.participants.model_copy(update={'existing': 2})})
     _, compiled = run(present, library)
     assert 'The second person has the facial identity' in compiled.text and 'Add a second' not in compiled.text
-    assert 'Draw the second person anew' not in compiled.text
+    assert 'drawn anew' not in compiled.text
     locked = request.model_copy(update={'context': request.context.model_copy(update={'allow_reframing': False})})
     assert 'framing and crop' in run(locked, library)[1].text
 

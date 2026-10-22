@@ -253,9 +253,15 @@ def _character(block: ir.Character, source: str, blocks) -> str:
         # Without an explicit "add", an edit model reads "has the face of <imageN>" as a face swap on the first person.
         beside = 'the first person' if block.ordinal == 2 else 'the other people'
         place = PLACES[block.position].format(beside=beside) if block.position else f'next to {beside}'
-        text = (f'Add a {ordinal} person to the scene, {place}, with the {CHARACTER_ASPECTS} of the person in '
-                f'{source}; use {source} only for this person\'s identity. The first person keeps their own face and '
-                f'identity and takes no facial features from {source}.')
+        action = next((b for b in blocks if isinstance(b, ir.Operation) and b.category == 'action'), None)
+        # Measured on a piggyback: without the redraw the head came straight from the reference, with its angle,
+        # expression and light, and looked pasted on; asked for, it tilted with the body and took the scene's light.
+        text = (f'Add a {ordinal} person to the scene, {place}, drawn anew in this scene with the {CHARACTER_ASPECTS} '
+                f'of the person in {source} and nothing else from {source}: not its head angle, facial expression, '
+                f'lighting or framing. Their head turns and tilts with their own body'
+                f'{" for the action" if action is not None else ""}, sits naturally on their own neck and shoulders, '
+                "is in scale with the first person's head for its distance from the camera, and is lit by the light "
+                f'of the scene. The first person keeps their own face and takes no facial features from {source}.')
     else:
         text = (f'The {ordinal} person has the {CHARACTER_ASPECTS} of the person in {source}; '
                 f'use {source} only for this person\'s identity.')
@@ -264,17 +270,7 @@ def _character(block: ir.Character, source: str, blocks) -> str:
             text += f' The {ordinal} person is ' + PLACES[block.position].format(beside=beside) + '.'
     if any(isinstance(b, ir.WardrobeScope) and b.target == 'all' for b in blocks):
         text += f' The {ordinal} person wears the requested clothing, not the clothing from {source}.'
-    action = next((b for b in blocks if isinstance(b, ir.Operation) and b.category == 'action'), None)
-    if action is not None and (action.participants or 1) >= block.ordinal:
-        text += f' The {ordinal} person takes part in the requested action together with the first person.'
-    if block.added:
-        # Measured on a piggyback: without this the head came straight from the reference, with its angle, expression
-        # and light, and looked pasted on; asked for, it tilted with the body and took the scene's light.
-        text += (f' Draw the {ordinal} person anew in this scene: their head turns and tilts with their own body'
-                 f'{" for the action" if action is not None else ""}, sits naturally on their own neck and shoulders, '
-                 "is in scale with the first person's head for its distance from the camera, and is lit by the light "
-                 f'of the scene. Take only the face, hair and body from {source}, never its head angle, facial '
-                 'expression, lighting or framing.')
+    # Who takes part in a group action is said once, by the action itself ("The people performing this action...").
     if block.description:
         text += f' The {ordinal} person: ' + _sentence(block.description)
     return text

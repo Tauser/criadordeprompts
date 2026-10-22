@@ -74,7 +74,8 @@ def test_added_character_is_included_without_changing_identity_or_scene():
     assert item.edit_prompt in compiled.text
     assert 'both people in the scene' in compiled.text
     assert 'includes any characters added from reference images' in compiled.text
-    assert 'Add a second person to the scene, next to the first person, with the facial identity, body shape, skin '         'tone and hairstyle' in compiled.text
+    assert ('Add a second person to the scene, next to the first person, drawn anew in this scene with the facial '
+            'identity, body shape, skin tone and hairstyle') in compiled.text
     assert "the first person's facial identity; and the background and setting" in compiled.text
     assert compiled.version == COMPILER_VERSION
     without_confirmations = request.model_copy(update={'confirmations': frozenset()})
@@ -99,9 +100,9 @@ def test_added_character_gets_the_clothing_and_joins_the_group_action(library):
     # The first person changes clothes before the new person is introduced.
     assert order.index('op.wardrobe') < order.index('scope.wardrobe') < order.index('character.2') < order.index('op.action')
     assert "Keep the first person's facial identity from <image1> unchanged." in compiled.text
-    assert "use <image2> only for this person's identity" in compiled.text
+    assert 'and nothing else from <image2>' in compiled.text
     assert 'The second person wears the requested clothing, not the clothing from <image2>.' in compiled.text
-    assert 'The second person takes part in the requested action together with the first person.' in compiled.text
+    assert 'takes part in the requested action' not in compiled.text        # the action already names who acts
     assert 'The people performing this action are the first person and the second person.' in compiled.text
     assert 'Every person wears it, the first person and the second person.' in compiled.text
 

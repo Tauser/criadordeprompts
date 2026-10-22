@@ -8,7 +8,7 @@ from .request import CatalogValue, Request
 from .rules import Assessment, available_supports, body_gaze, effective_orientation, framing_already_there
 from .vocabulary import CATEGORIES, FRAMING_ORDER, SUPPORT_PRIORITY, agreed
 
-COMPILER_VERSION = '1.17.0'
+COMPILER_VERSION = '1.18.0'
 
 # Operation order: scene first, then person changes; style leads in generation.
 EDIT_ORDER = ('environment', 'lighting', 'style', 'camera', 'framing', 'subject', 'face', 'body', 'skin', 'hair',
@@ -98,7 +98,10 @@ def build_ir(request: Request, assessment: Assessment) -> list:
                                   people_added=added, widen=widen))
 
     total = assessment.participants_total
-    if total and (total > 1 or request.participants.requested == 1):   # an explicit "one person" is an instruction too
+    # In an edit where every missing person is added by name ("Add a second person..."), the count says nothing new;
+    # measured: dropping "at least N people... add only the missing ones" changed no picture.
+    named = edit and total and total == present + sum(1 for c in cast if c.added) and any(c.added for c in cast)
+    if total and (total > 1 or request.participants.requested == 1) and not named:
         blocks.append(ir.Participants(total, edit))
 
     # Measured: with the clothing left free, bedroom scenes came out nude in standard mode, so the mode says it.
