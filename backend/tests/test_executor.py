@@ -51,6 +51,12 @@ def env(tmp_path, library):
     return e
 
 
+def image_submits(env, run_id):
+    """Submissions of the run's images; a single-person run also submits its face count."""
+    ids = {t['comfy_prompt_id'] for t in env.repo.tasks(run_id, 'image')}
+    return [prompt_id for prompt_id in env.comfy.submits if prompt_id in ids]
+
+
 def generate(**output):
     return Request(mode='generate', attributes={'subject': cat('subject.woman'), 'environment': cat('env.garden')},
                    output=output)
@@ -68,12 +74,12 @@ def test_generation_happy_path_persists_everything(env):
     tasks = env.repo.tasks(run['id'], 'image')
     assert [t['seed'] for t in tasks] == [10, 11]
     assert all(t['status'] == 'completed' and t['result']['files'] for t in tasks)
-    assert sorted(env.comfy.submits) == sorted(t['comfy_prompt_id'] for t in tasks)
+    assert sorted(image_submits(env, run['id'])) == sorted(t['comfy_prompt_id'] for t in tasks)
     graph = tasks[0]['graph']
     assert graph['10']['inputs']['prompt'] == run['effective_prompt'] == run['prompt']
     assert graph['11']['inputs']['width'] == 896 and graph['11']['inputs']['height'] == 1184
     statuses = [e['status'] for e in env.repo.events(run['id']) if e['type'] == 'status']
-    assert statuses == ['created', 'preparing', 'generating', 'completed']
+    assert statuses == ['created', 'preparing', 'generating', 'detailing', 'completed']
 
 
 def test_same_request_id_is_idempotent(env):
@@ -107,7 +113,7 @@ def test_unconfirmed_submission_that_never_arrived_is_resubmitted_once(env):
     env.comfy.offline = False
     run = env.run_until(run['id'])
     assert run['status'] == 'completed'
-    assert len(env.comfy.submits) == 1
+    assert len(image_submits(env, run['id'])) == 1
 
 
 def test_cancel_while_queued(env):
@@ -168,7 +174,7 @@ def test_restart_continues_from_the_database(env):
     for _ in range(10):
         fresh.tick()
     assert env.repo.get(run['id'])['status'] == 'completed'
-    assert len(env.comfy.submits) == 1
+    assert len(image_submits(env, run['id'])) == 1
 
 
 def test_invalid_graph_fails_before_reaching_the_queue(env):
@@ -253,7 +259,8 @@ def test_lost_answer_for_a_job_that_never_arrived_waits_for_the_user(env):
     env.service.resubmit(run['id'], task['id'])
     run = env.run_until(run['id'])
     assert run['status'] == 'completed'
-    assert len(env.comfy.submits) == 1 and env.comfy.submits[0] != first_id
+    submitted = image_submits(env, run['id'])
+    assert len(submitted) == 1 and submitted[0] != first_id
     assert any(e['type'] == 'resubmit_confirmed' for e in env.repo.events(run['id']))
 
 
