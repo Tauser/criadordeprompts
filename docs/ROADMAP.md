@@ -83,7 +83,7 @@ Antes de entrar no Studio, cada medida é calibrada no banco de casos (0.1), par
 | 5.1 | Pedidos salvos | Reaproveitar uma cena inteira, como os presets do SwarmUI. | M |
 | 5.2 | Fila em lote por conto | Várias cenas de uma vez, rodando enquanto você faz outra coisa. Depende das fichas (2.2). | G |
 | 5.3 | Aviso no celular | Notificação quando a geração termina. | P |
-| 5.4 | Busca e paginação no Histórico | Pendente desde a revisão de 17/10. | M |
+| 5.4 | ✅ Busca e paginação no Histórico | Pendente desde a revisão de 17/10. | M |
 | 5.5 | Acesso pela rede local | Falta a regra no firewall; ver [ACESSO-LAN.md](ACESSO-LAN.md). Precisa da sua autorização como administrador. | P |
 | 5.6 | Biblioteca: ângulo de câmera | Tirar só o trecho de câmera das 3 opções que o auditor marca, sem mexer no resto. | P |
 
