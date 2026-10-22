@@ -176,6 +176,8 @@ pre { margin: 0; white-space: pre-wrap; font: 12.5px/1.6 var(--font); color: var
 .workspace { max-width: 1520px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1.04fr) minmax(0, 1fr); gap: 20px; align-items: start; }
 .column { display: grid; gap: 16px; min-width: 0; }
 .mode-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.finish-notice { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin: -4px 0 4px; }
+.finish-notice .help { flex-basis: 100%; margin: 0; }
 .mode-switch { justify-self: start; padding: 4px; border-radius: 14px; }
 .mode-switch button { height: 38px; padding: 0 20px; font-size: 14px; border-radius: 10px; }
 .tabs { margin-bottom: 18px; }
@@ -556,6 +558,15 @@ button.badge:hover { filter: brightness(1.1); }
 .compare-cell { margin: 0; display: grid; gap: 6px; min-width: 0; }
 .compare-cell figcaption { font-size: 13px; }
 .compare-cell .issue { font-size: 12.5px; }
+/* Cenas do conto */
+.scene-list, .scene-results { display: grid; gap: 12px; list-style: none; margin: 0; padding: 0; }
+.scene-card { display: grid; gap: 14px; }
+.scene-head { margin-bottom: 0; flex-wrap: wrap; }
+.scene-head h2 { font-size: 16px; font-weight: 600; }
+.scene-row { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 14px; align-items: start; }
+.scene-row-body { display: grid; gap: 6px; min-width: 0; align-content: start; }
+.scene-row-body .row { margin-top: 2px; }
+@media (max-width: 600px) { .scene-row { grid-template-columns: 96px minmax(0, 1fr); } }
 .compare-image { position: relative; aspect-ratio: 3 / 4; border-radius: 12px; overflow: hidden; background: var(--sunken); }
 .compare-image > a { display: block; width: 100%; height: 100%; }
 .compare-image img { display: block; width: 100%; height: 100%; object-fit: cover; }

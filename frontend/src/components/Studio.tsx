@@ -6,6 +6,7 @@ import {formatSeconds, runProgress} from '../lib/progress';
 import {useCollapsed} from '../lib/useCollapsed';
 import {load, save} from '../lib/storage';
 import {usePeopleCount, type PeopleDetection} from '../lib/usePeopleCount';
+import {useFinishNotice} from '../lib/finishNotice';
 import {useRun} from '../lib/useRun';
 import {uuid} from '../lib/uuid';
 import {addReference, applyPreset, applySuggestion, enterManual, filesForSubmit, initialWorkspace, leaveManual, removeReference,
@@ -14,6 +15,7 @@ import {AttributeField} from './AttributeField';
 import {CollapseButton} from './Collapse';
 import {CompareGrid, startComparison, type ComparePlan, type GridCell} from './CompareGrid';
 import {Disclosure, Segmented, Switch, Tip} from './Controls';
+import {FinishNotice} from './FinishNotice';
 import {Icon} from './Icon';
 import {History} from './History';
 import {PromptPreview, SETUP_STEPS, setupIssues} from './PromptPreview';
@@ -23,7 +25,9 @@ import {SavedRequests} from './SavedRequests';
 import {TranslateButton} from './Translate';
 
 type Drafts = Record<'generate' | 'edit', Workspace>;
-const DRAFTS_KEY = 'prisma.drafts.v1', ACTIVE_KEY = 'prisma.active-run', PENDING_KEY = 'prisma.pending-request', GRID_KEY = 'prisma.compareGrid';
+const DRAFTS_KEY = 'prisma.drafts.v1';
+export const ACTIVE_KEY = 'prisma.active-run';
+const PENDING_KEY = 'prisma.pending-request', GRID_KEY = 'prisma.compareGrid';
 // Drafts saved before the rename are read once from the old keys.
 const LEGACY = {drafts: 'kppb.drafts.v1', active: 'kppb.active-run'};
 
@@ -57,6 +61,7 @@ export function Studio({library, comfyOnline, notify}: Props) {
   const [activeRun, setActiveRun] = useState<string | null>(load<string | null>(ACTIVE_KEY, null) ?? load<string | null>(LEGACY.active, null));
   const [grid, setGrid] = useState<GridCell[] | null>(() => {const saved = load<GridCell[] | null>(GRID_KEY, null); return Array.isArray(saved) ? saved : null;});
   const {run, connection} = useRun(activeRun);
+  const finish = useFinishNotice(run);
   const epoch = useRef(0);
   const autoMade = useRef<{ws: Workspace | null; count: number}>({ws: null, count: 0});
   const request = workspace.request;
@@ -331,6 +336,7 @@ export function Studio({library, comfyOnline, notify}: Props) {
             <button className="quiet" onClick={clearForm} title="Volta campos, imagens, máscara e saída deste modo ao início">
               <Icon name="refresh" size={14} />Limpar</button>
           </div>
+          <FinishNotice finish={finish} />
           <References workspace={workspace} slots={prepared?.slots ?? {}} disabled={false} update={update} notify={notify} maskRequest={maskRequest} />
           <section className="card" aria-labelledby="ask-title">
             <div className="section-title">

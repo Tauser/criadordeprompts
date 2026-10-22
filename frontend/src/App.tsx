@@ -5,10 +5,11 @@ import {Diagnostics, gigabytes, level} from './components/Diagnostics';
 import {Characters} from './components/Characters';
 import {Library} from './components/Library';
 import {Icon} from './components/Icon';
-import {Studio} from './components/Studio';
+import {ACTIVE_KEY, Studio} from './components/Studio';
+import {Scenes} from './components/Scenes';
 import {load, save} from './lib/storage';
 
-type View = 'studio' | 'library' | 'characters' | 'diagnostics';
+type View = 'studio' | 'library' | 'characters' | 'scenes' | 'diagnostics';
 type Theme = 'system' | 'light' | 'dark';
 const THEME_KEY = 'prisma.theme';
 const NEXT_THEME: Record<Theme, Theme> = {system: 'light', light: 'dark', dark: 'system'};
@@ -55,7 +56,12 @@ export function App() {
   const online = !!health?.comfy.available;
   const device = stats?.comfy.devices?.[0];
   const vram = device?.vram_total && device.vram_free != null ? {used: device.vram_total - device.vram_free, total: device.vram_total} : null;
-  const nav: [View, string][] = [['studio', 'Criar'], ['library', 'Biblioteca'], ['characters', 'Personagens'], ['diagnostics', 'Diagnóstico']];
+  // "Abrir no Studio": the Studio opens the run it finds in its active-run slot when it mounts, as the History does.
+  const openRun = (id: string) => {
+    save(ACTIVE_KEY, id);
+    setView('studio');
+  };
+  const nav: [View, string][] = [['studio', 'Criar'], ['library', 'Biblioteca'], ['characters', 'Personagens'], ['scenes', 'Cenas'], ['diagnostics', 'Diagnóstico']];
 
   return (
     <div className={'app view-' + view}>
@@ -87,6 +93,7 @@ export function App() {
           <div className="page">{view === 'library'
             ? <Library snapshot={library} onSaved={setLibrary} notify={notify} setDirty={setLibraryDirty} />
             : view === 'characters' ? <Characters notify={notify} />
+            : view === 'scenes' ? <Scenes notify={notify} onOpenRun={openRun} />
             : <Diagnostics health={health} refresh={refreshHealth} />}</div>}
       </div>
     </div>
