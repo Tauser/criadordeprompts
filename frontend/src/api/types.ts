@@ -85,7 +85,7 @@ export interface PeopleCount {id: string; status: string; count?: number; error?
 export interface Verdict {verdict: 'met' | 'partial' | 'unmet' | 'unknown'; note: string}
 export interface RunImage {task_id: string; position: number; seed: number; status: string; files: string[];
   score?: number | null; verdicts?: Record<string, Verdict> | null;
-  detail?: {found: number; refined: number; expected?: number | null} | null; raw_files?: string[]}   // raw_files: before the face detail pass
+  detail?: {found: number; refined: number; expected?: number | null; people?: number | null} | null; raw_files?: string[]}   // raw_files: before the face detail pass
 export interface Task {id: string; kind: string; position: number; status: string; seed?: number | null;
   comfy_prompt_id?: string | null; error?: string | null; submitted_at?: number | null; started_at?: number | null;
   ended_at?: number | null; timings?: {phases: Record<string, number>} | null;

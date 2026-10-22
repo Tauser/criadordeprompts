@@ -23,6 +23,9 @@ export function useNow(active: boolean) {
   return now;
 }
 
+// People seen in a picture: by face or, when the body detector ran, by whole body; a hidden face counts no one.
+const counted = (detail?: {found: number; people?: number | null} | null) => Math.max(detail?.found ?? 0, detail?.people ?? 0);
+
 const seconds = (value: number) => value < 60 ? `${value.toFixed(value < 10 ? 1 : 0)} s` : `${Math.floor(value / 60)} min ${Math.round(value % 60)} s`;
 
 // The stage: the result first, then what to do with it; progress while the run works; technical detail folded away.
@@ -59,7 +62,7 @@ export function RunPanel({run, connection, onReuse, notify, onRepeat, items = []
   const progress = runProgress(run, now);
   const verdicts = shown?.verdicts ? Object.entries(shown.verdicts) : [];
   const met = verdicts.filter(([, v]) => v.verdict === 'met').length;
-  const extra = shown?.detail?.expected && shown.detail.found > shown.detail.expected ? shown.detail : null;
+  const extra = shown && counted(shown.detail) > (shown.detail?.expected ?? Infinity) ? shown.detail : null;
   const repeat = async (sameSeed: boolean, redo?: {profile: 'qwen21' | 'turbo'; seed: number}) => {
     setRepeating(true); try {await onRepeat(sameSeed, redo);} finally {setRepeating(false);}
   };
@@ -121,7 +124,7 @@ export function RunPanel({run, connection, onReuse, notify, onRepeat, items = []
         <div className="stage stage-pending"><Steps progress={progress} /></div>
       ) : null}
 
-      {extra && <p className="issue warning">Foram encontrados {extra.found} rostos, e o pedido tem {extra.expected} {extra.expected === 1 ? 'pessoa' : 'pessoas'}: confira se apareceu alguém a mais.</p>}
+      {extra && <p className="issue warning">Foram encontradas {counted(extra)} pessoas na imagem, e o pedido tem {extra.expected}: confira se apareceu alguém a mais.</p>}
 
       {showChecks && shown?.verdicts && (
         <ul className="verdicts">{verdicts.map(([id, v]) => (
@@ -135,7 +138,7 @@ export function RunPanel({run, connection, onReuse, notify, onRepeat, items = []
             <button key={image.task_id} type="button" aria-pressed={image === shown}
                     className={'variation' + (image === shown ? ' on' : '')} onClick={() => setChosen(image.task_id)}
                     title={`Variação ${image.position + 1} · seed ${image.seed}${image.score != null ? ` · ${Math.round(image.score * 100)}%` : ''}${
-                      image.detail?.expected && image.detail.found > image.detail.expected ? ' · pessoa a mais?' : ''}`}>
+                      counted(image.detail) > (image.detail?.expected ?? Infinity) ? ' · pessoa a mais?' : ''}`}>
               <img src={fileUrl(image.files[0])} alt={`Variação ${image.position + 1}`} />
               {run.best_task_id === image.task_id && <span className="best-mark" title="Melhor avaliada"><Icon name="star" size={11} /></span>}
             </button>

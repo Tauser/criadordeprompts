@@ -10,8 +10,9 @@ from ..domain import face_detail
 from ..domain.verification import FACE_CHECKS, JUDGE_SYSTEM, Check, judge_prompt, parse_verdicts, score
 from ..infrastructure.comfy.client import ComfyNotSent, ComfyRejected, ComfyUnavailable
 from ..infrastructure.comfy.validation import validate_graph
-from ..infrastructure.comfy.workflows import (FACE_MODEL, FACE_SIZE, MAX_EDIT_PIXELS, ImageJob, TextJob, face_boxes,
-                                              face_detect_graph, image_graph, image_outputs, text_graph, text_output)
+from ..infrastructure.comfy.workflows import (FACE_MODEL, FACE_SIZE, MAX_EDIT_PIXELS, PEOPLE_MODEL, PEOPLE_OUTPUT_NODE,
+                                              ImageJob, TextJob, face_boxes, face_detect_graph, image_graph,
+                                              image_outputs, people_count, text_graph, text_output)
 from ..infrastructure.db.database import now
 from ..infrastructure.storage.files import (MAX_RESULT_BYTES, composite_on_original, crop_square, face_crop_box,
                                             face_on_picture, fit_multiple_of_32, normalized_png, oriented_size,
@@ -34,9 +35,11 @@ PHASES = {'UNETLoader': 'loading_models', 'CLIPLoader': 'loading_models', 'VAELo
 
 
 def extra_people(result: dict | None) -> bool:
-    """More faces than people asked for. Fewer proves nothing: a face turned away or hidden is not found."""
+    """More faces, or more whole bodies, than people asked for. Fewer proves nothing: a face turned away or a body
+    hidden behind another is not found."""
     detail = (result or {}).get('detail') or {}
-    return bool(detail.get('expected')) and detail.get('found', 0) > detail['expected']
+    expected = detail.get('expected')
+    return bool(expected) and max(detail.get('found', 0), detail.get('people') or 0) > expected
 
 
 class Executor:
@@ -47,6 +50,7 @@ class Executor:
         self._thread: threading.Thread | None = None
         self._object_info: dict | None = None
         self._face_model: bool | None = None
+        self._people_model: bool | None = None
         self._missing: dict[str, int] = {}
         self._errors: dict[str, int] = {}
         self.reachable: bool | None = None
@@ -247,7 +251,8 @@ class Executor:
 
             def detect_graph(file_hash=file_hash):
                 name = self.comfy.upload(self.store.read(file_hash), f'prisma_{file_hash[:24]}.png', 'image/png')
-                return face_detect_graph(name, max(1, settings.get('participants') or 1) + EXTRA_FACES)
+                return face_detect_graph(name, max(1, settings.get('participants') or 1) + EXTRA_FACES,
+                                         people=self._people_model_installed())
             detect = self._drive_optional(detect, detect_graph)
             if detect['status'] not in TASK_DONE:
                 waiting = True
@@ -274,7 +279,8 @@ class Executor:
             if not all(task['status'] in TASK_DONE for task, _, _ in pending):
                 waiting = True
                 continue
-            self._paste_faces(image, data, len(found), settings.get('participants'), pending)
+            people = people_count(detect['result'].get('people')) if detect['status'] == 'completed' else None
+            self._paste_faces(image, data, len(found), people, settings.get('participants'), pending)
         if not waiting:
             done = [t for t in self.repository.tasks(run['id'], 'image') if t['status'] == 'completed']
             self._images_ready(run, done)
@@ -289,14 +295,16 @@ class Executor:
                         sampler=engine.get('sampler'), scheduler=engine.get('scheduler'),
                         prefix=f'prisma/{run["id"][:8]}_face')
 
-    def _paste_faces(self, image: dict, data: bytes, found: int, expected: int | None, pending: list) -> None:
+    def _paste_faces(self, image: dict, data: bytes, found: int, people: int | None, expected: int | None,
+                     pending: list) -> None:
         refined = []
         for task, box, crop in pending:
             if task['status'] == 'completed':
                 output = task['result']['images'][0]
                 refined.append((self.comfy.view(output['filename'], output.get('subfolder', ''), output['type']),
                                 box, crop))
-        result = {**image['result'], 'detail': {'found': found, 'refined': len(refined), 'expected': expected}}
+        result = {**image['result'], 'detail': {'found': found, 'refined': len(refined), 'expected': expected,
+                                                'people': people}}
         if refined:
             with self.repository.db.write_lock:
                 stored = self.store.put(paste_faces(data, refined), MAX_RESULT_BYTES)
@@ -406,6 +414,8 @@ class Executor:
             outputs = self.comfy.outputs(task['comfy_prompt_id'])
             images = task['kind'] in IMAGE_KINDS
             result = {'images': image_outputs(outputs)} if images else {'text': text_output(outputs)}
+            if PEOPLE_OUTPUT_NODE in outputs:
+                result['people'] = text_output(outputs, PEOPLE_OUTPUT_NODE)
             if images and not result['images']:
                 return self.repository.task_transition(task['id'], 'failed', error='O workflow terminou sem imagem.',
                                                        timings_json=timings)
@@ -458,6 +468,18 @@ class Executor:
             except Exception:                       # noqa: BLE001 - a missing close-up never blocks the verdict
                 return False
         return self._face_model
+
+    def _people_model_installed(self) -> bool:
+        """Counting bodies is optional: without RT-DETR the faces alone are counted."""
+        if self._people_model is None:              # asked once per Studio start
+            try:
+                if self._object_info is None:
+                    self._object_info = self.comfy.object_info()
+                self._people_model = ('RTDETR_detect' in self._object_info
+                                      and PEOPLE_MODEL in str(self._object_info.get('UNETLoader', {})))
+            except Exception:                       # noqa: BLE001 - a missing detector never blocks the run
+                return False
+        return self._people_model
 
     def _validate(self, graph: dict) -> None:
         if not self.validate:

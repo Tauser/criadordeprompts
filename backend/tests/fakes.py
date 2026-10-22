@@ -4,7 +4,7 @@ import json
 from PIL import Image
 
 from prisma_studio.infrastructure.comfy.client import ComfyNotSent, ComfyRejected, ComfyUnavailable, JobState
-from prisma_studio.infrastructure.comfy.workflows import IMAGE_OUTPUT_NODE, TEXT_OUTPUT_NODE
+from prisma_studio.infrastructure.comfy.workflows import IMAGE_OUTPUT_NODE, PEOPLE_OUTPUT_NODE, TEXT_OUTPUT_NODE
 
 
 def png(width=64, height=48, color=(200, 30, 30), mode='RGB'):
@@ -29,6 +29,7 @@ class FakeComfy:
         self.script = ['pending', 'in_progress', 'completed']
         self.loras = ['anatomy_fix_qwen21.safetensors', 'realism/ultra_real.safetensors']
         self.faces = []                    # boxes the MediaPipe face detector reports (or a function of none)
+        self.people: list[dict] = []       # bodies RT-DETR reports
 
     def _check(self):
         if self.offline:
@@ -82,7 +83,10 @@ class FakeComfy:
             return {IMAGE_OUTPUT_NODE: {'images': [{'filename': f'{prompt_id}.png', 'subfolder': 'prisma', 'type': 'output'}]}}
         if any(node['class_type'] == 'MediaPipeFaceLandmarker' for node in graph.values()):
             faces = self.faces() if callable(self.faces) else self.faces
-            return {TEXT_OUTPUT_NODE: {'text': [json.dumps([faces])]}}
+            out = {TEXT_OUTPUT_NODE: {'text': [json.dumps([faces])]}}
+            if any(node['class_type'] == 'RTDETR_detect' for node in graph.values()):
+                out[PEOPLE_OUTPUT_NODE] = {'text': [json.dumps([self.people])]}
+            return out
         prompt = graph['90']['inputs']['prompt']
         answer = self.text_answer(prompt) if callable(self.text_answer) else self.text_answer
         return {TEXT_OUTPUT_NODE: {'text': [answer]}}

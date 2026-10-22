@@ -10,6 +10,8 @@ TEXT_ENCODER = 'qwen3vl_8b_int8_convrot.safetensors'
 VAE = 'qwen_image_2.1_vae_bf16.safetensors'
 PE_MODEL = 'qwen3.5_9b_qwen_image_2.1_pe_i2i.int8_convrot.safetensors'
 FACE_MODEL = 'mediapipe_face_fp32.safetensors'   # ComfyUI models/detection: judge close-ups and face detail
+PEOPLE_MODEL = 'rt_detr_v4-x-hgnet_fp16.safetensors'   # ComfyUI models/diffusion_models: people counted by body
+PERSON_SCORE = 0.75             # measured: whole people scored 0.79+, false and half-hidden hits 0.51-0.61
 TURBO_SIGMAS = '1.0, 0.978453, 0.95418, 0.926626, 0.89508, 0.845148, 0.704534, 0.414568, 0.0'
 PROFILES = {
     'qwen21': {'label': 'Qwen Image 2.1 completo', 'steps': 40, 'cfg': 1.0, 'sampler': 'euler', 'scheduler': 'simple',
@@ -20,6 +22,7 @@ PROFILES = {
 MAX_EDIT_PIXELS = 2048 * 2048
 IMAGE_OUTPUT_NODE = '60'
 TEXT_OUTPUT_NODE = '92'
+PEOPLE_OUTPUT_NODE = '93'
 LORA_NODES = 30                    # LoraLoaderModelOnly nodes of image graphs: 30, 31, 32
 IMAGE_INPUT_NODES = 200            # LoadImage nodes of image graphs: 201, 202...
 TEXT_IMAGE_NODES = 300             # LoadImage nodes of text graphs: 300, 301...
@@ -164,9 +167,10 @@ def image_graph(job: ImageJob) -> dict:
     return g
 
 
-def face_detect_graph(image: str, faces: int, min_confidence: float = 0.5) -> dict:
-    """Find up to `faces` faces with ComfyUI's MediaPipe detector; the boxes come back as text."""
-    return {
+def face_detect_graph(image: str, faces: int, min_confidence: float = 0.5, people: bool = False) -> dict:
+    """Find up to `faces` faces with ComfyUI's MediaPipe detector; the boxes come back as text. With `people`, RT-DETR
+    also finds whole bodies, so a person turned away or with a hidden face is counted too."""
+    graph = {
         '70': {'class_type': 'LoadImage', 'inputs': {'image': image}},
         '71': {'class_type': 'LoadMediaPipeFaceLandmarker', 'inputs': {'model_name': FACE_MODEL}},
         '72': {'class_type': 'MediaPipeFaceLandmarker', 'inputs': {
@@ -174,6 +178,26 @@ def face_detect_graph(image: str, faces: int, min_confidence: float = 0.5) -> di
             'min_confidence': min_confidence, 'missing_frame_fallback': 'empty'}},
         TEXT_OUTPUT_NODE: {'class_type': 'PreviewAny', 'inputs': {'source': ['72', 1]}},
     }
+    if people:
+        graph.update({
+            '73': {'class_type': 'UNETLoader', 'inputs': {'unet_name': PEOPLE_MODEL, 'weight_dtype': 'default'}},
+            '74': {'class_type': 'RTDETR_detect', 'inputs': {'model': ['73', 0], 'image': ['70', 0], 'threshold': 0.5,
+                                                             'class_name': 'person', 'max_detections': 10}},
+            PEOPLE_OUTPUT_NODE: {'class_type': 'PreviewAny', 'inputs': {'source': ['74', 0]}},
+        })
+    return graph
+
+
+def people_count(text: str | None) -> int | None:
+    """Whole people RT-DETR is sure of; None when the detector did not run or its answer is unreadable."""
+    try:
+        found = json.loads(text) if text else None
+    except ValueError:
+        return None
+    if not isinstance(found, list):
+        return None
+    boxes = found[0] if found and isinstance(found[0], list) else found
+    return sum(1 for b in boxes if isinstance(b, dict) and float(b.get('score') or 0) >= PERSON_SCORE)
 
 
 def face_boxes(text: str | None) -> list[dict]:
@@ -249,8 +273,8 @@ def image_outputs(outputs: dict) -> list[dict]:
     return [im for im in node.get('images', []) if im.get('type') == 'output']
 
 
-def text_output(outputs: dict) -> str | None:
-    value = outputs.get(TEXT_OUTPUT_NODE, {}).get('text')
+def text_output(outputs: dict, node: str = TEXT_OUTPUT_NODE) -> str | None:
+    value = outputs.get(node, {}).get('text')
     if isinstance(value, list):
         value = value[0] if value else None
     return value if isinstance(value, str) else None

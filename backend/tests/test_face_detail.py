@@ -10,6 +10,7 @@ from prisma_studio.domain import face_detail
 from prisma_studio.domain.request import Request
 from prisma_studio.infrastructure.comfy.client import ComfyRejected
 from prisma_studio.infrastructure.comfy.workflows import (ImageJob, face_boxes, face_detect_graph, image_graph,
+                                                          people_count,
                                                           turbo_tail)
 from prisma_studio.infrastructure.storage.files import crop_square, face_crop_box, paste_faces
 from prisma_studio.worker.executor import extra_people
@@ -120,7 +121,7 @@ def test_couple_run_redraws_each_small_face_and_keeps_the_raw_image(env):  # noq
     run = env.run_until(run['id'])
     assert run['status'] == 'completed'
     image = env.repo.tasks(run['id'], 'image')[0]
-    assert image['result']['detail'] == {'found': 2, 'refined': 2, 'expected': 2}
+    assert image['result']['detail'] == {'found': 2, 'refined': 2, 'expected': 2, 'people': None}
     assert image['result']['raw_files'] != image['result']['files']
     detect = env.repo.tasks(run['id'], 'face_detect')[0]
     assert next(n for n in detect['graph'].values()
@@ -137,7 +138,7 @@ def test_couple_run_redraws_each_small_face_and_keeps_the_raw_image(env):  # noq
 def test_no_face_found_keeps_the_image_as_generated(env):  # noqa: F811
     run = env.run_until(env.service.create(couple(), 'faces-2', {}, None)['id'])
     image = env.repo.tasks(run['id'], 'image')[0]
-    assert run['status'] == 'completed' and image['result']['detail'] == {'found': 0, 'refined': 0, 'expected': 2}
+    assert run['status'] == 'completed' and image['result']['detail'] == {'found': 0, 'refined': 0, 'expected': 2, 'people': None}
     assert 'raw_files' not in image['result'] and env.repo.tasks(run['id'], 'face') == []
 
 
@@ -145,7 +146,7 @@ def test_large_faces_are_left_alone(env):  # noqa: F811
     env.comfy.faces = [{**FACE, 'width': face_detail.MAX_FACE + 1}]
     run = env.run_until(env.service.create(couple(), 'faces-3', {}, None)['id'])
     assert env.repo.tasks(run['id'], 'face') == []
-    assert env.repo.tasks(run['id'], 'image')[0]['result']['detail'] == {'found': 1, 'refined': 0, 'expected': 2}
+    assert env.repo.tasks(run['id'], 'image')[0]['result']['detail'] == {'found': 1, 'refined': 0, 'expected': 2, 'people': None}
 
 
 def test_single_person_only_counts_faces_unless_the_redraw_is_asked(env):  # noqa: F811
@@ -154,7 +155,7 @@ def test_single_person_only_counts_faces_unless_the_redraw_is_asked(env):  # noq
     assert run['settings']['face_detail'] is False and len(env.repo.tasks(run['id'], 'face_detect')) == 1
     assert env.repo.tasks(run['id'], 'face') == []
     image = env.repo.tasks(run['id'], 'image')[0]
-    assert image['result']['detail'] == {'found': 1, 'refined': 0, 'expected': 1}
+    assert image['result']['detail'] == {'found': 1, 'refined': 0, 'expected': 1, 'people': None}
     assert 'raw_files' not in image['result']
     run = env.run_until(env.service.create(single(face_detail=True), 'faces-5', {}, None)['id'])
     assert env.repo.tasks(run['id'], 'image')[0]['result']['detail']['refined'] == 1
@@ -183,7 +184,7 @@ def test_a_failing_detection_never_fails_the_run(env):  # noqa: F811
     env.comfy.upload = upload
     assert run['status'] == 'completed'
     assert env.repo.tasks(run['id'], 'face_detect')[0]['status'] == 'failed'
-    assert env.repo.tasks(run['id'], 'image')[0]['result']['detail'] == {'found': 0, 'refined': 0, 'expected': 2}
+    assert env.repo.tasks(run['id'], 'image')[0]['result']['detail'] == {'found': 0, 'refined': 0, 'expected': 2, 'people': None}
 
 
 def test_a_box_outside_the_picture_is_skipped_and_the_run_completes(env):  # noqa: F811
@@ -192,7 +193,7 @@ def test_a_box_outside_the_picture_is_skipped_and_the_run_completes(env):  # noq
     assert run['status'] == 'completed'
     image = env.repo.tasks(run['id'], 'image')[0]
     assert image['status'] == 'completed' and image['result']['files']
-    assert image['result']['detail'] == {'found': 3, 'refined': 1, 'expected': 2}
+    assert image['result']['detail'] == {'found': 3, 'refined': 1, 'expected': 2, 'people': None}
     assert [t['position'] for t in env.repo.tasks(run['id'], 'face')] == [0]
 
 
@@ -218,3 +219,26 @@ def test_an_extra_face_is_flagged_and_loses_the_best_pick(env):  # noqa: F811
 def test_fewer_faces_than_people_is_not_an_alarm():
     assert not extra_people({'detail': {'found': 1, 'refined': 1, 'expected': 2}})
     assert not extra_people({'detail': {'found': 2, 'refined': 0}}) and not extra_people(None)
+
+
+def test_bodies_are_counted_with_rt_detr_only_when_it_is_installed():
+    graph = face_detect_graph('shot.png', 3, people=True)
+    detector = next(n for n in graph.values() if n['class_type'] == 'RTDETR_detect')['inputs']
+    assert detector['class_name'] == 'person'
+    assert not any(n['class_type'] == 'RTDETR_detect' for n in face_detect_graph('shot.png', 3).values())
+    sure, unsure = {'label': 'person', 'score': 0.9}, {'label': 'person', 'score': 0.55}
+    # Measured: whole people scored 0.79+; half-hidden riders and false hits 0.51-0.61 are not counted.
+    assert people_count(json.dumps([[sure, sure, unsure]])) == 2
+    assert people_count(json.dumps([sure])) == 1 and people_count(None) is None and people_count('x') is None
+
+
+def test_an_extra_body_is_flagged_even_without_an_extra_face(env):  # noqa: F811
+    env.executor._people_model = True
+    env.comfy.faces = [FACE, OTHER]
+    env.comfy.people = [{'label': 'person', 'score': 0.9}] * 3       # a third person, turned away from the camera
+    run = env.run_until(env.service.create(couple(), 'faces-10', {}, None)['id'])
+    image = env.repo.tasks(run['id'], 'image')[0]
+    assert image['result']['detail']['people'] == 3 and image['result']['detail']['found'] == 2
+    assert extra_people(image['result'])
+    detect = env.repo.tasks(run['id'], 'face_detect')[0]
+    assert any(n['class_type'] == 'RTDETR_detect' for n in detect['graph'].values())

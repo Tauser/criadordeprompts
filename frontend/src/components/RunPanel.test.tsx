@@ -31,8 +31,15 @@ it('warns when the variation on screen shows more faces than people asked for', 
   const crowded = run('qwen21');
   crowded.images[1] = {...crowded.images[1], detail: {found: 3, refined: 3, expected: 2}};
   render(<RunPanel run={crowded} connection="online" onReuse={vi.fn()} notify={vi.fn()} onRepeat={vi.fn()} />);
-  expect(screen.getByText(/Foram encontrados 3 rostos, e o pedido tem 2 pessoas/)).toBeTruthy();
+  expect(screen.getByText(/Foram encontradas 3 pessoas na imagem, e o pedido tem 2/)).toBeTruthy();
   expect(screen.getByTitle(/Variação 2 .* pessoa a mais\?/)).toBeTruthy();
   fireEvent.click(screen.getByTitle(/Variação 1 /));
-  expect(screen.queryByText(/Foram encontrados/)).toBeNull();
+  expect(screen.queryByText(/Foram encontradas/)).toBeNull();
+});
+
+it('also warns when the body detector counts more people than the faces show', () => {
+  const crowded = run('qwen21');
+  crowded.images[1] = {...crowded.images[1], detail: {found: 2, refined: 2, expected: 2, people: 3}};
+  render(<RunPanel run={crowded} connection="online" onReuse={vi.fn()} notify={vi.fn()} onRepeat={vi.fn()} />);
+  expect(screen.getByText(/Foram encontradas 3 pessoas na imagem, e o pedido tem 2/)).toBeTruthy();
 });
