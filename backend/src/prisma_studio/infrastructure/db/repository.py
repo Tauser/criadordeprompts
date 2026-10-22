@@ -78,8 +78,26 @@ class RunRepository:
         row = self.db.one('SELECT * FROM runs WHERE request_id=?', (request_id,))
         return _run(row) if row else None
 
-    def list(self, limit: int = 30) -> list[dict]:
-        return [_run(r) for r in self.db.query('SELECT * FROM runs ORDER BY created_at DESC LIMIT ?', (limit,))]
+    def list(self, limit: int = 30, *, q: str | None = None, mode: str | None = None, status: str | None = None,
+             before: float | None = None) -> list[dict]:
+        """Newest runs first. `before` is a created_at cursor: only runs strictly older are returned."""
+        clauses, params = [], []
+        if q:
+            pattern = '%' + _escape_like(q) + '%'
+            clauses.append("(prompt LIKE ? ESCAPE '\\' OR request_json LIKE ? ESCAPE '\\')")
+            params += [pattern, pattern]
+        if mode:
+            clauses.append('mode=?')
+            params.append(mode)
+        if status:
+            clauses.append('status=?')
+            params.append(status)
+        if before is not None:
+            clauses.append('created_at<?')
+            params.append(before)
+        where = ('WHERE ' + ' AND '.join(clauses)) if clauses else ''
+        rows = self.db.query(f'SELECT * FROM runs {where} ORDER BY created_at DESC LIMIT ?', (*params, limit))
+        return [_run(r) for r in rows]
 
     def usage(self, since: float) -> dict:
         """Runs created since `since`: how many, how many failed, images made and seconds the GPU spent on them."""
@@ -271,6 +289,14 @@ class LibraryRepository:
                            (item['id'], dumps(item), now()))
             tx.execute("UPDATE meta SET value=? WHERE key='library_revision'", (str(revision + 1),))
         return revision + 1
+
+
+RUN_STATUSES = set(RUN_TRANSITIONS) | TERMINAL | {s for targets in RUN_TRANSITIONS.values() for s in targets}
+
+
+def _escape_like(text: str) -> str:
+    """Make %, _ and the escape character literal inside a LIKE pattern (used with ESCAPE '\\')."""
+    return text.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
 
 
 def _hashes(files: dict | None) -> list[str]:

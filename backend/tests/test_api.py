@@ -245,3 +245,71 @@ def test_contract_errors_name_the_fields(client):
     issues = {i['field']: i['message'] for i in response.json()['issues']}
     assert issues == {'attributes.pose': 'Pose: o texto não pode ficar vazio.',
                       'output.width': 'Largura: use um múltiplo de 32.', 'engine.steps': 'Passos: o valor mínimo é 1.'}
+
+
+def wardrobe_run(client, n, text):
+    request = {'mode': 'generate', 'attributes': {'wardrobe': {'intent': 'set', 'value': {'kind': 'text', 'text': text}}}}
+    created = client.post('/api/runs', json={'request_id': f'history-run-{n:08d}', 'request': request})
+    assert created.status_code == 200, created.text
+    return created.json()
+
+
+def test_history_search_treats_wildcards_literally(client):
+    literal = wardrobe_run(client, 1, 'casaco_azul 100%')
+    wardrobe_run(client, 2, 'vestido verde')
+    search = lambda q: [r['id'] for r in client.get('/api/runs', params={'q': q}).json()['runs']]
+    assert search('casaco_azul') == [literal['id']]
+    assert search('CASACO_AZUL') == [literal['id']]               # case-insensitive
+    assert search('100%') == [literal['id']]
+    assert search('%') == [literal['id']]                         # a bare % is not a wildcard
+    assert search('casacoXazul') == []                            # _ is not a wildcard either
+    assert search('nao-existe-xyz') == []
+    assert client.get('/api/runs', params={'q': 'nao-existe-xyz'}).json()['next_before'] is None
+    assert len(search('  ')) == 2                                 # blank query means no filter
+
+
+def test_history_filters_by_mode_and_status(client):
+    first = client.post('/api/runs', json={'request_id': 'history-filter-0001', 'request': {
+        'mode': 'generate', 'attributes': {'environment': {'intent': 'set', 'value': {
+            'kind': 'catalog', 'item_id': 'environment.garden'}}}}}).json()
+    tick(client)
+    assert client.get(f'/api/runs/{first["id"]}').json()['status'] == 'completed'
+    target = client.post('/api/files', files={'file': ('foto.png', png(320, 240), 'image/png')}).json()['hash']
+    edit_request = {'mode': 'edit', 'target_id': 't', 'references': [{'id': 't', 'label': 'foto'}],
+                    'attributes': {'environment': {'intent': 'set', 'value': {'kind': 'catalog',
+                                                                             'item_id': 'environment.beach'}}}}
+    edit = client.post('/api/runs', json={'request_id': 'history-filter-0002', 'request': edit_request,
+                                          'files': {'t': target}}).json()
+    queued = wardrobe_run(client, 3, 'blusa cinza')
+
+    def ids(**params):
+        return [r['id'] for r in client.get('/api/runs', params=params).json()['runs']]
+
+    assert ids(mode='edit') == [edit['id']]
+    assert set(ids(mode='generate')) == {first['id'], queued['id']}
+    assert ids(status='completed') == [first['id']]
+    assert set(ids(status='created')) == {edit['id'], queued['id']}
+    assert ids(mode='edit', status='completed') == []
+    assert ids(mode='generate', q='blusa') == [queued['id']]
+    assert client.get('/api/runs', params={'mode': 'video'}).status_code == 422
+    assert client.get('/api/runs', params={'status': 'apagado'}).status_code == 422
+
+
+def test_history_paging_with_before_has_no_overlap(client):
+    runs = [wardrobe_run(client, 10 + i, f'paginacao {i}') for i in range(5)]
+    with client.container.db.transaction() as tx:              # distinct timestamps, as real clicks would give
+        for i, run in enumerate(runs):
+            tx.execute('UPDATE runs SET created_at=? WHERE id=?', (1000.0 + i, run['id']))
+    everything = client.get('/api/runs').json()
+    assert everything['next_before'] is None and len(everything['runs']) == 5
+    seen, before, pages = [], None, 0
+    while True:
+        params = {'limit': 2, 'q': 'paginacao', **({'before': before} if before is not None else {})}
+        page = client.get('/api/runs', params=params).json()
+        seen += [r['id'] for r in page['runs']]
+        pages += 1
+        before = page['next_before']
+        if before is None:
+            break
+    assert pages == 3
+    assert seen == [r['id'] for r in reversed(runs)]           # newest first, no repeats, nothing skipped

@@ -562,6 +562,7 @@ details.tech > .tasks { margin-top: 8px; }
 details.tech h3 { margin: 6px 0; }
 .verdicts { padding: 10px 12px; border-radius: 12px; background: var(--surface-2); }
 .history-more { justify-self: start; margin-top: 12px; }
+.history-search { margin-bottom: 10px; }
 
 /* prompt panel (P3) */
 .preview-body { display: grid; gap: 12px; }

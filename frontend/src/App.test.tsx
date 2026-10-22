@@ -153,7 +153,7 @@ describe('History', () => {
     expect(await screen.findByRole('button', {name: /Concluídos 1/})).toBeTruthy();
     fireEvent.click(screen.getByRole('button', {name: /Em andamento/}));
     expect(await screen.findByText('Nenhum pedido neste filtro.')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', {name: /Todos/}));
+    fireEvent.click(screen.getByRole('group', {name: 'Filtrar histórico'}).querySelector('button') as HTMLElement);
     await act(async () => {fireEvent.click(await screen.findByRole('button', {name: 'Apagar este pedido'}));});
     const request = calls.find(c => c.path === '/api/runs/delete');
     expect(request?.body).toEqual({ids: ['run1'], keep_files: ['abc']});
