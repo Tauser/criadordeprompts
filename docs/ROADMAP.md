@@ -31,9 +31,9 @@ Vem primeiro porque é com ela que todos os itens seguintes são medidos.
 |---|---|---|---|
 | 0.1 | **Banco de casos** | 10 a 15 edições típicas (acrescentar personagem, pose, ação a dois, troca de cenário) com seeds fixas, rodadas no Turbo a cada mudança. | M |
 | 0.2 | **Grade de comparação na tela** | O mesmo pedido em várias seeds, opções ou perfis lado a lado, como o gerador de grade do SwarmUI. | M |
-| 0.3 | Rosto na borda não derruba a variação | Hoje um rosto detectado fora da imagem faz a variação falhar; o certo é só pular aquele rosto. | P |
-| 0.4 | Contar pessoas também com uma pessoa só | Hoje a contagem só roda quando a passada de rosto está ligada. | P |
-| 0.5 | **Cópia de segurança automática** | Banco, Biblioteca e Histórico; hoje um Histórico apagado não tem volta. | P |
+| 0.3 | ✅ Rosto na borda não derruba a variação | Hoje um rosto detectado fora da imagem faz a variação falhar; o certo é só pular aquele rosto. | P |
+| 0.4 | ✅ Contar pessoas também com uma pessoa só | Hoje a contagem só roda quando a passada de rosto está ligada. | P |
+| 0.5 | ✅ **Cópia de segurança automática** | Uma cópia do banco por dia em `data/backups`, guardando as 14 mais novas. Cobre Biblioteca e registros do Histórico; as imagens não entram. | P |
 
 ## Fase 1 — Medidas objetivas do corpo
 
