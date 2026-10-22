@@ -32,6 +32,7 @@ from ..domain.vocabulary import CATEGORIES, Confirmation
 from ..infrastructure.comfy.client import ComfyClient, ComfyRejected, ComfyUnavailable
 from ..infrastructure.comfy.progress import ProgressTracker
 from ..infrastructure.comfy.workflows import PROFILES, generation_size
+from ..infrastructure.db.backup import BackupScheduler
 from ..infrastructure.db.database import Database
 from ..infrastructure.db.repository import InvalidTransition, LibraryRepository, RunRepository
 from ..infrastructure.discovery import LocalDiscovery
@@ -110,6 +111,7 @@ class Container:
         self.coherence = CoherenceService(self.comfy)
         self.pose_tests = PoseTester(self.comfy)
         self.monitor = monitor or SystemMonitor(config.data_dir)
+        self.backups = BackupScheduler(self.db.path, config.data_dir / 'backups')
 
 
 def create_app(config: Config | None = None, container: Container | None = None) -> FastAPI:
@@ -125,6 +127,7 @@ def create_app(config: Config | None = None, container: Container | None = None)
                 lock.acquire()                    # refuse to start a second executor over the same database
                 c.progress.start()
                 c.executor.start()
+            c.backups.start()
             await discovery.start()
             yield
         finally:
@@ -132,10 +135,13 @@ def create_app(config: Config | None = None, container: Container | None = None)
                 await discovery.close()
             finally:
                 try:
-                    await asyncio.to_thread(c.executor.stop)
+                    await asyncio.to_thread(c.backups.stop)
                 finally:
-                    c.progress.stop()
-                    lock.release()
+                    try:
+                        await asyncio.to_thread(c.executor.stop)
+                    finally:
+                        c.progress.stop()
+                        lock.release()
 
     app = FastAPI(title='Prisma Studio', version=__version__, lifespan=lifespan)
     app.state.container = c
