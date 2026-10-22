@@ -1,5 +1,5 @@
-import type {CoherenceJob, Health, PeopleCount, SavedRequest, Stats, Item, LibrarySnapshot, PoseTest, Prepared, Run,
-  StudioRequest, TextFinding} from './types';
+import type {CoherenceJob, Health, PeopleCount, SavedCharacter, SavedCharacterInput, SavedRequest, Stats, Item, LibrarySnapshot,
+  PoseTest, Prepared, Run, StudioRequest, TextFinding} from './types';
 
 export class ApiError extends Error {
   constructor(public status: number, public body: {error?: string; issues?: unknown[]; details?: unknown[]}) {
@@ -76,6 +76,10 @@ export const api = {
   createPreset: (name: string, request: StudioRequest) => call<SavedRequest>('POST', '/api/presets', {name, request}),
   renamePreset: (id: string, name: string) => call<SavedRequest>('PUT', `/api/presets/${id}`, {name}),
   deletePreset: (id: string) => call<{deleted: string}>('DELETE', `/api/presets/${id}`),
+  characters: () => call<{characters: SavedCharacter[]}>('GET', '/api/characters'),
+  createCharacter: (body: SavedCharacterInput) => call<SavedCharacter>('POST', '/api/characters', body),
+  updateCharacter: (id: string, body: Partial<SavedCharacterInput>) => call<SavedCharacter>('PUT', `/api/characters/${id}`, body),
+  deleteCharacter: (id: string) => call<{deleted: string}>('DELETE', `/api/characters/${id}`),
 };
 
 export const fileUrl = (hash: string) => `/api/files/${hash}`;

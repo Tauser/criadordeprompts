@@ -130,3 +130,8 @@ export interface CoherenceJob {
 export interface TextFinding {code: string; level: 'conflict' | 'ambiguity' | 'style'; message: string}
 // A quick Turbo preview of a pose or action draft; the image is kept only in the server's memory.
 export interface PoseTest {id: string; status: string; prompt?: string; has_image?: boolean; error?: string | null; warning?: string}
+
+// A "Personagem" saved for reuse ("fichas de personagem"). Photos are file hashes; photos[0] is the main one.
+// Named SavedCharacter here because `Character` above is the character of one request.
+export interface SavedCharacter {id: string; name: string; notes: string; photos: string[]; created_at: number; updated_at: number}
+export interface SavedCharacterInput {name: string; notes: string; photos: string[]}

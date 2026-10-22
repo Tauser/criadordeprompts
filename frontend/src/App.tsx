@@ -2,12 +2,13 @@ import {useCallback, useEffect, useState} from 'react';
 import {api} from './api/client';
 import type {Health, LibrarySnapshot, Stats} from './api/types';
 import {Diagnostics, gigabytes, level} from './components/Diagnostics';
+import {Characters} from './components/Characters';
 import {Library} from './components/Library';
 import {Icon} from './components/Icon';
 import {Studio} from './components/Studio';
 import {load, save} from './lib/storage';
 
-type View = 'studio' | 'library' | 'diagnostics';
+type View = 'studio' | 'library' | 'characters' | 'diagnostics';
 type Theme = 'system' | 'light' | 'dark';
 const THEME_KEY = 'prisma.theme';
 const NEXT_THEME: Record<Theme, Theme> = {system: 'light', light: 'dark', dark: 'system'};
@@ -54,7 +55,7 @@ export function App() {
   const online = !!health?.comfy.available;
   const device = stats?.comfy.devices?.[0];
   const vram = device?.vram_total && device.vram_free != null ? {used: device.vram_total - device.vram_free, total: device.vram_total} : null;
-  const nav: [View, string][] = [['studio', 'Criar'], ['library', 'Biblioteca'], ['diagnostics', 'Diagnóstico']];
+  const nav: [View, string][] = [['studio', 'Criar'], ['library', 'Biblioteca'], ['characters', 'Personagens'], ['diagnostics', 'Diagnóstico']];
 
   return (
     <div className={'app view-' + view}>
@@ -85,6 +86,7 @@ export function App() {
           view === 'studio' ? <div className="page studio-page"><Studio library={library} comfyOnline={online} notify={notify} /></div> :
           <div className="page">{view === 'library'
             ? <Library snapshot={library} onSaved={setLibrary} notify={notify} setDirty={setLibraryDirty} />
+            : view === 'characters' ? <Characters notify={notify} />
             : <Diagnostics health={health} refresh={refreshHealth} />}</div>}
       </div>
     </div>
