@@ -1,14 +1,16 @@
 import {useEffect, useState} from 'react';
 import {api, fileUrl} from '../api/client';
-import type {Run, Task} from '../api/types';
+import type {Item, Run, Task} from '../api/types';
 import {wordDiff} from '../lib/diff';
 import {KIND, PHASE, RUN_STATUS, TASK_STATUS, TERMINAL, VERDICT} from '../lib/labels';
 import {formatSeconds, runProgress} from '../lib/progress';
 import {relativeTime} from '../lib/time';
+import {ComparePicker, type ComparePlan} from './CompareGrid';
 import {Icon} from './Icon';
 
 interface Props {run: Run | null; connection: string; onReuse: (hash: string) => void; notify: (m: string, e?: boolean) => void;
-  onRepeat: (sameSeed: boolean, redo?: {profile: 'qwen21' | 'turbo'; seed: number}) => Promise<void>}
+  onRepeat: (sameSeed: boolean, redo?: {profile: 'qwen21' | 'turbo'; seed: number}) => Promise<void>;
+  items?: Item[]; onCompare?: (plan: ComparePlan) => Promise<void>}
 
 export function useNow(active: boolean) {
   const [now, setNow] = useState(Date.now() / 1000);
@@ -24,13 +26,15 @@ export function useNow(active: boolean) {
 const seconds = (value: number) => value < 60 ? `${value.toFixed(value < 10 ? 1 : 0)} s` : `${Math.floor(value / 60)} min ${Math.round(value % 60)} s`;
 
 // The stage: the result first, then what to do with it; progress while the run works; technical detail folded away.
-export function RunPanel({run, connection, onReuse, notify, onRepeat}: Props) {
+export function RunPanel({run, connection, onReuse, notify, onRepeat, items = [], onCompare}: Props) {
   const [repeating, setRepeating] = useState(false);
   const [chosen, setChosen] = useState<string | null>(null);
   const [showChecks, setShowChecks] = useState(false);
+  const [comparing, setComparing] = useState(false);
+  const [sending, setSending] = useState(false);
   const active = !!run && !TERMINAL.has(run.status);
   const now = useNow(active);
-  useEffect(() => {setChosen(null); setShowChecks(false);}, [run?.id]);
+  useEffect(() => {setChosen(null); setShowChecks(false); setComparing(false);}, [run?.id]);
 
   if (!run) return (
     <section className="card run stage-card" aria-labelledby="run-title">
@@ -157,8 +161,18 @@ export function RunPanel({run, connection, onReuse, notify, onRepeat}: Props) {
               <Icon name="refresh" size={15} />{repeating ? 'Enviando…' : 'Nova seed'}</button>
             <button className="quiet" disabled={repeating} title={`Mesmo pedido e mesma seed (${run.settings.seed})`} onClick={() => repeat(true)}>
               Mesma seed</button>
+            {onCompare && run.request && run.files && (
+              <button className="quiet" aria-expanded={comparing} title="Gera várias imagens lado a lado: seeds, perfil ou opções de uma categoria"
+                      onClick={() => setComparing(c => !c)}>Comparar</button>)}
           </>}
         </div>
+      )}
+      {comparing && onCompare && !active && run.request && run.files && (
+        <ComparePicker run={run} items={items} busy={sending} onCancel={() => setComparing(false)}
+          onConfirm={async plan => {
+            setSending(true);
+            try {await onCompare(plan); setComparing(false);} finally {setSending(false);}
+          }} />
       )}
       {run.cancel_requested && active && <p className="help">Parada solicitada. Aguardando a confirmação do ComfyUI.</p>}
 

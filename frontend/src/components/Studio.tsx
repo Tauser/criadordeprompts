@@ -12,6 +12,7 @@ import {addReference, applySuggestion, enterManual, filesForSubmit, initialWorks
   requestForSubmit, setAttribute, setTarget, switchMode, syncAuto, type Workspace} from '../state/workspace';
 import {AttributeField} from './AttributeField';
 import {CollapseButton} from './Collapse';
+import {CompareGrid, startComparison, type ComparePlan, type GridCell} from './CompareGrid';
 import {Disclosure, Segmented, Switch, Tip} from './Controls';
 import {Icon} from './Icon';
 import {History} from './History';
@@ -21,7 +22,7 @@ import {RunPanel, useNow} from './RunPanel';
 import {TranslateButton} from './Translate';
 
 type Drafts = Record<'generate' | 'edit', Workspace>;
-const DRAFTS_KEY = 'prisma.drafts.v1', ACTIVE_KEY = 'prisma.active-run', PENDING_KEY = 'prisma.pending-request';
+const DRAFTS_KEY = 'prisma.drafts.v1', ACTIVE_KEY = 'prisma.active-run', PENDING_KEY = 'prisma.pending-request', GRID_KEY = 'prisma.compareGrid';
 // Drafts saved before the rename are read once from the old keys.
 const LEGACY = {drafts: 'kppb.drafts.v1', active: 'kppb.active-run'};
 
@@ -52,6 +53,7 @@ export function Studio({library, comfyOnline, notify}: Props) {
   const [reconcile, setReconcile] = useState(0);
   const inFlight = useRef(false);
   const [activeRun, setActiveRun] = useState<string | null>(load<string | null>(ACTIVE_KEY, null) ?? load<string | null>(LEGACY.active, null));
+  const [grid, setGrid] = useState<GridCell[] | null>(() => {const saved = load<GridCell[] | null>(GRID_KEY, null); return Array.isArray(saved) ? saved : null;});
   const {run, connection} = useRun(activeRun);
   const epoch = useRef(0);
   const autoMade = useRef<{ws: Workspace | null; count: number}>({ws: null, count: 0});
@@ -216,6 +218,15 @@ export function Studio({library, comfyOnline, notify}: Props) {
       redo ? 'Refazendo esta variação no perfil Completo.'
         : sameSeed ? 'Repetindo com a mesma seed.' : 'Gerando de novo com uma nova seed.');
   };
+  // The grid is remembered until closed; each cell is followed by its run, so a reload picks it up again.
+  const showGrid = (cells: GridCell[] | null) => {setGrid(cells); save(GRID_KEY, cells);};
+  const compare = async (plan: ComparePlan) => {
+    if (!run?.request || !run.files) return;
+    const cells = await startComparison(run, plan, library.items, partial => showGrid(partial));
+    showGrid(cells);
+    const failed = cells.filter(c => c.error).length;
+    notify(failed ? `${failed} de ${cells.length} gerações não foram enviadas.` : 'Grade enviada. Cada geração aparece abaixo.', failed > 0);
+  };
   const stop = async () => {
     if (!activeRun) return;
     try {await api.cancel(activeRun);} catch (error) {notify((error as Error).message, true);}
@@ -355,7 +366,9 @@ export function Studio({library, comfyOnline, notify}: Props) {
         </div>
         <div className="column side-column">
           <div className="stage-wrap">
-            <RunPanel run={run} connection={connection} onReuse={reuse} notify={notify} onRepeat={repeat} />
+            <RunPanel run={run} connection={connection} onReuse={reuse} notify={notify} onRepeat={repeat}
+              items={library.items} onCompare={compare} />
+            {grid && <CompareGrid cells={grid} onClose={() => showGrid(null)} />}
             <History activeRun={activeRun} onSelect={setActiveRun} notify={notify}
               keepFiles={[...new Set([...filesOf(workspace), ...filesOf(drafts[request.mode === 'edit' ? 'generate' : 'edit'])])]} />
           </div>
