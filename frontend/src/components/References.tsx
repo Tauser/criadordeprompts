@@ -1,12 +1,12 @@
 import {useEffect, useRef, useState} from 'react';
 import {api, fileUrl} from '../api/client';
-import type {CharacterPosition, SavedCharacter} from '../api/types';
+import type {CharacterPosition, SavedCharacter, SwapMode} from '../api/types';
 import {imageSize} from '../lib/characters';
 import {CATEGORY_LABELS} from '../lib/labels';
 import {sortBy} from '../lib/sort';
 import {uuid} from '../lib/uuid';
-import {MAX_CHARACTERS, ROLES, addCharacter, addReference, addSavedCharacter, applyReference, characterNumber, describeCharacter,
-  placeCharacter, referenceRoles, removeCharacter, removeReference, setTarget, type Workspace} from '../state/workspace';
+import {MAX_CHARACTERS, ROLES, addCharacter, addReference, addSavedCharacter, applyReference, characterNumber, clearSwap, describeCharacter,
+  placeCharacter, referenceRoles, removeCharacter, removeReference, setSwap, setTarget, type Workspace} from '../state/workspace';
 import {Switch, Tip} from './Controls';
 import {Icon} from './Icon';
 import {MaskEditor} from './MaskEditor';
@@ -20,6 +20,11 @@ interface Props {
   notify: (message: string, error?: boolean) => void;
   maskRequest?: number;   // each change opens the mask editor on the photo (from "Corrigir área")
 }
+
+const SWAP_MODES: Record<SwapMode, {label: string; help: string}> = {
+  body: {label: 'Corpo inteiro', help: 'A pessoa inteira, com a roupa dela, na pose e no lugar da foto.'},
+  head: {label: 'Só o rosto', help: 'Só a cabeça e o cabelo, no corpo da pessoa da foto.'},
+};
 
 export function References({workspace, slots, disabled, update, notify, maskRequest = 0}: Props) {
   const [busy, setBusy] = useState(false);
@@ -156,8 +161,10 @@ export function References({workspace, slots, disabled, update, notify, maskRequ
           const isTarget = ref.id === request.target_id;
           const roles = referenceRoles(workspace, ref.id);
           const person = characterNumber(workspace, ref.id);
+          const swap = request.swap?.reference_id === ref.id ? request.swap : null;
+          const swapHeld = !!request.swap;
           const slot = isTarget ? 1 : slots[ref.id];
-          const role = isTarget ? 'Foto alvo' : person ? `Personagem ${person}` : roles.length ? 'Referência' : 'Não usada';
+          const role = isTarget ? 'Foto alvo' : swap ? 'Troca de pessoa' : person ? `Personagem ${person}` : roles.length ? 'Referência' : 'Não usada';
           const actions = [
             edit && !isTarget ? {label: 'Usar como foto alvo', run: () => {
               if (confirm('Usar esta imagem como foto alvo? Ela deixará de fornecer atributos.')) act(ws => setTarget(ws, ref.id)); else setMenu(null);}} : null,
@@ -169,7 +176,7 @@ export function References({workspace, slots, disabled, update, notify, maskRequ
             }},
           ].filter(a => a !== null) as {label: string; danger?: boolean; run: () => void}[];
           return (
-            <li key={ref.id} className={'reference' + (isTarget ? ' target' : '') + (person ? ' cast' : '') + (!isTarget && !person && !roles.length ? ' unused' : '')}>
+            <li key={ref.id} className={'reference' + (isTarget ? ' target' : '') + (person ? ' cast' : '') + (!isTarget && !person && !roles.length && !swap ? ' unused' : '')}>
               <div className="reference-thumb">
                 {file ? <img src={fileUrl(file.hash)} alt={ref.label} /> : <span className="missing">Sem arquivo</span>}
                 <span className="role-chip" title={slot ? `Enviada ao modelo como image${slot}` : 'Não é enviada ao modelo'}>{role}</span>
@@ -185,17 +192,35 @@ export function References({workspace, slots, disabled, update, notify, maskRequ
               <div className="reference-body">
                 <strong title={ref.label}>{ref.label}</strong>
                 {isTarget ? <span className="muted small">Será editada</span>
+                  : swap ? <span className="badge">Entra no lugar</span>
                   : person ? <span className="muted small">Rosto, corpo, pele e cabelo</span>
                   : roles.length ? <span className="muted small">Fornece: {roles.map(r => CATEGORY_LABELS[r]).join(', ')}</span> : null}
+                {swap && (
+                  <select aria-label={`Quanto trocar com ${ref.label}`} value={swap.mode} disabled={disabled}
+                          title={SWAP_MODES[swap.mode].help}
+                          onChange={e => act(ws => setSwap(ws, ref.id, e.target.value as SwapMode))}>
+                    {(Object.keys(SWAP_MODES) as SwapMode[]).map(mode => (
+                      <option key={mode} value={mode} title={SWAP_MODES[mode].help}>{SWAP_MODES[mode].label}</option>))}
+                  </select>
+                )}
                 {!isTarget && (
                   <select aria-label={`Aplicar ${ref.label} como`} value="" disabled={disabled}
                           onChange={e => {
                             const value = e.target.value;
                             if (!value) return;
-                            act(ws => value === '@character' ? addCharacter(ws, ref.id) : applyReference(ws, ref.id, value));
+                            act(ws => {
+                              if (value === '@character') return addCharacter(ws, ref.id);
+                              if (value === '@swap') return setSwap(ws, ref.id, 'body');
+                              if (value === '@unswap') return clearSwap(ws);
+                              return applyReference(ws, ref.id, value);
+                            });
                           }}>
-                    <option value="">{person ? 'Usar de outro jeito…' : roles.length ? 'Aplicar também como…' : 'Aplicar como…'}</option>
-                    {!person && <option value="@character" disabled={castFull}>
+                    <option value="">{swap ? 'Usar de outro jeito…' : person ? 'Usar de outro jeito…' : roles.length ? 'Aplicar também como…' : 'Aplicar como…'}</option>
+                    {swap && <option value="@unswap">Desfazer a troca de pessoa</option>}
+                    {edit && !swap && <option value="@swap" disabled={swapHeld}
+                      title={swapHeld ? 'Outra imagem já troca a pessoa. Desfaça essa troca antes.' : undefined}>
+                      Trocar a pessoa da foto por esta</option>}
+                    {!person && !swap && <option value="@character" disabled={castFull}>
                       {castFull ? `Outro personagem na cena (máximo ${MAX_CHARACTERS})` : 'Outro personagem na cena'}</option>}
                     <optgroup label="Para a pessoa principal ou a cena">
                       {sortBy(Object.entries(ROLES), ([, r]) => r.label).map(([key, r]) => <option key={key} value={key}>{r.label}</option>)}

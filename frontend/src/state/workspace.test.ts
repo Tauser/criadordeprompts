@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {addReference, addSavedCharacter, applyPreset, applyReference, initialWorkspace, removeReference, requestForSubmit, setAttribute, setTarget} from './workspace';
+import {addReference, addSavedCharacter, applyPreset, applyReference, clearSwap, initialWorkspace, removeReference, requestForSubmit, setAttribute, setSwap, setTarget, switchMode} from './workspace';
 import {wordDiff} from '../lib/diff';
 import type {StudioRequest} from '../api/types';
 
@@ -184,5 +184,49 @@ describe('characters', () => {
     expect(next.request.mask).toBe(false);
     expect(next.maskHash).toBeNull();
     expect(next.request.references.map(r => r.id)).toEqual(['t']);
+  });
+});
+
+describe('troca de pessoa', () => {
+  const editWithTwoPhotos = () => addReference(addReference(initialWorkspace('edit'), 'alvo', file('alvo')), 'ana', file('ana'));
+
+  it('sets the swap with a second photo and offers two variations once', () => {
+    const ws = editWithTwoPhotos();
+    const next = setSwap(ws, 'ana', 'body');
+    expect(next.request.swap).toEqual({reference_id: 'ana', mode: 'body'});
+    expect(next.request.output.variations).toBe(2);
+    const changed = setSwap({...next, request: {...next.request, output: {...next.request.output, variations: 3}}}, 'ana', 'head');
+    expect(changed.request.swap).toEqual({reference_id: 'ana', mode: 'head'});
+    expect(changed.request.output.variations).toBe(3);
+  });
+
+  it('refuses the target photo, unknown photos and generate mode', () => {
+    const ws = editWithTwoPhotos();
+    expect(() => setSwap(ws, 'alvo', 'body')).toThrow();
+    expect(() => setSwap(ws, 'nao-existe', 'body')).toThrow();
+    expect(() => setSwap(initialWorkspace('generate'), 'ana', 'body')).toThrow();
+  });
+
+  it('clears the swap when its photo is removed or becomes the photo to edit', () => {
+    const ws = setSwap(editWithTwoPhotos(), 'ana', 'body');
+    expect(removeReference(ws, 'ana').request.swap).toBeNull();
+    expect(setTarget(ws, 'ana').request.swap).toBeNull();
+  });
+
+  it('clearSwap removes the swap and sends nothing when unset', () => {
+    const ws = setSwap(editWithTwoPhotos(), 'ana', 'head');
+    expect(clearSwap(ws).request.swap).toBeNull();
+    expect(requestForSubmit(clearSwap(ws)).swap).toBeUndefined();
+    expect('swap' in requestForSubmit(editWithTwoPhotos())).toBe(false);
+  });
+
+  it('requestForSubmit sends the swap in edit mode, and drops it in generate mode', () => {
+    const ws = setSwap(editWithTwoPhotos(), 'ana', 'body');
+    expect(requestForSubmit(ws).swap).toEqual({reference_id: 'ana', mode: 'body'});
+    const generate = {...ws, request: {...ws.request, mode: 'generate' as const}};
+    expect(requestForSubmit(generate).swap).toBeUndefined();
+    expect(switchMode({generate: initialWorkspace('generate'), edit: ws}, ws, 'generate').workspace.request.swap).toBeNull();
+    expect(switchMode({generate: initialWorkspace('generate'), edit: ws}, ws, 'generate').drafts.edit.request.swap)
+      .toEqual({reference_id: 'ana', mode: 'body'});
   });
 });

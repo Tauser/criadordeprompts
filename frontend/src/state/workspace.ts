@@ -1,5 +1,5 @@
 // Pure, serializable workspace logic. No DOM, no network: unit-tested in workspace.test.ts.
-import {CATEGORIES, type Attribute, type Category, type CharacterPosition, type StudioRequest, type Suggestion} from '../api/types';
+import {CATEGORIES, type Attribute, type Category, type CharacterPosition, type StudioRequest, type Suggestion, type SwapMode} from '../api/types';
 
 export interface FileInfo {hash: string; width: number; height: number; name: string}
 export interface Workspace {
@@ -162,6 +162,7 @@ export function addCharacter(ws: Workspace, id: string): Workspace {
   if (characters.length >= MAX_CHARACTERS) throw new Error(`Use até ${MAX_CHARACTERS} personagens extras.`);
   const next = clone(ws);
   release(next, id);                         // a character photo describes that person only
+  if (next.request.swap?.reference_id === id) next.request.swap = null;
   next.request.characters = [...characters, {reference_id: id, description: ''}];
   return next;
 }
@@ -199,11 +200,35 @@ export function characterNumber(ws: Workspace, id: string): number | null {
   return index < 0 ? null : index + 2;
 }
 
+// "Trocar a pessoa da foto por esta": the person of this reference takes the place of the photo's person (edit only).
+// One swap at a time; the photo is not the target and is no character or source of attributes while it swaps.
+export function setSwap(ws: Workspace, id: string, mode: SwapMode): Workspace {
+  if (ws.request.mode !== 'edit') throw new Error('A troca de pessoa só existe ao editar uma foto.');
+  if (id === ws.request.target_id) throw new Error('A foto editada não pode trocar a pessoa dela mesma.');
+  if (!ws.request.references.some(r => r.id === id)) throw new Error('Esta imagem não está no pedido.');
+  const turningOn = ws.request.swap?.reference_id !== id;
+  const next = clone(ws);
+  release(next, id);
+  next.request.characters = (next.request.characters ?? []).filter(c => c.reference_id !== id);
+  next.request.swap = {reference_id: id, mode};
+  // Two variations are the usual way to get one good result, since some seeds fail; set once, when the swap turns on.
+  if (turningOn && next.request.output.variations === 1) next.request.output.variations = 2;
+  return next;
+}
+
+export function clearSwap(ws: Workspace): Workspace {
+  if (!ws.request.swap) return ws;
+  const next = clone(ws);
+  next.request.swap = null;
+  return next;
+}
+
 export function removeReference(ws: Workspace, id: string): Workspace {
   const next = clone(ws);
   release(next, id);
   next.request.characters = (next.request.characters ?? []).filter(c => c.reference_id !== id);
   next.request.references = next.request.references.filter(ref => ref.id !== id);
+  if (next.request.swap?.reference_id === id) next.request.swap = null;
   delete next.files[id];
   if (next.request.target_id === id) {      // never promote another image silently
     next.request.target_id = null;
@@ -218,6 +243,7 @@ export function setTarget(ws: Workspace, id: string): Workspace {
   const next = clone(ws);
   release(next, id);
   next.request.characters = (next.request.characters ?? []).filter(c => c.reference_id !== id);
+  if (next.request.swap?.reference_id === id) next.request.swap = null;   // the photo to edit cannot swap with itself
   if (next.request.target_id !== id) {     // another photo: its people are counted again
     next.request.participants.existing = null; next.existingFrom = null;
   }
@@ -238,6 +264,7 @@ export function switchMode(drafts: Record<'generate' | 'edit', Workspace>, from:
   const saved = {...drafts, [from.request.mode]: from};
   const target = clone(saved[to]);
   target.request.content_mode = from.request.content_mode;
+  if (to === 'generate') target.request.swap = null;   // a swap belongs to editing; the edit draft keeps its own
   return {drafts: saved, workspace: target};
 }
 
@@ -254,7 +281,7 @@ export function applyPreset(ws: Workspace, preset: StudioRequest): Workspace {
   }
   return {
     request: {
-      ...clone(preset), attributes, references: ws.request.references, target_id: targetId, mask: masked, characters: [],
+      ...clone(preset), attributes, references: ws.request.references, target_id: targetId, mask: masked, characters: [], swap: null,
       participants: {requested: preset.participants.requested ?? null, existing: targetId ? ws.request.participants.existing ?? null : null},
       confirmations: [],
     },
@@ -285,6 +312,7 @@ export function requestForSubmit(ws: Workspace): StudioRequest {
   if (request.prompt_mode === 'structured') request.manual_prompt = null;
   if (request.attributes.wardrobe?.intent !== 'set') request.wardrobe_scope = 'primary';
   if (request.mode === 'generate') {request.target_id = null; request.mask = false;}
+  if (request.mode === 'generate' || !request.swap) delete request.swap;   // sent only when a swap is chosen in edit mode
   if (request.mask) {request.output.width = null; request.output.height = null; request.output.upscale = null;}   // a mask keeps the photo's size
   return request;
 }

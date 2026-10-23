@@ -348,6 +348,7 @@ export function Studio({library, comfyOnline, notify}: Props) {
                   Avançado{advancedCount > 0 && <span className="tab-count" aria-label={`, ${advancedCount} definidos`}>{advancedCount}</span>}</button>
               </div>
             </div>
+            {request.swap && <p className="swap-note" role="note"><strong>Troca de pessoa:</strong> as escolhas abaixo não são aplicadas; só os Detalhes entram.</p>}
             {tab === 'basic' ? (
               <div role="tabpanel" id="panel-fields" aria-labelledby="tab-basic">
                 <div className="fields two">{BASIC.map(field)}</div>

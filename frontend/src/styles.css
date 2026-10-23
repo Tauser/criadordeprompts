@@ -511,6 +511,7 @@ code { font-size: 12.5px; padding: 1px 6px; border-radius: 6px; background: var(
 .reference-body { display: grid; gap: 4px; padding: 0 4px 4px; min-width: 0; }
 .reference-body strong { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .reference-body select { height: 32px; font-size: 12.5px; padding: 4px 8px; margin-top: 2px; }
+.swap-note { margin: 0 0 12px; padding: 8px 10px; border-radius: 10px; background: var(--surface-2); font-size: 13px; line-height: 1.4; }
 .character-note { display: grid; gap: 6px; }
 .character-note label { display: block; font-size: 13px; font-weight: 550; }
 .mask-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding-top: 12px; border-top: 1px solid var(--line); }
