@@ -3,7 +3,7 @@ import {useState} from 'react';
 import {cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {api} from '../api/client';
-import {initialWorkspace} from '../state/workspace';
+import {addReference, initialWorkspace, setSwap, type Workspace} from '../state/workspace';
 import {References} from './References';
 
 vi.mock('../api/client', () => ({api: {upload: vi.fn(), characters: vi.fn(async () => ({characters: []}))},
@@ -47,6 +47,50 @@ it('uses a saved character: its main photo is another person in the scene, descr
   expect(screen.getByDisplayValue('Roupa de sempre')).toBeTruthy();
   expect(screen.queryByText('Foto alvo')).toBeNull();
   expect(notify).not.toHaveBeenCalled();
+});
+
+const photo = (name: string) => ({hash: name.padEnd(64, '0'), width: 10, height: 10, name});
+const SWAP = 'Trocar a pessoa da foto por esta';
+function withPhotos(mode: 'generate' | 'edit', ...names: string[]): Workspace {
+  let ws = initialWorkspace(mode);
+  for (const name of names) ws = addReference(ws, name, photo(name));
+  return ws;
+}
+function Editor({start}: {start: Workspace}) {
+  const [workspace, update] = useState(start);
+  return <References workspace={workspace} update={update} disabled={false} slots={{}} notify={vi.fn()} />;
+}
+
+it('offers the swap only to a photo that is not the target, and then shows its mode', () => {
+  render(<Editor start={withPhotos('edit', 'alvo', 'ana')} />);
+  expect(screen.getAllByRole('option', {name: SWAP})).toHaveLength(1);
+  fireEvent.change(screen.getByLabelText('Aplicar ana como'), {target: {value: '@swap'}});
+  expect(screen.getByText('Entra no lugar')).toBeTruthy();
+  expect(screen.getByLabelText('Quanto trocar com ana')).toBeTruthy();
+  expect(screen.getByRole('option', {name: 'Corpo inteiro'})).toBeTruthy();
+  expect(screen.getByRole('option', {name: 'Só o rosto'})).toBeTruthy();
+  expect(screen.queryByRole('option', {name: SWAP})).toBeNull();
+});
+
+it('does not offer the swap in generate mode', () => {
+  render(<Editor start={withPhotos('generate', 'ana')} />);
+  expect(screen.queryByRole('option', {name: SWAP})).toBeNull();
+});
+
+it('disables the swap on other photos while one photo already holds it, with the reason on hover', () => {
+  const ws = setSwap(withPhotos('edit', 'alvo', 'ana', 'bia'), 'ana', 'body');
+  render(<Editor start={ws} />);
+  const option = screen.getByRole('option', {name: SWAP}) as HTMLOptionElement;
+  expect(option.disabled).toBe(true);
+  expect(option.title).toContain('Outra imagem já troca a pessoa');
+});
+
+it('undoes the swap from the photo that holds it', () => {
+  render(<Editor start={setSwap(withPhotos('edit', 'alvo', 'ana'), 'ana', 'head')} />);
+  expect(screen.getByRole('option', {name: 'Só o rosto'})).toBeTruthy();
+  fireEvent.change(screen.getByLabelText('Aplicar ana como'), {target: {value: '@unswap'}});
+  expect(screen.queryByText('Entra no lugar')).toBeNull();
+  expect(screen.getByRole('option', {name: SWAP})).toBeTruthy();
 });
 
 it('rejects more than ten selected photos before uploading any of them', () => {

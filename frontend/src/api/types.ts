@@ -17,6 +17,9 @@ export interface Attribute {intent: Intent; value?: Value; reference_id?: string
 export interface Reference {id: string; label: string}
 export type CharacterPosition = 'left' | 'right' | 'behind' | 'front';
 export interface Character {reference_id: string; description: string; position?: CharacterPosition | null}
+// "Trocar a pessoa da foto": the reference's person replaces the photo's person. Only in edit mode.
+export type SwapMode = 'body' | 'head';
+export interface Swap {reference_id: string; mode: SwapMode}
 
 export interface Output {
   profile: 'qwen21' | 'turbo';
@@ -51,6 +54,7 @@ export interface StudioRequest {
   target_id?: string | null;
   mask: boolean;
   characters?: Character[];
+  swap?: Swap | null;   // only in edit mode; with it the backend uses only `details` on top
   participants: {requested?: number | null; existing?: number | null};
   context: {supports?: Support[] | null; allow_new_supports: boolean; allow_reframing: boolean; original_framing?: Framing | null};
   details: string;
