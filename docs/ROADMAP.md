@@ -96,6 +96,12 @@ Antes de entrar no Studio, cada medida é calibrada no banco de casos (0.1), par
 - **"Descrever a partir da foto" e "Trocar pessoas":** removidos depois de medidos; não voltam.
 - **Contagem exata no texto ("exatamente N pessoas"):** testada, sem diferença medida.
 
+## Trocar pessoa (23/10)
+
+✅ Voltou com os LoRAs BFS do workflow RareTutor: **corpo inteiro** (LoRA BFS de corpo + fundo da foto da pessoa trocado
+por cinza) ou **só o rosto** (sem LoRA). Medido nas fotos do usuário no Completo: rosto certo em 4 de 4; corpo certo em
+cerca de metade a dois terços das seeds, por isso a tela sugere 2 variações. Uma pessoa na foto por enquanto.
+
 ## Medido em 22/10 e deixado de fora
 
 - **Pipeline do workflow RareTutor** (LoRA Pruna 8 passos + detailer + VAE de textura + NAG, 12 passos dpmpp_2m) contra o
