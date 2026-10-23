@@ -64,7 +64,7 @@ Antes de entrar no Studio, cada medida é calibrada no banco de casos (0.1), par
 | 3.1 | ✅ **Máscara por texto (SAM 3)** (1 a 3 s por máscara) | Escreve-se "a mulher" ou "a camiseta" e a máscara sai sozinha. | M |
 | 3.2 | ✅ Corrigir área no resultado | Botão no resultado que abre o editor de máscara já com essa imagem. | P |
 | 3.3 | Pedido por região | Mais de uma máscara, cada uma com seu pedido ("esta pessoa faz isso, aquela faz aquilo"). | G |
-| 3.4 | Pose por esqueleto (ControlNet do Qwen) | Força a pose exata. Primeiro é preciso testar se o modelo aceita; se não, fica a pose por foto, que já existe. | M |
+| 3.4 | ✅ Pose por esqueleto (sem ControlNet: a foto da pose vira esqueleto do SDPose, como no workflow RareTutor) | Força a pose exata. Primeiro é preciso testar se o modelo aceita; se não, fica a pose por foto, que já existe. | M |
 
 ## Fase 4 — Qualidade final e velocidade
 

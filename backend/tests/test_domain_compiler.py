@@ -392,3 +392,10 @@ def test_a_character_can_be_placed_in_the_picture(library):
     assert 'just behind the first person, farther from the camera' in run(behind, library)[1].text
     assert 'next to the first person' in run(edit_request({**DEFAULT_KEEP}, references=(('t', 'alvo'), ('b', 'Bia')),
                                                          characters=[{'reference_id': 'b'}]), library)[1].text
+
+
+def test_a_reference_that_also_lends_the_face_keeps_the_photo_wording(library):
+    request = edit_request({**DEFAULT_KEEP, 'pose': ref('p'), 'face': ref('p')}, references=(('t', 'alvo'), ('p', 'Ana')),
+                           context={'allow_new_supports': True})
+    _, compiled = run(request, library)
+    assert 'skeleton' not in compiled.text and 'from <image2>' in compiled.text

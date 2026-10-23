@@ -13,6 +13,7 @@ FACE_MODEL = 'mediapipe_face_fp32.safetensors'   # ComfyUI models/detection: jud
 PEOPLE_MODEL = 'rt_detr_v4-x-hgnet_fp16.safetensors'   # ComfyUI models/diffusion_models: people counted by body
 SAM_MODEL = 'sam3.1_multiplex_fp16.safetensors'        # the checkpoint of SAM 3: masks what a text describes
 TEXT_MASK_CHARS = 120              # SAM 3's text encoder reads at most 32 tokens; a longer text is refused
+POSE_MODEL = 'sdpose_wholebody_fp16.safetensors'          # ComfyUI models/checkpoints: skeletons
 PERSON_SCORE = 0.75             # measured: whole people scored 0.79+, false and half-hidden hits 0.51-0.61
 TURBO_SIGMAS = '1.0, 0.978453, 0.95418, 0.926626, 0.89508, 0.845148, 0.704534, 0.414568, 0.0'
 PROFILES = {
@@ -55,6 +56,7 @@ class ImageJob:
     prefix: str = 'prisma/studio'
     loras: tuple[tuple[str, float], ...] = ()   # (file name, strength), applied in order
     init_image: str | None = None     # uploaded picture to start from (img2img at `denoise`), not a reference
+    skeletons: tuple[int, ...] = ()   # 1-based images sent as their SDPose skeleton instead of the photo
 
 
 @dataclass(frozen=True)
@@ -125,6 +127,8 @@ def image_graph(job: ImageJob) -> dict:
     for index, name in enumerate(job.images, 1):
         g[str(IMAGE_INPUT_NODES + index)] = {'class_type': 'LoadImage', 'inputs': {'image': name}}
         g['10']['inputs'][f'images.image_{index}'] = [str(IMAGE_INPUT_NODES + index), 0]
+    for index in job.skeletons:
+        g['10']['inputs'][f'images.image_{index}'] = _skeleton(g, index)
     if job.init_image and (job.mode != 'generate' or job.width):
         raise ValueError('Partir de uma imagem é uma geração sem tamanho próprio: o tamanho é o da imagem.')
     if job.mode == 'generate' and not job.width and not job.init_image:
@@ -169,6 +173,24 @@ def image_graph(job: ImageJob) -> dict:
         final = ['54', 0]
     g[IMAGE_OUTPUT_NODE] = {'class_type': 'SaveImage', 'inputs': {'images': final, 'filename_prefix': job.prefix}}
     return g
+
+
+SKELETON_NODES = 400                # skeleton nodes of image graphs: 401.., ten per image
+
+
+def _skeleton(g: dict, index: int) -> list:
+    """The image's main person drawn as an SDPose skeleton on black, as the RareTutor pose transfer does."""
+    g.setdefault('390', {'class_type': 'UNETLoader', 'inputs': {'unet_name': PEOPLE_MODEL, 'weight_dtype': 'default'}})
+    g.setdefault('391', {'class_type': 'CheckpointLoaderSimple', 'inputs': {'ckpt_name': POSE_MODEL}})
+    base, source = SKELETON_NODES + 10 * index, [str(IMAGE_INPUT_NODES + index), 0]
+    g[str(base + 1)] = {'class_type': 'RTDETR_detect', 'inputs': {'model': ['390', 0], 'image': source, 'threshold': 0.5,
+                                                                  'class_name': 'person', 'max_detections': 1}}
+    g[str(base + 2)] = {'class_type': 'SDPoseKeypointExtractor', 'inputs': {
+        'model': ['391', 0], 'vae': ['391', 2], 'image': source, 'batch_size': 16, 'bboxes': [str(base + 1), 0]}}
+    g[str(base + 3)] = {'class_type': 'SDPoseDrawKeypoints', 'inputs': {
+        'keypoints': [str(base + 2), 0], 'draw_body': True, 'draw_head': True, 'draw_hands': True, 'draw_face': False,
+        'draw_feet': True, 'stick_width': 4, 'face_point_size': 3, 'score_threshold': 0.3}}
+    return [str(base + 3), 0]
 
 
 def face_detect_graph(image: str, faces: int, min_confidence: float = 0.5, people: bool = False) -> dict:

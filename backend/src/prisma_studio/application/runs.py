@@ -5,10 +5,12 @@ import secrets
 from dataclasses import asdict
 
 from ..domain import face_detail
+from ..domain import ir
 from ..domain.compiler import compile_request
 from ..domain.request import Request
 from ..domain.rules import assess, automatic_participants
 from ..domain.suggestions import suggest
+from ..domain.render_qwen21 import is_skeleton
 from ..domain.verification import checklist
 from ..infrastructure.comfy.workflows import generation_size
 from ..infrastructure.db.repository import TERMINAL, MissingFile
@@ -82,6 +84,7 @@ class RunService:
             'verify': output.verify, 'refine': output.refine and output.profile == 'qwen21',
             'engine': request.engine.model_dump(), 'checks': [asdict(c) for c in checklist(compiled.blocks)],
             'compiler_version': compiled.version, 'participants': assessment.participants_total, 'blocks': [b.id for b in compiled.blocks],
+            'skeleton_slots': [b.slot for b in compiled.blocks if isinstance(b, ir.Transfer) and is_skeleton(b)],
             'face_detail': face_detail.enabled(output.face_detail, assessment.participants_total),
             'upscale': output.upscale,
         }

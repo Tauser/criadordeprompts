@@ -135,6 +135,26 @@ def render(blocks) -> list[tuple[str, str]]:
                 if cast:
                     text += f' Every person wears it, {_people(block.total)}.'
             out.append((block.id, text))
+        elif isinstance(block, ir.Transfer) and is_skeleton(block):
+            # The pose photo reaches the model as its SDPose skeleton. Measured: given the photo itself, the edit
+            # copied the person and the chair of the pose photo; given the skeleton, it kept the person and followed
+            # the pose.
+            # Measured on a seated skeleton: "follow its arm positions" left the old waving arm in place as a third
+            # arm in one seed of four; "nothing of the old pose remains" removed it in four of four.
+            img = image(block.slot)
+            seat = ('Where the skeleton sits, kneels or lies, add the seat or surface that holds the body, matching the '
+                    'scene.')
+            if edit:
+                who = f'the first person in {image(1)}' if cast else f'the person in {image(1)}'
+                out.append((block.id, f'Redraw {who} in the pose of the skeleton in {img}: the head, torso, both arms '
+                                      'and both legs all move to the skeleton\'s positions, and nothing of the old pose '
+                                      f'remains. {seat} Use {img} only to guide the body pose; draw no skeleton lines '
+                                      'or joint markers.'))
+            else:
+                whose = ' of the first person' if cast else ''
+                out.append((block.id, f'The body pose{whose} follows the skeleton in {img}: the head, torso, both arms '
+                                      f'and both legs in the skeleton\'s positions. {seat} Draw no skeleton lines or '
+                                      'joint markers.'))
         elif isinstance(block, ir.Transfer):
             aspects = _join(ASPECT_NAMES[a] for a in block.aspects)
             if edit:
@@ -157,6 +177,8 @@ def render(blocks) -> list[tuple[str, str]]:
             acting = any(isinstance(b, ir.Operation) and b.category == 'action' for b in blocks)
             freed = [part for part, on in (('the requested gaze direction', gaze_changes),
                                            ('what the action shows on the face', acting)) if on]
+            if any(isinstance(b, ir.Transfer) and is_skeleton(b) for b in blocks) and 'background and setting' in names:
+                names[names.index('background and setting')] = 'background and setting, apart from that seat'
             if freed and 'facial expression' in names:
                 names[names.index('facial expression')] = 'facial expression, apart from ' + ' and '.join(freed)
             target = image(1)
@@ -209,6 +231,11 @@ def render(blocks) -> list[tuple[str, str]]:
     if header is not None and not edit:
         out.append(('closing', 'Keep anatomy, perspective and lighting coherent.'))
     return out
+
+
+def is_skeleton(block: ir.Transfer) -> bool:
+    """A reference that lends only the pose is sent as its skeleton."""
+    return tuple(block.aspects) == ('pose',)
 
 
 BODY_EMPHASIS = {

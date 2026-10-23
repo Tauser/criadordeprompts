@@ -460,3 +460,34 @@ def test_stop_waits_for_in_flight_work_before_the_instance_lock_can_be_released(
         release.set()
         stopper.join(3)
     assert stopped.is_set() and not env.executor._thread.is_alive()
+
+
+def test_a_pose_only_reference_is_sent_as_its_skeleton(env):
+    # Measured: the pose photo itself made the edit copy its person and chair; its skeleton kept the person.
+    target, pose = env.put(png(64, 48)), env.put(png(48, 64))
+    request = Request(mode='edit', target_id='t', references=[{'id': 't', 'label': 'alvo'}, {'id': 'p', 'label': 'pose'}],
+                      attributes={'face': keep(), 'environment': cat('env.garden'),
+                                  'pose': {'intent': 'transfer', 'reference_id': 'p'}},
+                      context={'allow_new_supports': True})
+    env.executor._skeleton_models = True
+    run = env.service.create(request, 'req-skeleton', {'t': target, 'p': pose}, None)
+    assert run['settings']['skeleton_slots'] == [2]
+    assert 'in the pose of the skeleton in <image2>' in run['effective_prompt']
+    assert 'nothing of the old pose remains' in run['effective_prompt']
+    run = env.run_until(run['id'])
+    graph = env.repo.tasks(run['id'], 'image')[0]['graph']
+    assert graph['10']['inputs']['images.image_2'] == ['423', 0]
+    assert graph['423']['class_type'] == 'SDPoseDrawKeypoints' and graph['10']['inputs']['images.image_1'] == ['201', 0]
+
+
+def test_without_the_pose_models_the_photo_goes_as_before(env):
+    target, pose = env.put(png(64, 48)), env.put(png(48, 64))
+    request = Request(mode='edit', target_id='t', references=[{'id': 't', 'label': 'alvo'}, {'id': 'p', 'label': 'pose'}],
+                      attributes={'face': keep(), 'environment': cat('env.garden'),
+                                  'pose': {'intent': 'transfer', 'reference_id': 'p'}},
+                      context={'allow_new_supports': True})
+    env.executor._skeleton_models = False
+    run = env.run_until(env.service.create(request, 'req-skeleton-2', {'t': target, 'p': pose}, None)['id'])
+    graph = env.repo.tasks(run['id'], 'image')[0]['graph']
+    assert graph['10']['inputs']['images.image_2'] == ['202', 0]
+    assert not any(n['class_type'] == 'SDPoseDrawKeypoints' for n in graph.values())

@@ -11,7 +11,7 @@ from ..domain.verification import FACE_CHECKS, JUDGE_SYSTEM, Check, judge_prompt
 from ..infrastructure.comfy.client import ComfyNotSent, ComfyRejected, ComfyUnavailable
 from ..infrastructure.comfy.validation import validate_graph
 from ..infrastructure.comfy.workflows import (FACE_MODEL, FACE_SIZE, MAX_EDIT_PIXELS, PEOPLE_MODEL, PEOPLE_OUTPUT_NODE,
-                                              UPSCALE_MODEL, UPSCALE_VAE, ImageJob, TextJob, face_boxes,
+                                              POSE_MODEL, UPSCALE_MODEL, UPSCALE_VAE, ImageJob, TextJob, face_boxes,
                                               face_detect_graph, image_graph, image_outputs, people_count, text_graph,
                                               text_output, upscale_graph)
 from ..infrastructure.db.database import now
@@ -54,6 +54,7 @@ class Executor:
         self._object_info: dict | None = None
         self._face_model: bool | None = None
         self._people_model: bool | None = None
+        self._skeleton_models: bool | None = None
         self._upscale_model: bool | None = None
         self._missing: dict[str, int] = {}
         self._errors: dict[str, int] = {}
@@ -215,7 +216,8 @@ class Executor:
                     negative_prompt=engine.get('negative_prompt', ''), steps=engine.get('steps'),
                     cfg=engine.get('cfg'), sampler=engine.get('sampler'), scheduler=engine.get('scheduler'),
                     denoise=engine.get('denoise'), prefix=f'prisma/{run["id"][:8]}', init_image=uploaded.get('init'),
-                    loras=tuple((lora['name'], lora['strength']) for lora in engine.get('loras') or ())))
+                    loras=tuple((lora['name'], lora['strength']) for lora in engine.get('loras') or ()),
+                    skeletons=tuple(settings.get('skeleton_slots') or ()) if self._skeleton_models_installed() else ()))
             self._drive(task, build)
         tasks = self.repository.tasks(run['id'], 'image')
         if not all(t['status'] in TASK_DONE for t in tasks):
@@ -540,6 +542,20 @@ class Executor:
             except Exception:                       # noqa: BLE001 - a missing upscaler never blocks the run
                 return False
         return self._upscale_model
+
+    def _skeleton_models_installed(self) -> bool:
+        """Without SDPose and RT-DETR the pose photo itself is sent, as before skeletons existed."""
+        if self._skeleton_models is None:            # asked once per Studio start
+            try:
+                if self._object_info is None:
+                    self._object_info = self.comfy.object_info()
+                info = self._object_info
+                self._skeleton_models = ('SDPoseDrawKeypoints' in info
+                                         and POSE_MODEL in str(info.get('CheckpointLoaderSimple', {}))
+                                         and PEOPLE_MODEL in str(info.get('UNETLoader', {})))
+            except Exception:                       # noqa: BLE001 - a missing skeleton never blocks the run
+                return False
+        return self._skeleton_models
 
     def _people_model_installed(self) -> bool:
         """Counting bodies is optional: without RT-DETR the faces alone are counted."""
