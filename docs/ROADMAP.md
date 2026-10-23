@@ -29,7 +29,7 @@ Vem primeiro porque é com ela que todos os itens seguintes são medidos.
 
 | # | Item | O que resolve | Esforço |
 |---|---|---|---|
-| 0.1 | ✅ **Banco de casos** (`scripts/banco_de_casos.py`) | 10 a 15 edições típicas (acrescentar personagem, pose, ação a dois, troca de cenário) com seeds fixas, rodadas no Turbo a cada mudança. | M |
+| 0.1 | ✅ **Banco de casos** (`scripts/banco_de_casos.py`; 13 casos desde 22/10, com 5 pessoas bem diferentes, pose por esqueleto e ampliação) | 10 a 15 edições típicas (acrescentar personagem, pose, ação a dois, troca de cenário) com seeds fixas, rodadas no Turbo a cada mudança. | M |
 | 0.2 | ✅ **Grade de comparação na tela** (botão Comparar) | O mesmo pedido em várias seeds, opções ou perfis lado a lado, como o gerador de grade do SwarmUI. | M |
 | 0.3 | ✅ Rosto na borda não derruba a variação | Hoje um rosto detectado fora da imagem faz a variação falhar; o certo é só pular aquele rosto. | P |
 | 0.4 | ✅ Contar pessoas também com uma pessoa só | Hoje a contagem só roda quando a passada de rosto está ligada. | P |
@@ -71,7 +71,7 @@ Antes de entrar no Studio, cada medida é calibrada no banco de casos (0.1), par
 | # | Item | O que resolve | Esforço |
 |---|---|---|---|
 | 4.1 | ✅ **Gerar em 1024 e ampliar no fim** (SeedVR2; medido: 28 s contra 72 s no Completo) | 1024, depois detalhe de rosto, depois ampliação (SeedVR2 ou upscaler). Fica mais rápido e evita os picos de memória com LoRA. Medido contra 1536 no banco de casos. | M |
-| 4.2 | Detalhe de mãos | Passada como a do rosto, para mãos e dedos. Usa os pontos do SDPose (1.1). | M |
+| 4.2 | ⏸ Detalhe de mãos (22/10: o SDPose achou as 9 mãos de 4 imagens, mas o Turbo já as fez bem e o redesenho não mudou nada; falta um caso real de mão ruim) | Passada como a do rosto, para mãos e dedos. Usa os pontos do SDPose (1.1). | M |
 | 4.3 | Cache int8 no Completo | Para os picos de memória em 1536 com LoRA, com aviso quando a memória estiver no limite. | P |
 | 4.4 | ✅ Prompt mais enxuto (personagem acrescentado: ~15% menos palavras, igual ou melhor em 9 imagens) | Tirar repetições do texto montado; menos espaço para contradição. Medido no banco de casos. | M |
 | 4.5 | Revisor de defeitos sim/não | Perguntas objetivas ao modelo de visão ("mão com seis dedos?"). Só depois de 1.1, e nunca como nota geral. | M |
@@ -95,6 +95,12 @@ Antes de entrar no Studio, cada medida é calibrada no banco de casos (0.1), par
 - **Revisor com nota geral:** o modelo de visão local já se mostrou fraco; só perguntas objetivas (4.5).
 - **"Descrever a partir da foto" e "Trocar pessoas":** removidos depois de medidos; não voltam.
 - **Contagem exata no texto ("exatamente N pessoas"):** testada, sem diferença medida.
+
+## Medido em 22/10 e deixado de fora
+
+- **Pipeline do workflow RareTutor** (LoRA Pruna 8 passos + detailer + VAE de textura + NAG, 12 passos dpmpp_2m) contra o
+  Completo de 40 passos: qualidade empatada; 40% mais rápido só na geração, sem ganho na edição. O Completo fica.
+- **Pose sentada pelo esqueleto:** o esqueleto não mostra o assento; escrever o assento nos detalhes resolve.
 
 ## Ordem sugerida
 

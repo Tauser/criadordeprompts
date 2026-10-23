@@ -59,16 +59,24 @@ def value(text: str) -> dict:
 
 def build(spec: dict, case: dict, seed: int) -> tuple[dict, dict[str, str]]:
     """The request and the reference ids -> photo names it needs."""
-    refs = {'alvo': case['foto']} | {f'p{i}': name for i, name in enumerate(case.get('personagens', []), 2)}
+    # A character is a photo name, or {"foto": ..., "posicao": "left|right|behind|front"}.
+    people = [p if isinstance(p, dict) else {'foto': p} for p in case.get('personagens', [])]
+    refs = {'alvo': case['foto']} | {f'p{i}': p['foto'] for i, p in enumerate(people, 2)}
     attributes = {c: {'intent': 'keep'} for c in spec['manter']}
-    attributes |= {c: {'intent': 'set', 'value': value(v)} for c, v in case['mudar'].items()}
+    attributes |= {c: {'intent': 'set', 'value': value(v)} for c, v in case.get('mudar', {}).items()}
+    if 'pose_de' in case:                            # the pose comes from another photo (sent as its skeleton)
+        refs['pose'] = case['pose_de']
+        attributes['pose'] = {'intent': 'transfer', 'reference_id': 'pose'}
     request = {
         'mode': 'edit', 'target_id': 'alvo', 'attributes': attributes,
         'references': [{'id': ref_id, 'label': name} for ref_id, name in refs.items()],
-        'characters': [{'reference_id': ref_id} for ref_id in refs if ref_id != 'alvo'],
+        'characters': [{'reference_id': f'p{i}', **({'position': p['posicao']} if 'posicao' in p else {})}
+                       for i, p in enumerate(people, 2)],
         'participants': {'existing': case['pessoas']},
         'context': {'allow_reframing': True, **case.get('contexto', {})},
-        'output': {'profile': spec['perfil'], 'resolution': spec['resolucao'], 'seed': seed, 'variations': 1},
+        'details': case.get('detalhes', ''),
+        'output': {'profile': spec['perfil'], 'resolution': spec['resolucao'], 'seed': seed, 'variations': 1,
+                   **case.get('saida', {})},
     }
     if 'roupa_para' in case:
         request['wardrobe_scope'] = case['roupa_para']

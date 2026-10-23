@@ -1,5 +1,5 @@
 {
-  "sobre": "Edições típicas com fotos neutras, seeds fixas e perfil Turbo. Cada caso mira um erro já visto: pose que não pega, pessoa a mais, cabeça colada, expressão travada, roupa só numa pessoa.",
+  "sobre": "Edições típicas com fotos neutras, seeds fixas e perfil Turbo. Cada caso mira um erro já visto: pose que não pega, pessoa a mais, cabeça colada, expressão travada, roupa só numa pessoa, identidade de pessoas diferentes, pose por esqueleto e ampliação.",
   "perfil": "turbo",
   "resolucao": 1024,
   "seeds": [3, 8],
@@ -21,6 +21,16 @@
     {"nome": "07 trio na foto · riso", "foto": "08_row_cheer.jpg", "pessoas": 3,
      "mudar": {"expression": "expression.laugh"}},
     {"nome": "08 roupa para os dois", "foto": "05_side_hug.jpg", "pessoas": 2,
-     "mudar": {"wardrobe": "texto:a red raincoat over dark jeans"}, "roupa_para": "all"}
+     "mudar": {"wardrobe": "texto:a red raincoat over dark jeans"}, "roupa_para": "all"},
+    {"nome": "09 identidade · senhora entra abraçando o rapaz", "foto": "11_rapaz_negro.jpg", "pessoas": 1,
+     "personagens": [{"foto": "10_senhora.jpg", "posicao": "left"}], "mudar": {"action": "action.embrace"}},
+    {"nome": "10 identidade · ruiva brinda com o homem de barba", "foto": "14_careca_barba.jpg", "pessoas": 1,
+     "personagens": [{"foto": "13_ruiva.jpg", "posicao": "right"}], "mudar": {"action": "action.toast"}},
+    {"nome": "11 pose por esqueleto · ajoelhar", "foto": "12_mulher_asiatica.jpg", "pessoas": 1,
+     "pose_de": "04_kneel.jpg", "contexto": {"allow_new_supports": true}},
+    {"nome": "12 pose por esqueleto · sentada num banquinho", "foto": "10_senhora.jpg", "pessoas": 1,
+     "pose_de": "02_chair.jpg", "contexto": {"allow_new_supports": true}, "detalhes": "sitting on a wooden stool"},
+    {"nome": "13 ampliar no fim · ler um livro", "foto": "13_ruiva.jpg", "pessoas": 1,
+     "mudar": {"action": "action.read"}, "saida": {"upscale": 1.5}}
   ]
 }
