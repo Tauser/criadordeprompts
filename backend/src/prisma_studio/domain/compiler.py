@@ -34,6 +34,12 @@ def build_ir(request: Request, assessment: Assessment) -> list:
         raise CompileError('Corrija os erros do pedido antes de compilar.')
     if request.prompt_mode == 'manual':
         return [ir.Manual(request.manual_prompt.strip())]
+    if request.swap is not None:
+        from .render_qwen21 import swap_prompt
+        text = swap_prompt(request.swap.mode, assessment.slots[request.swap.reference_id])
+        if request.details.strip():
+            text += '\nAdditional details: ' + request.details.strip()
+        return [ir.Manual(text)]
     edit = request.mode == 'edit'
     blocks: list = [ir.Header(request.mode, len(assessment.slots))]
     order = EDIT_ORDER if edit else GENERATE_ORDER

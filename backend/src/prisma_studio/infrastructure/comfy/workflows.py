@@ -57,6 +57,7 @@ class ImageJob:
     loras: tuple[tuple[str, float], ...] = ()   # (file name, strength), applied in order
     init_image: str | None = None     # uploaded picture to start from (img2img at `denoise`), not a reference
     skeletons: tuple[int, ...] = ()   # 1-based images sent as their SDPose skeleton instead of the photo
+    cutouts: tuple[int, ...] = ()     # 1-based images whose background is replaced by plain gray (BiRefNet)
 
 
 @dataclass(frozen=True)
@@ -129,6 +130,8 @@ def image_graph(job: ImageJob) -> dict:
         g['10']['inputs'][f'images.image_{index}'] = [str(IMAGE_INPUT_NODES + index), 0]
     for index in job.skeletons:
         g['10']['inputs'][f'images.image_{index}'] = _skeleton(g, index)
+    for index in job.cutouts:
+        g['10']['inputs'][f'images.image_{index}'] = _cutout(g, index)
     if job.init_image and (job.mode != 'generate' or job.width):
         raise ValueError('Partir de uma imagem é uma geração sem tamanho próprio: o tamanho é o da imagem.')
     if job.mode == 'generate' and not job.width and not job.init_image:
@@ -176,6 +179,27 @@ def image_graph(job: ImageJob) -> dict:
 
 
 SKELETON_NODES = 400                # skeleton nodes of image graphs: 401.., ten per image
+
+
+BFS_BODY = 'bfs_body_swap_v1.0_qwen_2.1.safetensors'   # ComfyUI models/loras: body swap
+CUTOUT_MODEL = 'birefnet.safetensors'                  # ComfyUI models/background_removal
+CUTOUT_NODES = 500                   # cutout nodes of image graphs: 501.., ten per image
+GRAY = 0xC8C8C8
+
+
+def _cutout(g: dict, index: int) -> list:
+    """The image's person on plain gray. Measured on a body swap from a restaurant photo: the source came back
+    unchanged in 2 of 4 seeds; on gray, the swap worked in 2 of 3."""
+    g.setdefault('590', {'class_type': 'LoadBackgroundRemovalModel', 'inputs': {'bg_removal_name': CUTOUT_MODEL}})
+    base, source = CUTOUT_NODES + 10 * index, [str(IMAGE_INPUT_NODES + index), 0]
+    g[str(base + 1)] = {'class_type': 'RemoveBackground', 'inputs': {'bg_removal_model': ['590', 0], 'image': source}}
+    g[str(base + 2)] = {'class_type': 'GetImageSize', 'inputs': {'image': source}}
+    g[str(base + 3)] = {'class_type': 'EmptyImage', 'inputs': {'width': [str(base + 2), 0], 'height': [str(base + 2), 1],
+                                                               'batch_size': 1, 'color': GRAY}}
+    g[str(base + 4)] = {'class_type': 'ImageCompositeMasked', 'inputs': {
+        'destination': [str(base + 3), 0], 'source': source, 'x': 0, 'y': 0, 'resize_source': False,
+        'mask': [str(base + 1), 0]}}
+    return [str(base + 4), 0]
 
 
 def _skeleton(g: dict, index: int) -> list:

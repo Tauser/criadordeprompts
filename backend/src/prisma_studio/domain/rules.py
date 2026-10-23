@@ -62,6 +62,8 @@ def assess(request: Request, library: Library) -> Assessment:
             _check_target(request, refs, report)
         report('manual_text', 'manual_prompt', 'O prompt manual é enviado literalmente, sem análise.', 'unknown')
         return Assessment(tuple(issues), {}, slots, None, None, ())
+    if request.swap is not None:
+        return _assess_swap(request, refs, slots, issues, report)
 
     if request.mode == 'edit':
         _check_target(request, refs, report)
@@ -168,6 +170,8 @@ def _slots(request: Request) -> dict[str, int]:
     known = {ref.id for ref in request.references}
     used = {a.reference_id for a in request.attributes.values() if a.intent == 'transfer'}
     used |= {c.reference_id for c in request.characters}
+    if request.swap is not None:
+        used.add(request.swap.reference_id)
     if request.prompt_mode == 'manual':
         used = known
     for ref in request.references:
@@ -183,6 +187,28 @@ def uses_person_photos(request: Request) -> bool:
     """True when a photo supplies a person: the edited photo, another character or an identity reference."""
     return (request.mode == 'edit' or bool(request.characters)
             or any(request.attribute(c).intent == 'transfer' for c in IDENTITY_CATEGORIES))
+
+
+def _assess_swap(request, refs, slots, issues, report) -> Assessment:
+    """A swap is its own kind of edit: one person in the photo, one person photo, and only the details on top."""
+    swap = request.swap
+    if request.mode != 'edit':
+        report('swap_needs_edit', 'swap', 'A troca de pessoa é uma edição: escolha a foto a editar.')
+    else:
+        _check_target(request, refs, report)
+    if swap.reference_id not in refs:
+        report('missing_reference', 'swap', 'Anexe a foto da pessoa que vai entrar.')
+    elif swap.reference_id == request.target_id:
+        report('swap_same_photo', 'swap', 'A pessoa que entra precisa vir de outra foto, não da foto editada.')
+    if (request.participants.existing or 1) > 1:
+        report('swap_one_person', 'participants.existing', 'Por enquanto a troca funciona com uma pessoa só na foto.')
+    if swap.mode == 'body' and request.output.profile == 'turbo':
+        report('swap_turbo', 'output.profile', 'A troca de corpo foi medida no perfil Completo; no Turbo ela não foi '
+               'testada.', 'warning')
+    if request.characters or any(a.intent in ('set', 'transfer') for a in request.attributes.values()):
+        report('swap_ignores_changes', 'swap', 'Na troca de pessoa, as outras mudanças do pedido não são aplicadas; '
+               'só os Detalhes entram.', 'warning')
+    return Assessment(tuple(issues), {}, slots, 1, 1, ())
 
 
 def _check_target(request, refs, report) -> None:

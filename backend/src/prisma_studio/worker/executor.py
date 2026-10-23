@@ -11,7 +11,7 @@ from ..domain.verification import FACE_CHECKS, JUDGE_SYSTEM, Check, judge_prompt
 from ..infrastructure.comfy.client import ComfyNotSent, ComfyRejected, ComfyUnavailable
 from ..infrastructure.comfy.validation import validate_graph
 from ..infrastructure.comfy.workflows import (FACE_MODEL, FACE_SIZE, MAX_EDIT_PIXELS, PEOPLE_MODEL, PEOPLE_OUTPUT_NODE,
-                                              POSE_MODEL, UPSCALE_MODEL, UPSCALE_VAE, ImageJob, TextJob, face_boxes,
+                                              BFS_BODY, POSE_MODEL, UPSCALE_MODEL, UPSCALE_VAE, ImageJob, TextJob, face_boxes,
                                               face_detect_graph, image_graph, image_outputs, people_count, text_graph,
                                               text_output, upscale_graph)
 from ..infrastructure.db.database import now
@@ -35,6 +35,17 @@ PHASES = {'UNETLoader': 'loading_models', 'CLIPLoader': 'loading_models', 'VAELo
           'LoadMediaPipeFaceLandmarker': 'loading_models', 'MediaPipeFaceLandmarker': 'detecting_faces',
           'SeedVR2Preprocess': 'upscaling', 'SeedVR2Conditioning': 'upscaling', 'SeedVR2PostProcessing': 'upscaling',
           'ResizeImageMaskNode': 'upscaling', 'VAEEncodeTiled': 'upscaling', 'VAEDecodeTiled': 'upscaling'}
+
+
+def swap_loras(settings: dict) -> tuple:
+    """A body swap runs with the BFS body LoRA alone: the user's LoRAs would pull the new person elsewhere."""
+    swap = settings.get('swap') or {}
+    return ((BFS_BODY, 1.0),) if swap.get('mode') == 'body' else ()
+
+
+def swap_cutouts(settings: dict) -> tuple:
+    swap = settings.get('swap') or {}
+    return (swap['slot'],) if swap.get('mode') == 'body' else ()
 
 
 def extra_people(result: dict | None) -> bool:
@@ -216,7 +227,9 @@ class Executor:
                     negative_prompt=engine.get('negative_prompt', ''), steps=engine.get('steps'),
                     cfg=engine.get('cfg'), sampler=engine.get('sampler'), scheduler=engine.get('scheduler'),
                     denoise=engine.get('denoise'), prefix=f'prisma/{run["id"][:8]}', init_image=uploaded.get('init'),
-                    loras=tuple((lora['name'], lora['strength']) for lora in engine.get('loras') or ()),
+                    loras=swap_loras(settings)
+                    or tuple((lora['name'], lora['strength']) for lora in engine.get('loras') or ()),
+                    cutouts=swap_cutouts(settings),
                     skeletons=tuple(settings.get('skeleton_slots') or ()) if self._skeleton_models_installed() else ()))
             self._drive(task, build)
         tasks = self.repository.tasks(run['id'], 'image')

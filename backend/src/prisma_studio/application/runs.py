@@ -85,6 +85,8 @@ class RunService:
             'engine': request.engine.model_dump(), 'checks': [asdict(c) for c in checklist(compiled.blocks)],
             'compiler_version': compiled.version, 'participants': assessment.participants_total, 'blocks': [b.id for b in compiled.blocks],
             'skeleton_slots': [b.slot for b in compiled.blocks if isinstance(b, ir.Transfer) and is_skeleton(b)],
+            'swap': {'mode': request.swap.mode, 'slot': assessment.slots[request.swap.reference_id]}
+            if request.swap else None,
             'face_detail': face_detail.enabled(output.face_detail, assessment.participants_total),
             'upscale': output.upscale,
         }

@@ -233,6 +233,24 @@ def render(blocks) -> list[tuple[str, str]]:
     return out
 
 
+# The RareTutor head and body swap wording, measured on the user's photos (full profile): the body swap needs the BFS
+# body LoRA (without it the model returned the source photo); the head swap kept the face better without its LoRA.
+SWAP_TEXT = {
+    'head': ('head_swap: start with <image1> as the base image, keeping its lighting, environment, and background. '
+             'remove the head from <image1> completely and replace it with the head from {source}, strictly preserving '
+             'the hair, eye color, nose structure from {source}. copy the direction of the eye, head rotation, micro '
+             'expressions from <image1>, high quality, sharp details, 4k'),
+    'body': ('body_swap: start with <image1> as the base image, keeping its lighting, environment, and background. '
+             'replace the body from <image1> with the body from {source}, strictly preserving the clothing, body shape '
+             'and proportions from {source}. strictly replicate the exact pose, arm positions, leg positions, hand '
+             'gestures, head rotation, eye direction and micro expressions from <image1>'),
+}
+
+
+def swap_prompt(mode: str, slot: int) -> str:
+    return SWAP_TEXT[mode].format(source=f'<image{slot}>')
+
+
 def is_skeleton(block: ir.Transfer) -> bool:
     """A reference that lends only the pose is sent as its skeleton."""
     return tuple(block.aspects) == ('pose',)
