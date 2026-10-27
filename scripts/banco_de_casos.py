@@ -46,7 +46,7 @@ def call(base: str, method: str, path: str, body=None, raw: bytes | None = None,
 def upload(base: str, path: Path) -> str:
     boundary = uuid.uuid4().hex
     body = (f'--{boundary}\r\nContent-Disposition: form-data; name="file"; filename="{path.name}"\r\n'
-            f'Content-Type: image/jpeg\r\n\r\n').encode() + path.read_bytes() + f'\r\n--{boundary}--\r\n'.encode()
+            f'Content-Type: {"image/png" if path.suffix.lower() == ".png" else "image/jpeg"}\r\n\r\n').encode() + path.read_bytes() + f'\r\n--{boundary}--\r\n'.encode()
     return call(base, 'POST', '/api/files', raw=body,
                 headers={'Content-Type': f'multipart/form-data; boundary={boundary}'})['hash']
 
@@ -57,29 +57,42 @@ def value(text: str) -> dict:
     return {'kind': 'catalog', 'item_id': text}
 
 
+IDENTITY = ('face', 'body', 'skin', 'hair')        # what "principal" (the first person's ficha) lends
+
+
 def build(spec: dict, case: dict, seed: int) -> tuple[dict, dict[str, str]]:
-    """The request and the reference ids -> photo names it needs."""
+    """The request and the reference ids -> photo names it needs. A case with "modo": "gerar" generates from nothing;
+    "principal" is a photo whose face, body, skin and hair go to the first person."""
+    edit = case.get('modo', 'editar') == 'editar'
     # A character is a photo name, or {"foto": ..., "posicao": "left|right|behind|front"}.
     people = [p if isinstance(p, dict) else {'foto': p} for p in case.get('personagens', [])]
-    refs = {'alvo': case['foto']} | {f'p{i}': p['foto'] for i, p in enumerate(people, 2)}
-    attributes = {c: {'intent': 'keep'} for c in spec['manter']}
+    refs = {'alvo': case['foto']} if edit else {}
+    if 'principal' in case:
+        refs['principal'] = case['principal']
+    refs |= {f'p{i}': p['foto'] for i, p in enumerate(people, 2)}
+    attributes = {c: {'intent': 'keep'} for c in spec['manter']
+                  if edit and not ('principal' in case and c in IDENTITY)}
+    if 'principal' in case:
+        attributes |= {c: {'intent': 'transfer', 'reference_id': 'principal'} for c in IDENTITY}
     attributes |= {c: {'intent': 'set', 'value': value(v)} for c, v in case.get('mudar', {}).items()}
     if 'pose_de' in case:                            # the pose comes from another photo (sent as its skeleton)
         refs['pose'] = case['pose_de']
         attributes['pose'] = {'intent': 'transfer', 'reference_id': 'pose'}
     request = {
-        'mode': 'edit', 'target_id': 'alvo', 'attributes': attributes,
+        'mode': 'edit' if edit else 'generate', 'target_id': 'alvo' if edit else None, 'attributes': attributes,
         'references': [{'id': ref_id, 'label': name} for ref_id, name in refs.items()],
         'characters': [{'reference_id': f'p{i}', **({'position': p['posicao']} if 'posicao' in p else {})}
                        for i, p in enumerate(people, 2)],
-        'participants': {'existing': case['pessoas']},
-        'context': {'allow_reframing': True, **case.get('contexto', {})},
+        'participants': {'existing': case['pessoas']} if edit else {},
+        'context': {'allow_reframing': True, **case.get('contexto', {})} if edit else {},
         'details': case.get('detalhes', ''),
         'output': {'profile': spec['perfil'], 'resolution': spec['resolucao'], 'seed': seed, 'variations': 1,
                    **case.get('saida', {})},
     }
     if 'roupa_para' in case:
         request['wardrobe_scope'] = case['roupa_para']
+    if case.get('conteudo') == 'adulto':             # the confirmations the Studio asks for in adult mode
+        request |= {'content_mode': 'adult', 'confirmations': ['adults_only', 'consent_or_fictional']}
     return request, refs
 
 
@@ -136,8 +149,10 @@ def main() -> None:
     parser.add_argument('--studio', default='http://127.0.0.1:8780')
     parser.add_argument('--casos', nargs='*', help='números dos casos a rodar (ex.: 04 05)')
     parser.add_argument('--manter', action='store_true', help='não apagar as gerações do Histórico no fim')
+    parser.add_argument('--arquivo', type=Path, default=BENCH / 'casos.json',
+                        help='outro arquivo de casos, por exemplo com itens da sua Biblioteca')
     args = parser.parse_args()
-    spec = json.loads((BENCH / 'casos.json').read_text(encoding='utf-8'))
+    spec = json.loads(args.arquivo.read_text(encoding='utf-8'))
     cases = [c for c in spec['casos'] if not args.casos or c['nome'].split()[0] in args.casos]
     if not cases:
         raise SystemExit('Nenhum caso com esses números.')
@@ -179,8 +194,9 @@ def main() -> None:
         note = f'seed {seed}'
         if run['status'] != 'completed':
             note += f' · {run["status"]}: {(run.get("error") or "")[:60]}'
-        elif detail.get('expected') and detail.get('found', 0) > detail['expected']:
-            note += f' · ! {detail["found"]} rostos para {detail["expected"]} pessoas'
+        elif detail.get('expected') and max(detail.get('found', 0), detail.get('people') or 0) > detail['expected']:
+            note += (f' · ! {detail.get("found", 0)} rostos, {detail.get("people") or "?"} corpos para '
+                     f'{detail["expected"]} pessoas')
         rows.setdefault(case['nome'], []).append((data, note))
 
     stamp = datetime.now().strftime('%Y%m%d-%H%M')

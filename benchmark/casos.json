@@ -1,5 +1,5 @@
 {
-  "sobre": "Edições típicas com fotos neutras, seeds fixas e perfil Turbo. Cada caso mira um erro já visto: pose que não pega, pessoa a mais, cabeça colada, expressão travada, roupa só numa pessoa, identidade de pessoas diferentes, pose por esqueleto e ampliação.",
+  "sobre": "Edições e gerações típicas com fotos neutras, seeds fixas e perfil Turbo. Cada caso mira um erro já visto: pose que não pega, pessoa a mais, cabeça colada, expressão travada, roupa só numa pessoa, identidade de pessoas diferentes, pose por esqueleto e ampliação.",
   "perfil": "turbo",
   "resolucao": 1024,
   "seeds": [3, 8],
@@ -31,6 +31,19 @@
     {"nome": "12 pose por esqueleto · sentada num banquinho", "foto": "10_senhora.jpg", "pessoas": 1,
      "pose_de": "02_chair.jpg", "contexto": {"allow_new_supports": true}, "detalhes": "sitting on a wooden stool"},
     {"nome": "13 ampliar no fim · ler um livro", "foto": "13_ruiva.jpg", "pessoas": 1,
-     "mudar": {"action": "action.read"}, "saida": {"upscale": 1.5}}
+     "mudar": {"action": "action.read"}, "saida": {"upscale": 1.5}},
+    {"nome": "14 gerar só catálogo · mulher discute com alguém", "modo": "gerar",
+     "mudar": {"subject": "subject.woman", "action": "action.serious_argument", "environment": "environment.street"}},
+    {"nome": "15 gerar só catálogo · mulher de cabelo ondulado abraça alguém", "modo": "gerar",
+     "mudar": {"subject": "subject.woman", "hair": "hair.long_waves", "action": "action.embrace",
+               "environment": "environment.garden"}},
+    {"nome": "16 gerar por fichas · ruiva (principal) brinda com o homem de barba", "modo": "gerar",
+     "principal": "13_ruiva.jpg", "personagens": ["14_careca_barba.jpg"],
+     "mudar": {"action": "action.toast", "environment": "environment.street"}},
+    {"nome": "17 editar · principal por ficha na foto + secundário, toca aqui", "foto": "01_wave.jpg", "pessoas": 1,
+     "principal": "12_mulher_asiatica.jpg", "personagens": ["11_rapaz_negro.jpg"],
+     "mudar": {"action": "action.high_five"}},
+    {"nome": "18 editar só catálogo · foto com uma pessoa + conversa a dois", "foto": "02_chair.jpg", "pessoas": 1,
+     "mudar": {"action": "action.conversation"}}
   ]
 }

@@ -111,3 +111,16 @@ cerca de metade a dois terços das seeds, por isso a tela sugere 2 variações. 
 ## Ordem sugerida
 
 0.3, 0.4 e 0.5 (rápidos) → 0.1 e 0.2 (medir) → 1.1 e 1.2 → 2.1 e 2.4 → 2.2 e 2.3 → 4.1 → o restante conforme o uso.
+
+## Duas pessoas na cena (27/10)
+
+Medido no banco de casos (casos 14 a 18 novos) e nas 5 poses a dois da Biblioteca do usuário, Turbo, seeds 3 e 8:
+- O prompt apresenta a pessoa principal antes da secundária, diz quem faz cada papel da pose ou ação, pede um número
+  exato de pessoas ("ninguém mais") e, gerando só com opções, pede que as pessoas sejam diferentes entre si.
+  Gerar só com opções: papéis certos em 10 de 10 (antes 8 de 10).
+- "Pessoas na foto" conta corpos (RT-DETR) além de rostos; sem esse número, uma edição com mais gente não roda.
+- Editar a foto de uma pessoa acrescentando outra numa pose a dois: 2 a 3 de 10 certas, antes e depois. Criar a cena
+  com as duas fichas: 8 de 10. O Studio avisa e sugere Criar; quando a pose separa os papéis por lugar
+  (esquerda, direita, frente, atrás), pede a posição do personagem.
+- A pessoa inventada numa edição (sem personagem) sai quase igual à da foto, com ou sem pedir "pessoas diferentes";
+  o Studio avisa para adicionar um personagem.
