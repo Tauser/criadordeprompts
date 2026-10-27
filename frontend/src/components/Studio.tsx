@@ -337,7 +337,8 @@ export function Studio({library, comfyOnline, notify}: Props) {
               <Icon name="refresh" size={14} />Limpar</button>
           </div>
           <FinishNotice finish={finish} />
-          <References workspace={workspace} slots={prepared?.slots ?? {}} disabled={false} update={update} notify={notify} maskRequest={maskRequest} />
+          <References workspace={workspace} slots={prepared?.slots ?? {}} disabled={false} update={update} notify={notify} maskRequest={maskRequest}
+                      issues={issuesByField} />
           <section className="card" aria-labelledby="ask-title">
             <div className="section-title">
               <h2 id="ask-title">{request.mode === 'edit' ? 'O que mudar' : 'O que pedir'}</h2>

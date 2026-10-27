@@ -19,14 +19,18 @@ interface Props {
   update: (next: Workspace | ((ws: Workspace) => Workspace)) => void;
   notify: (message: string, error?: boolean) => void;
   maskRequest?: number;   // each change opens the mask editor on the photo (from "Corrigir área")
+  issues?: Record<string, string[]>;   // the request's messages by field, shown under the character they are about
 }
+
+const issueList = (messages?: string[]) =>
+  messages?.length ? <ul className="field-issues">{messages.map(m => <li key={m}>{m}</li>)}</ul> : null;
 
 const SWAP_MODES: Record<SwapMode, {label: string; help: string}> = {
   body: {label: 'Corpo inteiro', help: 'A pessoa inteira, com a roupa dela, na pose e no lugar da foto.'},
   head: {label: 'Só o rosto', help: 'Só a cabeça e o cabelo, no corpo da pessoa da foto.'},
 };
 
-export function References({workspace, slots, disabled, update, notify, maskRequest = 0}: Props) {
+export function References({workspace, slots, disabled, update, notify, maskRequest = 0, issues = {}}: Props) {
   const [busy, setBusy] = useState(false);
   const [masking, setMasking] = useState(false);
   const maskRow = useRef<HTMLDivElement>(null);
@@ -243,6 +247,7 @@ export function References({workspace, slots, disabled, update, notify, maskRequ
           </select>
         </label>
         {castFull && <ul className="field-issues"><li>Já há {MAX_CHARACTERS} personagens extras na cena. Tire um para usar outra ficha.</li></ul>}
+        {issueList(issues['characters'])}
       </div>
       {characters.map(({ref, person, character}) => (
         <div key={ref.id} className="character-note">
@@ -261,6 +266,7 @@ export function References({workspace, slots, disabled, update, notify, maskRequ
             <option value="behind">Atrás</option>
             <option value="front">Na frente</option>
           </select>
+          {issueList(issues[`characters.${(request.characters ?? []).indexOf(character)}.position`])}
         </div>
       ))}
       {edit && target && (

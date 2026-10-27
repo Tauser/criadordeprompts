@@ -102,3 +102,20 @@ it('rejects more than ten selected photos before uploading any of them', () => {
   expect(api.upload).not.toHaveBeenCalled();
   expect(notify).toHaveBeenCalledWith('Use até dez imagens.', true);
 });
+
+it('shows the warnings about the cast under the character pick and under the position they ask for', async () => {
+  vi.mocked(api.characters).mockResolvedValue({characters: [{id: 'c1', name: 'Ana', notes: '',
+    photos: ['b'.repeat(64)], created_at: 1, updated_at: 1}]});
+  const issues = {'characters': ['Prefira Criar.'], 'characters.0.position': ['Escolha a posição do personagem.']};
+  function Editor() {
+    const [workspace, update] = useState(initialWorkspace('edit'));
+    return <References workspace={workspace} update={update} disabled={false} slots={{}} notify={vi.fn()} issues={issues} />;
+  }
+  render(<Editor />);
+  expect(screen.getByText('Prefira Criar.')).toBeTruthy();
+  expect(screen.queryByText('Escolha a posição do personagem.')).toBeNull();
+  await waitFor(() => expect(screen.getByRole('option', {name: 'Ana'})).toBeTruthy());
+  fireEvent.change(screen.getByLabelText('Usar personagem da ficha'), {target: {value: 'c1'}});
+  const position = await screen.findByLabelText('Posição do personagem 2');
+  expect(position.parentElement?.textContent).toContain('Escolha a posição do personagem.');
+});
