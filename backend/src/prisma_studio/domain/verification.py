@@ -67,7 +67,7 @@ def checklist(blocks) -> list[Check]:
         elif isinstance(block, ir.Participants) and block.total == 1:
             checks.append(Check(block.id, 'The image shows exactly one person'))
         elif isinstance(block, ir.Participants):
-            checks.append(Check(block.id, f'The image shows {"at least " if edit else ""}{block.total} distinct people'))
+            checks.append(Check(block.id, f'The image shows exactly {block.total} distinct people'))
         elif isinstance(block, ir.MinimumFraming):
             checks.append(Check(block.id, FRAMINGS[block.framing]))
         elif (isinstance(block, ir.Guidance) and block.key == 'gaze' and hidden_face

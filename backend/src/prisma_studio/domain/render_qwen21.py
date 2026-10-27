@@ -84,6 +84,7 @@ FRAMINGS = {
 
 
 ORDINALS = {1: 'first', 2: 'second', 3: 'third', 4: 'fourth'}
+NUMBERS = {2: 'two', 3: 'three', 4: 'four'}
 CHARACTER_ASPECTS = 'facial identity, body shape, skin tone and hairstyle'
 # Spelled from the picture, not from anyone's point of view: "her left" flips with the way the person faces.
 PLACES = {'left': 'on the left side of the picture, beside {beside}',
@@ -166,6 +167,13 @@ def render(blocks) -> list[tuple[str, str]]:
                 out.append((block.id, f'Use {image(block.slot)} as the reference for the {aspects}{whose}.'))
         elif isinstance(block, ir.Character):
             out.append((block.id, _character(block, image(block.slot), blocks)))
+        elif isinstance(block, ir.Others) and block.first == 2:
+            out.append((block.id, f'The {NUMBERS.get(block.total, block.total)} people look clearly different from '
+                                  'each other, each with their own face, hairstyle and build.'))
+        elif isinstance(block, ir.Others):
+            ordinals = [ORDINALS.get(n, f'number {n}') for n in range(block.first, block.total + 1)]
+            who = f'The {_join(ordinals)} person is' if len(ordinals) == 1 else f'The {_join(ordinals)} people are'
+            out.append((block.id, f'{who} clearly unlike the people above, with their own face, hairstyle and build.'))
         elif isinstance(block, ir.Keep):
             # "Keep the person unchanged" would also freeze the clothing and pose being changed: name the identity.
             names = [ASPECT_NAMES[a] if a != 'subject' else 'identity of the person' for a in block.aspects
@@ -211,14 +219,19 @@ def render(blocks) -> list[tuple[str, str]]:
                 text = f'Keep the {_join(names)} from {target} unchanged.'
             out.append((block.id, text))
         elif isinstance(block, ir.Participants) and block.total == 1:
-            out.append((block.id, 'The result shows exactly one person.' if block.edit
-                        else 'The scene contains exactly one person.'))
+            out.append((block.id, ('The result shows exactly one person.' if block.edit
+                                   else 'The scene contains exactly one person.')
+                        + ' No other person appears, not even in the background.'))
         elif isinstance(block, ir.Participants):
+            # Exact, never "at least": the user asks for every person, so anyone more is a mistake.
+            count = NUMBERS.get(block.total, block.total)
             if block.edit:
-                text = (f'The scene contains at least {block.total} distinct people: keep the people already present '
-                        'and add only the missing ones, each with a separate body and identity.')
+                text = (f'The result shows exactly {count} distinct people and no one else: keep the people already '
+                        'present and add only the missing ones, each with a separate body and identity.')
             else:
-                text = f'The scene contains {block.total} distinct people, each with a separate body and identity.'
+                text = (f'The scene contains exactly {count} distinct people and no one else, each with a separate '
+                        'body and identity.')
+            text += ' No other person appears, not even in the background.'
             out.append((block.id, text))
         elif isinstance(block, ir.MinimumFraming):
             out.append((block.id, FRAMINGS[block.framing]))
@@ -256,6 +269,8 @@ def is_skeleton(block: ir.Transfer) -> bool:
     return tuple(block.aspects) == ('pose',)
 
 
+FIRST_PERSON_ONLY = ('subject', 'face', 'body', 'skin', 'hair')
+
 BODY_EMPHASIS = {
     'pose': 'Reposition the head, torso, arms, hands, legs and feet exactly as described, so the new pose is '
             'unmistakable.',
@@ -266,25 +281,64 @@ BODY_EMPHASIS = {
 def _operation(block: ir.Operation, edit: bool, blocks) -> str:
     text = block.text.rstrip('. ')
     if edit and block.is_instruction:
+        # An item's own edit instruction still needs to say who is who when it moves a group.
+        if (block.participants or 1) > 1 and _people_count(blocks) > 1 and block.category in ('pose', 'action'):
+            doing = 'performing this action' if block.category == 'action' else 'in this pose'
+            return _sentence(text) + f' The people {doing} are {_people(block.participants)}{_roles(blocks)}.'
         return _sentence(text)
     has_pose = any(isinstance(b, ir.Operation) and b.category == 'pose' for b in blocks)
     if block.category == 'action':
         group = (block.participants or 1) > 1
-        subject = '' if group else 'the person '
+        # An action written as text says nothing of who takes part; with characters in the scene it is theirs too.
+        # Seen in use: "Show the person ..." for a two-person action, with the second person left out of it.
+        written_for_cast = block.participants is None and any(isinstance(b, ir.Character) for b in blocks)
+        subject = '' if group or written_for_cast else 'the person '
         sentence = f'Show {subject}{text}' if edit else f'Action: {text}'
-        if has_pose and not group:
+        if has_pose and not group and not written_for_cast:
             sentence += '; keep the requested pose for the torso and legs, and let the arms and hands follow this action'
         sentence += '.'
-        if group and any(isinstance(b, ir.Character) for b in blocks):
-            sentence += f' The people performing this action are {_people(block.participants)}.'
+        if group and _people_count(blocks) > 1:
+            sentence += f' The people performing this action are {_people(block.participants)}{_roles(blocks)}.'
+        elif written_for_cast:
+            sentence += f' The people performing this action are {_people(_people_count(blocks))}.'
         return f'{sentence} {BODY_EMPHASIS["action"]}'
+    # With a cast, the appearance written here is the first person's: a scene-wide "Hair: ..." gave both people the
+    # same look, and "Subject: one woman" read as one more person beside the cast.
+    # The same holds for a group made from the options alone; a subject that already names everyone stays as it is.
+    cast = any(isinstance(b, ir.Character) for b in blocks)
+    own = block.category in FIRST_PERSON_ONLY and (cast or (_people_count(blocks) > 1 and (
+        block.category != 'subject' or block.participants == 1)))
     if edit:
         sentence = EDIT_OPERATIONS[block.category].format(text)
+        if own:
+            sentence = sentence.replace('Replace the person', 'Replace the first person').replace(
+                'Change the ', "Change the first person's ", 1)
+    elif own and block.category == 'subject':
+        sentence = f'The first person: {text}.'
+    elif own:
+        sentence = f"The first person's {GENERATE_LABELS[block.category].lower()}: {text}."
+    elif block.category == 'subject' and (block.participants or 1) > 1 and _people_count(blocks) > 1:
+        # Named here, so "the first person" and "the second person" further on point at people already in the scene.
+        sentence = f'Subject: {text}; they are {_people(block.participants)}.'
     else:
         sentence = f'{GENERATE_LABELS[block.category]}: {text}.'
+    if block.category == 'pose' and (block.participants or 1) > 1 and _people_count(blocks) > 1:
+        sentence += f' The people in this pose are {_people(block.participants)}{_roles(blocks)}.'
     if block.category == 'pose':
         sentence += ' ' + BODY_EMPHASIS['pose']
     return sentence
+
+
+def _people_count(blocks) -> int:
+    return next((b.people for b in blocks if isinstance(b, ir.Header)), 1)
+
+
+def _roles(blocks) -> str:
+    """The catalog spells the roles of a group as "the adult on the left", "the rider"...: without saying who takes
+    which, the model swapped them or drew one more person for a role. A chosen position already decides it."""
+    if any(isinstance(b, ir.Character) and b.position for b in blocks):
+        return ''
+    return ', taking its roles in the order it describes them'
 
 
 def _people(count: int) -> str:
@@ -299,6 +353,9 @@ def _character(block: ir.Character, source: str, blocks) -> str:
         beside = 'the first person' if block.ordinal == 2 else 'the other people'
         place = PLACES[block.position].format(beside=beside) if block.position else f'next to {beside}'
         action = next((b for b in blocks if isinstance(b, ir.Operation) and b.category == 'action'), None)
+        # When the first person takes a face from their own reference, "keeps their own face" contradicted it.
+        own_face = any(isinstance(b, ir.Transfer) and 'face' in b.aspects for b in blocks)
+        first = 'The first person' if own_face else 'The first person keeps their own face and'
         # Measured on a piggyback: without the redraw the head came straight from the reference, with its angle,
         # expression and light, and looked pasted on; asked for, it tilted with the body and took the scene's light.
         text = (f'Add a {ordinal} person to the scene, {place}, drawn anew in this scene with the {CHARACTER_ASPECTS} '
@@ -306,7 +363,7 @@ def _character(block: ir.Character, source: str, blocks) -> str:
                 f'lighting or framing. Their head turns and tilts with their own body'
                 f'{" for the action" if action is not None else ""}, sits naturally on their own neck and shoulders, '
                 "is in scale with the first person's head for its distance from the camera, and is lit by the light "
-                f'of the scene. The first person keeps their own face and takes no facial features from {source}.')
+                f'of the scene. {first} takes no facial features from {source}.')
     else:
         text = (f'The {ordinal} person has the {CHARACTER_ASPECTS} of the person in {source}; '
                 f'use {source} only for this person\'s identity.')

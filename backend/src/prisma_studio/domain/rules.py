@@ -134,6 +134,7 @@ def assess(request: Request, library: Library) -> Assessment:
     _check_mask(request, report)
     _check_edit_load(request, resolved, report)
     total, existing = _participants(request, resolved, report)
+    _check_cast(request, resolved, report)
     if request.wardrobe_scope == 'all':
         if request.attribute('wardrobe').intent != 'set':
             report('wardrobe_scope_requires_set', 'attributes.wardrobe',
@@ -160,6 +161,50 @@ def assess(request: Request, library: Library) -> Assessment:
         report('generation_reference', 'references', 'Referências na geração ainda não foram validadas visualmente '
                'neste modelo.', 'warning', 'model')
     return Assessment(tuple(issues), resolved, slots, total, existing, requirements)
+
+
+# A group pose or action that tells its roles apart by place: "the adult on the left", "the left adult's", "the front
+# adult", "the adult behind".
+PLACED_ROLES = re.compile(r'\b(?:adult|person|one)s? (?:on the (?:left|right)|in front|behind)\b'
+                          r'|\b(?:left|right|front)(?: adult| person|-hand adult)\b', re.IGNORECASE)
+
+
+def _group_moves(request, resolved) -> list[tuple[str, str]]:
+    """(category, wording) of the pose and action that move two or more people; text counts, it may be a group."""
+    moves = []
+    for category in ('pose', 'action'):
+        attribute = request.attribute(category)
+        if attribute.intent != 'set':
+            continue
+        if isinstance(attribute.value, CatalogValue):
+            item = resolved.get(category)
+            if item is not None and (item.requirements.participants or 1) > 1:
+                moves.append((category, ' '.join(filter(None, (item.prompt, item.edit_prompt)))))
+        else:
+            moves.append((category, attribute.value.text))
+    return moves
+
+
+def _check_cast(request, resolved, report) -> None:
+    if not request.characters:
+        return
+    moves = _group_moves(request, resolved)
+    present = request.participants.existing or 1
+    if request.mode == 'edit' and moves and 1 + len(request.characters) > present:
+        # Measured on the user's five two-person poses: editing a photo of one person into the pose while adding the
+        # other got 2 to 3 pictures right in 10 (a person lost, doubled or given the other's body); creating the scene
+        # from both character sheets got 8 in 10.
+        report('edit_cast_and_group_move', 'characters', 'Acrescentar personagem e mudar para uma pose ou ação a dois '
+               'na mesma edição costuma perder, duplicar ou trocar uma pessoa. Para essa cena, prefira Criar, com a '
+               'pessoa principal e o personagem vindos das fichas.', 'warning')
+    if any(PLACED_ROLES.search(text) for _, text in moves):
+        # The roles then follow the order the pose describes them; measured, that gave the first person the other's
+        # role and anatomy, while a chosen position put each person in the right role.
+        for index, character in enumerate(request.characters):
+            if character.position is None:
+                report('character_position_needed', f'characters.{index}.position', 'Esta pose diz quem faz o quê '
+                       'pelo lugar de cada pessoa (esquerda, direita, frente ou atrás). Escolha a posição do personagem; '
+                       'sem ela os papéis podem sair trocados.', 'warning')
 
 
 def _slots(request: Request) -> dict[str, int]:
@@ -573,5 +618,13 @@ def _participants(request, resolved, report):
         report('cannot_remove_people', 'participants.requested', 'A foto já tem mais pessoas do que o pedido; o '
                'Studio não remove pessoas.', 'warning')
     if request.mode == 'edit' and existing is None and total and total > 1:
-        report('unknown_existing', 'participants.existing', 'Informe quantas pessoas já estão na foto.', 'unknown')
+        # Guessed as one, a photo that already holds two got a third person "added" next to them.
+        report('unknown_existing', 'participants.existing', 'Informe quantas pessoas já estão na foto.')
+    present = (existing or 1) if request.mode == 'edit' else 1
+    invented = (total or 0) - present - len(request.characters)
+    if request.mode == 'edit' and invented > 0 and not requested:
+        who = 'uma pessoa nova' if invented == 1 else f'{invented} pessoas novas'
+        report('invented_people', 'participants.existing', f'As opções escolhidas pedem {total} pessoas: {who} será '
+               'inventada e costuma sair parecida com quem já está na foto. Adicione um personagem para escolher quem é.',
+               'warning')
     return total, existing

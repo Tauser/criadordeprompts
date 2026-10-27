@@ -43,3 +43,17 @@ def test_prepare_says_how_many_people_the_choices_need(client):  # noqa: F811
     assert people == {'total': 4, 'automatic': 4, 'reason': 'pela ação'}
     alone = client.post('/api/prepare', json={'mode': 'generate', 'attributes': {}}).json()['participants']
     assert alone['automatic'] is None
+
+
+def test_people_turned_away_are_counted_by_their_body(client):  # noqa: F811
+    comfy = client.container.comfy
+    client.container.people._bodies = True                       # RT-DETR installed
+    comfy.faces = [box(220)]                                     # the second person faces away from the camera
+    comfy.people = [{'score': 0.9}, {'score': 0.85}, {'score': 0.55}]   # the weak hit is not a whole person
+    stored = client.post('/api/files', files={'file': ('costas.png', png(640, 480, color=(9, 9, 9)), 'image/png')}).json()
+    job = client.post(f'/api/files/{stored["hash"]}/people').json()
+    for _ in range(5):
+        job = client.get(f'/api/people-counts/{job["id"]}').json()
+        if job['status'] == 'completed':
+            break
+    assert job['count'] == 2

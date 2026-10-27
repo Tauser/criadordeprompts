@@ -8,6 +8,7 @@ from dataclasses import dataclass
 class Header:
     mode: str
     image_count: int
+    people: int = 1                       # everyone in the result: with two or more, roles must be named
     id: str = 'header'
 
 
@@ -51,6 +52,14 @@ class Character:
     @property
     def id(self) -> str:
         return f'character.{self.ordinal}'
+
+
+@dataclass(frozen=True)
+class Others:
+    """Generation: the people after the cast whom nothing describes; each must look unlike the first person."""
+    first: int                            # ordinal of the first such person
+    total: int
+    id: str = 'others'
 
 
 @dataclass(frozen=True)
@@ -98,5 +107,5 @@ class Manual:
     id: str = 'manual'
 
 
-Block = (Header | Operation | WardrobeScope | Transfer | Character | Keep | Participants | MinimumFraming
+Block = (Header | Operation | WardrobeScope | Transfer | Character | Others | Keep | Participants | MinimumFraming
          | Guidance | Details | Manual)

@@ -202,7 +202,8 @@ def test_slots_put_target_first_and_drop_unused_references(library):
 def test_participants_and_framing(library):
     request = edit_request({**DEFAULT_KEEP, 'action': cat('action.hug')}, participants={'existing': 1})
     _, compiled = run(request, library)
-    assert 'at least 2 distinct people' in compiled.text
+    # Exact, never "at least": anyone more than asked for is a mistake.
+    assert 'exactly two distinct people and no one else' in compiled.text and 'at least' not in compiled.text
     locked = edit_request({'pose': cat('pose.seated'), 'framing': keep()},
                           context={'original_framing': 'portrait', 'allow_new_supports': True})
     assert 'framing_too_small' in codes(assess(locked, library), 'error')
@@ -231,7 +232,8 @@ def test_pose_and_action_are_rendered_as_explicit_body_instructions(library):
     assert 'Change the body pose to sitting upright. Reposition the head, torso, arms, hands, legs and feet' in compiled.text
     assert 'Show the person reading a book; keep the requested pose for the torso and legs, and let the arms and hands follow this action. Make the hands' in compiled.text
     _, group = run(generate_request({'action': cat('action.hug')}), library)
-    assert 'Action: hugging each other. Make the hands' in group.text
+    assert ('Action: hugging each other. The people performing this action are the first person and the second '
+            'person, taking its roles in the order it describes them. Make the hands') in group.text
     _, edit_group = run(edit_request({**DEFAULT_KEEP, 'action': cat('action.hug')}, participants={'existing': 1}), library)
     assert 'Show hugging each other.' in edit_group.text and 'the person hugging' not in edit_group.text
 
@@ -266,12 +268,12 @@ def test_second_character_comes_from_its_own_reference(library):
     assert 'Use <image1> as the reference for the facial identity of the first person.' in compiled.text
     assert ("The second person has the facial identity, body shape, skin tone and hairstyle of the person in <image2>; "
             "use <image2> only for this person's identity. The second person: standing on the left.") in compiled.text
-    assert 'The scene contains 2 distinct people' in compiled.text
+    assert 'The scene contains exactly two distinct people' in compiled.text
 
 
 def test_second_character_in_an_edit_counts_as_a_change(library):
     request = edit_request({**DEFAULT_KEEP, 'framing': keep()}, references=(('t', 'alvo'), ('b', 'Bia')),
-                           characters=[{'reference_id': 'b'}],
+                           characters=[{'reference_id': 'b'}], participants={'existing': 1},
                            context={'allow_reframing': True})
     assessment, compiled = run(request, library)
     assert 'missing_change' not in codes(assessment)
@@ -381,17 +383,19 @@ def test_a_pose_that_names_the_chin_or_lips_is_not_a_described_face(library):
 def test_a_character_can_be_placed_in_the_picture(library):
     # The guides place people by side ("on the left, ... on the right") instead of "next to".
     added = edit_request({**DEFAULT_KEEP, 'framing': keep()}, references=(('t', 'alvo'), ('b', 'Bia')),
-                         characters=[{'reference_id': 'b', 'position': 'left'}], context={'allow_reframing': True})
+                         characters=[{'reference_id': 'b', 'position': 'left'}], context={'allow_reframing': True},
+                         participants={'existing': 1})
     text = run(added, library)[1].text
     assert 'Add a second person to the scene, on the left side of the picture, beside the first person' in text
     assert 'next to the first person' not in text
     present = added.model_copy(update={'participants': added.participants.model_copy(update={'existing': 2})})
     assert 'The second person is on the left side of the picture, beside the first person.' in run(present, library)[1].text
     behind = edit_request({**DEFAULT_KEEP}, references=(('t', 'alvo'), ('b', 'Bia')),
-                          characters=[{'reference_id': 'b', 'position': 'behind'}])
+                          characters=[{'reference_id': 'b', 'position': 'behind'}], participants={'existing': 1})
     assert 'just behind the first person, farther from the camera' in run(behind, library)[1].text
     assert 'next to the first person' in run(edit_request({**DEFAULT_KEEP}, references=(('t', 'alvo'), ('b', 'Bia')),
-                                                         characters=[{'reference_id': 'b'}]), library)[1].text
+                                                         characters=[{'reference_id': 'b'}],
+                                                         participants={'existing': 1}), library)[1].text
 
 
 def test_a_reference_that_also_lends_the_face_keeps_the_photo_wording(library):
@@ -399,3 +403,120 @@ def test_a_reference_that_also_lends_the_face_keeps_the_photo_wording(library):
                            context={'allow_new_supports': True})
     _, compiled = run(request, library)
     assert 'skeleton' not in compiled.text and 'from <image2>' in compiled.text
+
+
+def test_first_person_is_introduced_before_the_second_and_owns_the_written_appearance(library):
+    identity = {c: ref('a') for c in IDENTITY}
+    request = generate_request({**identity, 'hair': text('short red hair'), 'action': cat('action.hug'),
+                                'environment': cat('env.garden')},
+                               references=[{'id': 'a', 'label': 'Ana'}, {'id': 'b', 'label': 'Bia'}],
+                               characters=[{'reference_id': 'b'}])
+    _, compiled = run(request, library)
+    lines = compiled.text.splitlines()
+    first = next(i for i, line in enumerate(lines) if 'of the first person' in line)
+    second = next(i for i, line in enumerate(lines) if line.startswith('The second person has'))
+    assert first + 1 == second < next(i for i, line in enumerate(lines) if line.startswith('Action:'))
+    # Hair written in text belongs to the first person: scene-wide, it gave both people the same look.
+    assert "The first person's hair: short red hair." in compiled.text and 'Hair:' not in compiled.text
+    subject = generate_request({'subject': cat('subject.woman'), 'environment': cat('env.garden')},
+                               references=[{'id': 'b', 'label': 'Bia'}], characters=[{'reference_id': 'b'}])
+    assert 'The first person: one adult woman.' in run(subject, library)[1].text
+    alone = generate_request({'subject': cat('subject.woman'), 'environment': cat('env.garden')})
+    assert 'Subject: one adult woman.' in run(alone, library)[1].text
+
+
+def test_edit_gives_the_first_person_their_reference_before_adding_the_second(library):
+    request = edit_request({**{c: keep() for c in ('environment', 'lighting', 'style')},
+                            **{c: ref('a') for c in IDENTITY}, 'hair': text('a short bob')},
+                           references=(('t', 'alvo'), ('a', 'Ana'), ('b', 'Bia')), characters=[{'reference_id': 'b'}],
+                           participants={'existing': 1})
+    _, compiled = run(request, library)
+    lines = compiled.text.splitlines()
+    assert lines[1].startswith('Take the facial identity') and 'the first person in <image1>' in lines[1]
+    assert lines[2].startswith('Add a second person')
+    # The first person's face comes from <image2>: "keeps their own face" would contradict it.
+    assert 'The first person takes no facial features from <image3>.' in compiled.text
+    assert 'keeps their own face' not in compiled.text
+    assert "Change the first person's hair to: a short bob." in compiled.text
+
+
+def test_a_group_from_the_options_names_its_people_and_never_invites_more(library):
+    _, compiled = run(generate_request({'subject': cat('subject.woman'), 'action': cat('action.hug'),
+                                        'hair': text('long wavy hair')}), library)
+    lines = compiled.text.splitlines()
+    assert lines[1] == 'The first person: one adult woman.'
+    # Nobody described the other person: the model drew the first person twice.
+    assert lines[2] == 'The two people look clearly different from each other, each with their own face, hairstyle and build.'
+    assert "The first person's hair: long wavy hair." in compiled.text
+    assert 'No other person appears, not even in the background.' in compiled.text
+
+
+def test_an_edit_never_guesses_the_people_in_the_photo_and_warns_before_inventing_one(library):
+    unknown = edit_request({**DEFAULT_KEEP, 'action': cat('action.hug')})
+    assert 'unknown_existing' in codes(assess(unknown, library), 'error')
+    alone = edit_request({**DEFAULT_KEEP, 'action': cat('action.hug')}, participants={'existing': 1})
+    assert 'invented_people' in codes(assess(alone, library), 'warning')
+    named = edit_request({**DEFAULT_KEEP, 'action': cat('action.hug')}, references=(('t', 'alvo'), ('b', 'Bia')),
+                         characters=[{'reference_id': 'b'}], participants={'existing': 1})
+    assert 'invented_people' not in codes(assess(named, library))
+
+
+def test_an_action_written_as_text_belongs_to_the_whole_cast(library):
+    # Seen in use: "Show the person ..." for a two-person action, with the added character left out of it.
+    request = edit_request({**DEFAULT_KEEP, 'action': text('dancing a slow waltz')},
+                           references=(('t', 'alvo'), ('b', 'Bia')), characters=[{'reference_id': 'b'}],
+                           participants={'existing': 1})
+    _, compiled = run(request, library)
+    assert ('Show dancing a slow waltz. The people performing this action are the first person and the second '
+            'person.') in compiled.text
+    assert 'the person dancing' not in compiled.text
+    alone = edit_request({**DEFAULT_KEEP, 'action': text('reading a letter')}, participants={'existing': 1})
+    assert 'Show the person reading a letter.' in run(alone, library)[1].text
+
+
+
+def test_an_items_own_edit_instruction_for_two_still_says_who_is_who(library):
+    from conftest import item
+    from prisma_studio.domain.catalog import Library
+    pair = item('pose.pair_test', 'pose', 'two adults back to back',
+                req={'participants': 2, 'posture': 'standing', 'gaze': 'any'},
+                edit_prompt='Change the pose of the two people to standing back to back.')
+    custom = Library(items=[*library.items, pair])
+    request = edit_request({**DEFAULT_KEEP, 'pose': cat('pose.pair_test')}, references=(('t', 'alvo'), ('b', 'Bia')),
+                           characters=[{'reference_id': 'b'}], participants={'existing': 1})
+    _, compiled = run(request, custom)
+    assert ('Change the pose of the two people to standing back to back. The people in this pose are the first person '
+            'and the second person, taking its roles in the order it describes them.') in compiled.text
+
+
+def test_adding_a_character_for_a_group_pose_in_an_edit_suggests_creating_the_scene(library):
+    # Measured on five two-person poses: 2 to 3 right in 10 editing the photo, 8 in 10 creating from both sheets.
+    request = edit_request({**DEFAULT_KEEP, 'action': cat('action.hug')}, references=(('t', 'alvo'), ('b', 'Bia')),
+                           characters=[{'reference_id': 'b'}], participants={'existing': 1})
+    assert 'edit_cast_and_group_move' in codes(assess(request, library), 'warning')
+    both_there = request.model_copy(update={'participants': request.participants.model_copy(update={'existing': 2})})
+    assert 'edit_cast_and_group_move' not in codes(assess(both_there, library))
+    alone = edit_request({**DEFAULT_KEEP, 'action': cat('action.read')}, references=(('t', 'alvo'), ('b', 'Bia')),
+                         characters=[{'reference_id': 'b'}], participants={'existing': 1})
+    assert 'edit_cast_and_group_move' not in codes(assess(alone, library))
+    created = generate_request({'action': cat('action.hug')}, references=[{'id': 'b', 'label': 'Bia'}],
+                               characters=[{'reference_id': 'b'}])
+    assert 'edit_cast_and_group_move' not in codes(assess(created, library))
+
+
+def test_a_pose_that_places_its_roles_asks_where_the_character_stands(library):
+    from conftest import item
+    from prisma_studio.domain.catalog import Library
+    placed = item('pose.placed_test', 'pose', 'two adults; the adult on the left kneels, the adult on the right stands',
+                  req={'participants': 2, 'posture': 'any', 'gaze': 'any'})
+    custom = Library(items=[*library.items, placed])
+    request = generate_request({'pose': cat('pose.placed_test')}, references=[{'id': 'b', 'label': 'Bia'}],
+                               characters=[{'reference_id': 'b'}])
+    issues = [i for i in assess(request, custom).issues if i.code == 'character_position_needed']
+    assert [i.field for i in issues] == ['characters.0.position'] and issues[0].level == 'warning'
+    placed_request = generate_request({'pose': cat('pose.placed_test')}, references=[{'id': 'b', 'label': 'Bia'}],
+                                      characters=[{'reference_id': 'b', 'position': 'left'}])
+    assert 'character_position_needed' not in codes(assess(placed_request, custom))
+    unplaced_pose = generate_request({'action': cat('action.hug')}, references=[{'id': 'b', 'label': 'Bia'}],
+                                     characters=[{'reference_id': 'b'}])
+    assert 'character_position_needed' not in codes(assess(unplaced_pose, library))

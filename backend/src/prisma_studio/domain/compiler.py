@@ -8,7 +8,8 @@ from .request import CatalogValue, Request
 from .rules import Assessment, available_supports, body_gaze, effective_orientation, framing_already_there
 from .vocabulary import CATEGORIES, FRAMING_ORDER, SUPPORT_PRIORITY, agreed
 
-COMPILER_VERSION = '1.19.0'
+COMPILER_VERSION = '1.20.0'
+CHARACTER_SOURCE = ('subject', 'face', 'body', 'skin', 'hair')   # what a person's identity reference lends
 
 # Operation order: scene first, then person changes; style leads in generation.
 EDIT_ORDER = ('environment', 'lighting', 'style', 'camera', 'framing', 'subject', 'face', 'body', 'skin', 'hair',
@@ -41,7 +42,7 @@ def build_ir(request: Request, assessment: Assessment) -> list:
             text += '\nAdditional details: ' + request.details.strip()
         return [ir.Manual(text)]
     edit = request.mode == 'edit'
-    blocks: list = [ir.Header(request.mode, len(assessment.slots))]
+    blocks: list = [ir.Header(request.mode, len(assessment.slots), assessment.participants_total or 1)]
     order = EDIT_ORDER if edit else GENERATE_ORDER
     same_framing = framing_already_there(request, assessment.resolved)
     for category in order:
@@ -85,7 +86,18 @@ def build_ir(request: Request, assessment: Assessment) -> list:
         del blocks[scope_all - 1:scope_all + 1]
         blocks[at:at] = clothing
         at += len(clothing)
-    blocks[at:at] = cast
+    identity = []
+    if cast:
+        # The first person's own identity reference leads the cast: written last, after the action and the setting,
+        # "the first person" pointed at nobody yet, and the model copied the second person or drew a third.
+        identity = [b for b in blocks if isinstance(b, ir.Transfer) and not set(b.aspects).isdisjoint(CHARACTER_SOURCE)]
+        blocks[:] = [b for b in blocks if b not in identity]   # always after the operations, so `at` holds
+    # Generating a group from the options, nobody described the other people: the model drew the first person twice.
+    # Not in an edit: measured on case bank 18, the person invented beside the one in the photo stayed a near clone
+    # with or without it; there only a character's reference helps, and the rules warn about it.
+    total = assessment.participants_total or 0
+    others = [ir.Others(len(cast) + 2, total)] if not edit and total > len(cast) + 1 else []
+    blocks[at:at] = identity + cast + others
 
     if edit:
         # An action that needs its own posture (walking, sitting...) cannot keep the original pose: holding both

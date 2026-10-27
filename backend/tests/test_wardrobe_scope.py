@@ -15,7 +15,7 @@ from prisma_studio.domain.vocabulary import CATEGORIES
 def test_clothing_can_explicitly_apply_to_both_people(mode, library):
     make = edit_request if mode == 'edit' else generate_request
     assessment, compiled = run(make({'wardrobe': text('a dark wool coat')}, wardrobe_scope='all',
-                                    participants={'requested': 2}), library)
+                                    participants={'requested': 2, 'existing': 1}), library)
     assert assessment.valid
     assert 'Apply the clothing instruction to both people in the scene' in compiled.text
     # In an edit the person already in the photo is named, or the model keeps that person's outfit.
@@ -67,7 +67,7 @@ def test_added_character_is_included_without_changing_identity_or_scene():
     item = library.index()['wardrobe.adult_test']
     request = edit_request({'wardrobe': cat(item.id), 'face': keep(), 'environment': keep()},
                            references=(('t', 'target'), ('p', 'character')), wardrobe_scope='all',
-                           characters=[{'reference_id': 'p'}], content_mode='adult',
+                           characters=[{'reference_id': 'p'}], content_mode='adult', participants={'existing': 1},
                            confirmations=['adults_only', 'consent_or_fictional'])
     assessment, compiled = run(request, library)
     assert assessment.valid and assessment.participants_total == 2
@@ -103,7 +103,8 @@ def test_added_character_gets_the_clothing_and_joins_the_group_action(library):
     assert 'and nothing else from <image2>' in compiled.text
     assert 'The second person wears the requested clothing, not the clothing from <image2>.' in compiled.text
     assert 'takes part in the requested action' not in compiled.text        # the action already names who acts
-    assert 'The people performing this action are the first person and the second person.' in compiled.text
+    assert ('The people performing this action are the first person and the second person, taking its roles in the '
+            'order it describes them.') in compiled.text
     assert 'Every person wears it, the first person and the second person.' in compiled.text
 
 

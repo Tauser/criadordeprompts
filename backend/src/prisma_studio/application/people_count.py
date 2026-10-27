@@ -1,11 +1,13 @@
-"""Counts the people in a photo with ComfyUI's face detector, to suggest "Pessoas na foto". Never saves anything."""
+"""Counts the people in a photo with ComfyUI's face detector, and RT-DETR's body detector when it is installed, to
+suggest "Pessoas na foto". Never saves anything."""
 from __future__ import annotations
 
 import threading
 import uuid
 
 from ..infrastructure.comfy.client import ComfyRejected, ComfyUnavailable
-from ..infrastructure.comfy.workflows import face_boxes, face_detect_graph, text_output
+from ..infrastructure.comfy.workflows import (PEOPLE_MODEL, PEOPLE_OUTPUT_NODE, face_boxes, face_detect_graph,
+                                              people_count, text_output)
 
 MAX_FACES = 10                 # the most people a request accepts
 MIN_SCORE = 0.6                # the 'full' detector also scores hands and chests, mostly below this
@@ -27,6 +29,7 @@ class PeopleCounter:
         self.jobs: dict[str, dict] = {}
         self.counts: dict[str, int] = {}            # file hash -> people found, so choosing the same photo is instant
         self.lock = threading.Lock()
+        self._bodies: bool | None = None            # RT-DETR installed; asked once per Studio start
 
     def start(self, file_hash: str) -> dict:
         record = self.files(file_hash)
@@ -42,7 +45,7 @@ class PeopleCounter:
             try:
                 ext = EXTENSIONS.get(record['mime'], 'png')
                 name = self.comfy.upload(self.store.read(file_hash), f'prisma_{file_hash[:24]}.{ext}', record['mime'])
-                self.comfy.submit(face_detect_graph(name, MAX_FACES), job_id)
+                self.comfy.submit(face_detect_graph(name, MAX_FACES, people=self._bodies_installed()), job_id)
             except ComfyRejected:
                 job.update(status='failed', error='O detector de rostos não está disponível no ComfyUI.')
             except ComfyUnavailable:
@@ -52,6 +55,15 @@ class PeopleCounter:
             while len(self.jobs) > 200:
                 self.jobs.pop(next(iter(self.jobs)))
         return {'id': job_id, **job}
+
+    def _bodies_installed(self) -> bool:
+        if self._bodies is None:
+            try:
+                info = self.comfy.object_info()
+                self._bodies = 'RTDETR_detect' in info and PEOPLE_MODEL in str(info.get('UNETLoader', {}))
+            except Exception:                       # noqa: BLE001 - without the body detector the faces still count
+                return False
+        return self._bodies
 
     def status(self, job_id: str) -> dict:
         with self.lock:
@@ -63,7 +75,11 @@ class PeopleCounter:
         try:
             state = self.comfy.job(job_id)
             if state.status == 'completed':
-                count = count_faces(face_boxes(text_output(self.comfy.outputs(job_id))))
+                outputs = self.comfy.outputs(job_id)
+                # Faces alone missed whoever was turned away, in profile or farther back: the photo then seemed to
+                # hold fewer people, and the edit "added" someone who was already there, one person too many.
+                bodies = people_count(text_output(outputs, PEOPLE_OUTPUT_NODE)) or 0
+                count = min(MAX_FACES, max(count_faces(face_boxes(text_output(outputs))), bodies))
                 job.update(status='completed', count=count)
                 with self.lock:
                     self.counts[job['file']] = count
