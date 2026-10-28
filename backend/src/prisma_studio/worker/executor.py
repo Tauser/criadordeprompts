@@ -11,7 +11,7 @@ from ..domain.verification import FACE_CHECKS, JUDGE_SYSTEM, Check, judge_prompt
 from ..infrastructure.comfy.client import ComfyNotSent, ComfyRejected, ComfyUnavailable
 from ..infrastructure.comfy.validation import validate_graph
 from ..infrastructure.comfy.workflows import (FACE_MODEL, FACE_SIZE, MAX_EDIT_PIXELS, PEOPLE_MODEL, PEOPLE_OUTPUT_NODE,
-                                              BFS_BODY, POSE_MODEL, UPSCALE_MODEL, UPSCALE_VAE, ImageJob, TextJob, face_boxes,
+                                              BFS_BODY, CUTOUT_MODEL, POSE_MODEL, UPSCALE_MODEL, UPSCALE_VAE, ImageJob, TextJob, face_boxes,
                                               face_detect_graph, image_graph, image_outputs, people_count, text_graph,
                                               text_output, upscale_graph)
 from ..infrastructure.db.database import now
@@ -48,6 +48,14 @@ def swap_cutouts(settings: dict) -> tuple:
     return (swap['slot'],) if swap.get('mode') == 'body' else ()
 
 
+def cutouts(settings: dict, people_on_gray: bool) -> tuple:
+    """The body swap's source, and, with the background remover installed, every photo that lends only a person."""
+    slots = set(swap_cutouts(settings))
+    if people_on_gray:
+        slots |= set(settings.get('person_slots') or ())
+    return tuple(sorted(slots))
+
+
 def extra_people(result: dict | None) -> bool:
     """More faces, or more whole bodies, than people asked for. Fewer proves nothing: a face turned away or a body
     hidden behind another is not found."""
@@ -66,6 +74,7 @@ class Executor:
         self._face_model: bool | None = None
         self._people_model: bool | None = None
         self._skeleton_models: bool | None = None
+        self._cutout_model: bool | None = None
         self._upscale_model: bool | None = None
         self._missing: dict[str, int] = {}
         self._errors: dict[str, int] = {}
@@ -229,7 +238,7 @@ class Executor:
                     denoise=engine.get('denoise'), prefix=f'prisma/{run["id"][:8]}', init_image=uploaded.get('init'),
                     loras=swap_loras(settings)
                     or tuple((lora['name'], lora['strength']) for lora in engine.get('loras') or ()),
-                    cutouts=swap_cutouts(settings),
+                    cutouts=cutouts(settings, self._cutout_model_installed()),
                     skeletons=tuple(settings.get('skeleton_slots') or ()) if self._skeleton_models_installed() else ()))
             self._drive(task, build)
         tasks = self.repository.tasks(run['id'], 'image')
@@ -569,6 +578,18 @@ class Executor:
             except Exception:                       # noqa: BLE001 - a missing skeleton never blocks the run
                 return False
         return self._skeleton_models
+
+    def _cutout_model_installed(self) -> bool:
+        """Without BiRefNet a character's photo is sent whole, background and all, as before."""
+        if self._cutout_model is None:              # asked once per Studio start
+            try:
+                if self._object_info is None:
+                    self._object_info = self.comfy.object_info()
+                self._cutout_model = ('RemoveBackground' in self._object_info
+                                      and CUTOUT_MODEL in str(self._object_info.get('LoadBackgroundRemovalModel', {})))
+            except Exception:                       # noqa: BLE001 - a missing remover never blocks the run
+                return False
+        return self._cutout_model
 
     def _people_model_installed(self) -> bool:
         """Counting bodies is optional: without RT-DETR the faces alone are counted."""

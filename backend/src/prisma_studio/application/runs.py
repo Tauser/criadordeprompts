@@ -15,6 +15,22 @@ from ..domain.verification import checklist
 from ..infrastructure.comfy.workflows import generation_size
 from ..infrastructure.db.repository import TERMINAL, MissingFile
 
+PERSON_ASPECTS = {'subject', 'face', 'body', 'skin', 'hair'}
+
+
+def person_slots(blocks) -> list[int]:
+    """Photos that lend only a person: another character, or the identity of the first person. Their background has
+    nothing to give, and a restaurant behind the person came through into 2 of 4 pictures."""
+    slots = {b.slot for b in blocks if isinstance(b, ir.Character)}
+    lends = {}
+    for b in blocks:
+        if isinstance(b, ir.Transfer):
+            lends.setdefault(b.slot, set()).update(b.aspects)
+    slots |= {slot for slot, aspects in lends.items() if aspects <= PERSON_ASPECTS}
+    # A photo that also lends the setting, the light, the clothes or the pose keeps everything it shows.
+    slots -= {slot for slot, aspects in lends.items() if not aspects <= PERSON_ASPECTS}
+    return sorted(slots)
+
 
 class RequestRejected(ValueError):
     def __init__(self, message: str, issues=None):
@@ -85,6 +101,7 @@ class RunService:
             'engine': request.engine.model_dump(), 'checks': [asdict(c) for c in checklist(compiled.blocks)],
             'compiler_version': compiled.version, 'participants': assessment.participants_total, 'blocks': [b.id for b in compiled.blocks],
             'skeleton_slots': [b.slot for b in compiled.blocks if isinstance(b, ir.Transfer) and is_skeleton(b)],
+            'person_slots': person_slots(compiled.blocks),
             'swap': {'mode': request.swap.mode, 'slot': assessment.slots[request.swap.reference_id]}
             if request.swap else None,
             'face_detail': face_detail.enabled(output.face_detail, assessment.participants_total),

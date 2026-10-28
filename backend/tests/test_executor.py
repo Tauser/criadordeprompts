@@ -491,3 +491,34 @@ def test_without_the_pose_models_the_photo_goes_as_before(env):
     graph = env.repo.tasks(run['id'], 'image')[0]['graph']
     assert graph['10']['inputs']['images.image_2'] == ['202', 0]
     assert not any(n['class_type'] == 'SDPoseDrawKeypoints' for n in graph.values())
+
+
+def test_a_character_photo_is_sent_on_gray_and_the_photo_being_edited_never(env):
+    # Measured: the restaurant behind the person in a character's photo came through into 2 of 4 pictures.
+    target, other = env.put(png(64, 48)), env.put(png(48, 64))
+    request = Request(mode='edit', target_id='t', references=[{'id': 't', 'label': 'alvo'}, {'id': 'b', 'label': 'Bia'}],
+                      attributes={'face': keep(), 'environment': cat('env.garden')},
+                      characters=[{'reference_id': 'b'}], participants={'existing': 1},
+                      context={'allow_reframing': True})
+    env.executor._cutout_model = True
+    run = env.service.create(request, 'req-cutout', {'t': target, 'b': other}, None)
+    assert run['settings']['person_slots'] == [2]
+    run = env.run_until(run['id'])
+    graph = env.repo.tasks(run['id'], 'image')[0]['graph']
+    assert graph['10']['inputs']['images.image_2'] == ['524', 0]          # the cutout of image 2
+    assert graph['524']['class_type'] == 'ImageCompositeMasked'
+    assert graph['10']['inputs']['images.image_1'] == ['201', 0]          # the photo being edited, untouched
+    # Without the remover installed the photo goes whole, as before.
+    env.executor._cutout_model = False
+    run = env.run_until(env.service.create(request, 'req-cutout-off', {'t': target, 'b': other}, None)['id'])
+    graph = env.repo.tasks(run['id'], 'image')[0]['graph']
+    assert graph['10']['inputs']['images.image_2'] == ['202', 0] and '524' not in graph
+
+
+def test_a_photo_that_also_lends_the_setting_is_not_cut_out():
+    from prisma_studio.application.runs import person_slots
+    from prisma_studio.domain import ir
+    assert person_slots([ir.Transfer(2, ('face', 'body', 'skin', 'hair'))]) == [2]
+    assert person_slots([ir.Transfer(2, ('face', 'environment'))]) == []
+    assert person_slots([ir.Transfer(2, ('pose',))]) == []
+    assert person_slots([ir.Character(3, 2, ''), ir.Transfer(2, ('wardrobe',))]) == [3]
