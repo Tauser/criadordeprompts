@@ -339,6 +339,9 @@ class MissingPhoto(ValueError):
     """A character names a photo the Studio does not have (never uploaded, or no longer kept)."""
 
 
+KEEP = object()                              # update(): leave this field as it is
+
+
 class CharacterRepository:
     """Fichas de personagem: a story character kept once. Its photos are protected from cleanup by referenced_files."""
 
@@ -353,20 +356,20 @@ class CharacterRepository:
         row = self.db.one('SELECT * FROM characters WHERE id=?', (character_id,))
         return _character(row) if row else None
 
-    def create(self, name: str, notes: str, photos: list[str]) -> dict:
+    def create(self, name: str, notes: str, photos: list[str], sex: str | None = None) -> dict:
         with self.db.transaction() as tx:
             count = tx.execute('SELECT COUNT(*) AS total FROM characters').fetchone()['total']
             if count >= CHARACTER_LIMIT:
                 raise InvalidTransition(f'Já há {CHARACTER_LIMIT} personagens. Apague algum antes de criar outro.')
             _require_photos(tx, photos)
             character_id, at = new_id(), now()
-            tx.execute('INSERT INTO characters(id, name, notes, photos_json, created_at, updated_at) '
-                       'VALUES (?,?,?,?,?,?)', (character_id, name, notes, dumps(photos), at, at))
+            tx.execute('INSERT INTO characters(id, name, notes, photos_json, sex, created_at, updated_at) '
+                       'VALUES (?,?,?,?,?,?,?)', (character_id, name, notes, dumps(photos), sex, at, at))
         return self.get(character_id)
 
     def update(self, character_id: str, *, name: str | None = None, notes: str | None = None,
-               photos: list[str] | None = None) -> dict | None:
-        """Only the fields given (not None) change. Returns None when the character does not exist."""
+               photos: list[str] | None = None, sex: str | None = KEEP) -> dict | None:
+        """Only the fields given (not None; for sex, not KEEP) change. Returns None when the character does not exist."""
         with self.db.transaction() as tx:
             if tx.execute('SELECT 1 FROM characters WHERE id=?', (character_id,)).fetchone() is None:
                 return None
@@ -374,6 +377,8 @@ class CharacterRepository:
                 _require_photos(tx, photos)
             changes = {'name': name, 'notes': notes, 'photos_json': dumps(photos) if photos is not None else None}
             changes = {k: v for k, v in changes.items() if v is not None}
+            if sex is not KEEP:
+                changes['sex'] = sex             # None clears it
             if changes:
                 sets = ', '.join(f'{k}=?' for k in changes)
                 tx.execute(f'UPDATE characters SET {sets}, updated_at=? WHERE id=?',
@@ -428,7 +433,7 @@ def _preset(row) -> dict:
 
 def _character(row) -> dict:
     return {'id': row['id'], 'name': row['name'], 'notes': row['notes'], 'photos': loads(row['photos_json']),
-            'created_at': row['created_at'], 'updated_at': row['updated_at']}
+            'sex': row['sex'], 'created_at': row['created_at'], 'updated_at': row['updated_at']}
 
 
 def _result_files(result: dict | None) -> set[str]:

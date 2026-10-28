@@ -91,9 +91,10 @@ it('creates a character from uploaded photos, with the chosen main photo first',
   fireEvent.change(screen.getByLabelText('Adicionar fotos'), {target: {files: [first, second]}});
   await waitFor(() => expect(screen.getByText('2 / 6')).toBeTruthy());
   fireEvent.click(screen.getAllByRole('button', {name: 'Tornar principal'})[0]);
+  fireEvent.click(screen.getByRole('radio', {name: 'Homem'}));
   fireEvent.click(screen.getByRole('button', {name: 'Criar ficha'}));
   await waitFor(() => expect(api.createCharacter).toHaveBeenCalledWith({name: 'Bruno', notes: 'Camiseta',
-    photos: ['c'.repeat(64), 'b'.repeat(64)]}));
+    photos: ['c'.repeat(64), 'b'.repeat(64)], sex: 'male'}));
   expect(notify).toHaveBeenCalledWith('Ficha “Bruno” salva.');
 });
 

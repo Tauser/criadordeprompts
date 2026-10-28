@@ -23,10 +23,10 @@ const BLOCK_LABEL = (block: string) => {
   if (block.startsWith('guide.')) {
     const key = block.slice(6).split(':')[0];
     return ({posture: 'Postura', support: 'Apoio', new_supports: 'Apoio', orientation: 'Orientação', gaze: 'Olhar',
-             head: 'Pescoço', anatomy: 'Anatomia', faces: 'Rostos'} as Record<string, string>)[key] ?? 'Orientação';
+             head: 'Pescoço', anatomy: 'Anatomia', faces: 'Rostos', bodies: 'Corpos'} as Record<string, string>)[key] ?? 'Orientação';
   }
-  return ({header: 'Início', keep: 'Manter', participants: 'Pessoas', framing: 'Enquadramento', details: 'Detalhes',
-           closing: 'Coerência', manual: 'Manual'} as Record<string, string>)[block] ?? block;
+  return ({header: 'Início', sexes: 'Quem é quem', keep: 'Manter', participants: 'Pessoas', framing: 'Enquadramento',
+           details: 'Detalhes', closing: 'Coerência', manual: 'Manual'} as Record<string, string>)[block] ?? block;
 };
 
 // Issues that only mean "not filled in yet": shown as steps to take, not as errors.

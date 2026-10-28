@@ -1,8 +1,9 @@
 import {useEffect, useState} from 'react';
 import {api, fileUrl} from '../api/client';
-import type {SavedCharacter} from '../api/types';
+import type {SavedCharacter, Sex} from '../api/types';
 import {CHARACTER_NAME_MAX, CHARACTER_NOTES_MAX, CHARACTER_PHOTOS_MAX, faceWordsIn} from '../lib/characters';
 import {sortBy} from '../lib/sort';
+import {Segmented} from './Controls';
 import {Icon} from './Icon';
 import {ReferenceSheet} from './ReferenceSheet';
 
@@ -88,6 +89,7 @@ function CharacterEditor({character, notify, onSaved, onUpdated, onDeleted, onCl
   const [name, setName] = useState(character?.name ?? '');
   const [notes, setNotes] = useState(character?.notes ?? '');
   const [photos, setPhotos] = useState<string[]>(character?.photos ?? []);
+  const [sex, setSex] = useState<Sex | null>(character?.sex ?? null);
   const [errors, setErrors] = useState<Errors>({});
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -132,7 +134,7 @@ function CharacterEditor({character, notify, onSaved, onUpdated, onDeleted, onCl
     setBusy(true);
     setError(null);
     try {
-      const body = {name: trimmed, notes: notes.trim(), photos};
+      const body = {name: trimmed, notes: notes.trim(), photos, sex};
       const result = character ? await api.updateCharacter(character.id, body) : await api.createCharacter(body);
       notify(`Ficha “${result.name}” salva.`);
       onSaved(result);
@@ -168,6 +170,13 @@ function CharacterEditor({character, notify, onSaved, onUpdated, onDeleted, onCl
                  onChange={e => {setName(e.target.value); setErrors(x => ({...x, name: undefined}));}} />
         </label>
         {errors.name && <ul className="field-issues"><li>{errors.name}</li></ul>}
+
+        <div className="field">
+          <span className="field-label" title="Usado quando esta ficha entra numa cena com outras pessoas: o prompt diz qual corpo é de quem.">Sexo</span>
+          <Segmented<Sex | ''> small label="Sexo" value={sex ?? ''} disabled={busy}
+            options={[{value: 'female', label: 'Mulher'}, {value: 'male', label: 'Homem'}]}
+            onChange={value => setSex(value === sex ? null : value || null)} />
+        </div>
 
         <label>Notas
           <textarea rows={4} value={notes} maxLength={CHARACTER_NOTES_MAX} disabled={busy}

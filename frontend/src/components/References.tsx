@@ -70,7 +70,8 @@ export function References({workspace, slots, disabled, update, notify, maskRequ
       const size = await imageSize(fileUrl(hash));
       const file = {hash, width: size.width, height: size.height, name: character.name};
       const refId = 'ref-' + uuid().slice(0, 8);
-      update(ws => principal ? addSavedPrincipal(ws, refId, file) : addSavedCharacter(ws, refId, file, character.notes));
+      update(ws => principal ? addSavedPrincipal(ws, refId, file, character.sex ?? null)
+        : addSavedCharacter(ws, refId, file, character.notes, character.sex ?? null));
     } catch (error) {
       notify((error as Error).message, true);
     } finally {

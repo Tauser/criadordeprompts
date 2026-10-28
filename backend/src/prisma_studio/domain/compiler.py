@@ -5,10 +5,11 @@ from dataclasses import dataclass
 
 from . import ir
 from .request import CatalogValue, Request
-from .rules import Assessment, available_supports, body_gaze, effective_orientation, framing_already_there
+from .rules import (Assessment, available_supports, body_gaze, effective_orientation, framing_already_there,
+                    people_sexes)
 from .vocabulary import CATEGORIES, FRAMING_ORDER, SUPPORT_PRIORITY, agreed
 
-COMPILER_VERSION = '1.21.0'
+COMPILER_VERSION = '1.22.0'
 CHARACTER_SOURCE = ('subject', 'face', 'body', 'skin', 'hair')   # what a person's identity reference lends
 
 # Operation order: scene first, then person changes; style leads in generation.
@@ -48,7 +49,13 @@ def build_ir(request: Request, assessment: Assessment) -> list:
     people = assessment.participants_total or 1
     if edit:
         people = max(people, present + sum(1 for i, _ in enumerate(request.characters) if i + 2 > present))
-    blocks: list = [ir.Header(request.mode, len(assessment.slots), people, present)]
+    sexes = people_sexes(request, people)
+    known = people > 1 and any(sexes)
+    blocks: list = [ir.Header(request.mode, len(assessment.slots), people, present, sexes)]
+    if known:
+        # Said once, before anyone is described: "the first person" and "the second person" then carry a body each.
+        blocks.append(ir.Sexes())
+    lead = len(blocks)
     order = EDIT_ORDER if edit else GENERATE_ORDER
     same_framing = framing_already_there(request, assessment.resolved)
     for category in order:
@@ -80,7 +87,7 @@ def build_ir(request: Request, assessment: Assessment) -> list:
     cast = [ir.Character(assessment.slots[c.reference_id], i + 2, c.description.strip(), added=edit and i + 2 > present,
                          position=c.position)
             for i, c in enumerate(request.characters)]
-    at = next((i + 1 for i, b in enumerate(blocks) if isinstance(b, ir.Operation) and b.category == 'subject'), 1)
+    at = next((i + 1 for i, b in enumerate(blocks) if isinstance(b, ir.Operation) and b.category == 'subject'), lead)
     scope_all = next((i for i, b in enumerate(blocks) if isinstance(b, ir.WardrobeScope) and b.target == 'all'), None)
     if edit and scope_all is not None:
         # The person already in the photo changes clothes first: introduced after the new person, the clothing reads
@@ -161,6 +168,8 @@ def build_ir(request: Request, assessment: Assessment) -> list:
         body.append(ir.Guidance('anatomy', ages))
     if (assessment.participants_total or 0) > 1:
         body.append(ir.Guidance('faces', 'eyes'))         # small faces in a group are where the eyes drift apart
+    if known:
+        body.append(ir.Guidance('bodies', request.content_mode))   # each body keeps its own sex where they touch
     anchor = max((i for i, b in enumerate(blocks) if isinstance(b, ir.Operation)
                   and b.category in ('pose', 'action', 'expression')), default=len(blocks) - 1)
     blocks[anchor + 1:anchor + 1] = body

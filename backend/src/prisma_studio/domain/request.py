@@ -5,7 +5,7 @@ from typing import Annotated, Literal, Union
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from .vocabulary import Category, Confirmation, Framing, Intent, Support
+from .vocabulary import Category, Confirmation, Framing, Intent, Sex, Support
 
 REF_ID = r'^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$'
 
@@ -73,6 +73,8 @@ class Swap(_Strict):
 class Participants(_Strict):
     requested: int | None = Field(default=None, ge=1, le=10)
     existing: int | None = Field(default=None, ge=0, le=10)
+    # Woman or man, person by person: the first person, then the second... None (or left out): not given.
+    sexes: tuple[Sex | None, ...] = Field(default=(), max_length=10)
 
 
 class SceneContext(_Strict):

@@ -11,6 +11,7 @@ export type Posture = 'standing' | 'seated' | 'kneeling' | 'all_fours' | 'squatt
   | 'side_lying' | 'walking' | 'running' | 'any';
 export type Orientation = 'front' | 'back' | 'side' | 'three_quarter' | 'any';
 export type Gaze = 'camera' | 'away' | 'down' | 'up' | 'back' | 'closed' | 'any';
+export type Sex = 'female' | 'male';
 
 export type Value = {kind: 'catalog'; item_id: string} | {kind: 'text'; text: string};
 export interface Attribute {intent: Intent; value?: Value; reference_id?: string}
@@ -55,7 +56,8 @@ export interface StudioRequest {
   mask: boolean;
   characters?: Character[];
   swap?: Swap | null;   // only in edit mode; with it the backend uses only `details` on top
-  participants: {requested?: number | null; existing?: number | null};
+  // sexes: woman or man, person by person (first, second...); null where not given.
+  participants: {requested?: number | null; existing?: number | null; sexes?: (Sex | null)[]};
   context: {supports?: Support[] | null; allow_new_supports: boolean; allow_reframing: boolean; original_framing?: Framing | null};
   details: string;
   confirmations: ('adults_only' | 'consent_or_fictional')[];
@@ -141,5 +143,6 @@ export interface PoseTest {id: string; status: string; prompt?: string; has_imag
 
 // A "Personagem" saved for reuse ("fichas de personagem"). Photos are file hashes; photos[0] is the main one.
 // Named SavedCharacter here because `Character` above is the character of one request.
-export interface SavedCharacter {id: string; name: string; notes: string; photos: string[]; created_at: number; updated_at: number}
-export interface SavedCharacterInput {name: string; notes: string; photos: string[]}
+export interface SavedCharacter {id: string; name: string; notes: string; photos: string[]; sex?: Sex | null; created_at: number;
+  updated_at: number}
+export interface SavedCharacterInput {name: string; notes: string; photos: string[]; sex?: Sex | null}

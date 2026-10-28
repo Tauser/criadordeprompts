@@ -61,7 +61,7 @@ def test_saved_preset_keeps_choices_and_drops_photos_and_seed(client):
     assert request['target_id'] is None and request['mask'] is False
     assert request['references'] == [] and request['characters'] == []
     assert request['output']['seed'] is None
-    assert request['participants'] == {'requested': 2, 'existing': None}
+    assert request['participants'] == {'requested': 2, 'existing': None, 'sexes': []}
     assert request['context'] == {'supports': None, 'allow_new_supports': True, 'allow_reframing': False,
                                   'original_framing': None}
     assert request['confirmations'] == []

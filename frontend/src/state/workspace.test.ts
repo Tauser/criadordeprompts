@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {addReference, addSavedCharacter, applyPreset, applyReference, clearSwap, initialWorkspace, removeReference, requestForSubmit, setAttribute, setSwap, setTarget, switchMode} from './workspace';
+import {addReference, addSavedCharacter, addSavedPrincipal, applyPreset, applyReference, clearSwap, initialWorkspace, removeCharacter, removeReference, requestForSubmit, setAttribute, setSex, setSwap, setTarget, switchMode} from './workspace';
 import {wordDiff} from '../lib/diff';
 import type {StudioRequest} from '../api/types';
 
@@ -12,6 +12,19 @@ describe('workspace', () => {
     expect(ws.request.references).toEqual([{id: 'ref-ana', label: 'ana'}]);
     expect(ws.request.characters).toEqual([{reference_id: 'ref-ana', description: 'Roupa de sempre'}]);
     expect(ws.files['ref-ana'].hash).toBe(file('ana').hash);
+  });
+
+  it('takes the sex of each person from the fichas and moves it along when a character leaves', () => {
+    let ws = addSavedPrincipal(initialWorkspace('generate'), 'ana', file('ana'), 'female');
+    ws = addSavedCharacter(ws, 'bia', file('bia'), '', 'female');
+    ws = addSavedCharacter(ws, 'caio', file('caio'), '', 'male');
+    expect(ws.request.participants.sexes).toEqual(['female', 'female', 'male']);
+    ws = removeCharacter(ws, 'bia');
+    expect(ws.request.participants.sexes).toEqual(['female', 'male']);   // Caio is the second person now
+    ws = addSavedCharacter(ws, 'dani', file('dani'), '');                  // a ficha without sex leaves the place blank
+    expect(ws.request.participants.sexes).toEqual(['female', 'male']);
+    expect(setSex(ws, 2, null).request.participants.sexes).toEqual(['female']);
+    expect(setSex(ws, 4, 'male').request.participants.sexes).toEqual(['female', 'male', null, 'male']);
   });
 
   it('refuses a saved character when the scene already has the maximum of extra people', () => {

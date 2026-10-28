@@ -10,7 +10,14 @@ class Header:
     image_count: int
     people: int = 1                       # everyone in the result: with two or more, roles must be named
     present: int = 0                      # in an edit, the people already in the photo
+    sexes: tuple = ()                     # 'female', 'male' or None for each of the people, in order
     id: str = 'header'
+
+
+@dataclass(frozen=True)
+class Sexes:
+    """Who is a woman and who is a man, said once before anyone is described; the sexes are in the header."""
+    id: str = 'sexes'
 
 
 @dataclass(frozen=True)
@@ -108,5 +115,5 @@ class Manual:
     id: str = 'manual'
 
 
-Block = (Header | Operation | WardrobeScope | Transfer | Character | Others | Keep | Participants | MinimumFraming
+Block = (Header | Sexes | Operation | WardrobeScope | Transfer | Character | Others | Keep | Participants | MinimumFraming
          | Guidance | Details | Manual)

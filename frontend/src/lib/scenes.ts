@@ -1,7 +1,7 @@
 import {fileUrl} from '../api/client';
 import type {CharacterPosition, Run, SavedCharacter, SavedRequest, StudioRequest} from '../api/types';
 import {addReference, addSavedCharacter, applyPreset, applyReference, filesForSubmit, initialWorkspace, placeCharacter,
-  requestForSubmit, type Workspace} from '../state/workspace';
+  requestForSubmit, setSex, type Workspace} from '../state/workspace';
 import {uuid} from './uuid';
 import {load, save} from './storage';
 import {imageSize} from './characters';
@@ -88,10 +88,11 @@ async function buildNewScene(input: SceneInput,
   if (input.main) {
     const id = 'ref-' + uuid().slice(0, 8);
     ws = applyReference(addReference(ws, id, await photoFile(input.main, size)), id, 'character');
+    if (input.main.sex) ws = setSex(ws, 1, input.main.sex);
   }
   for (const {character, position} of input.people) {
     const id = 'ref-' + uuid().slice(0, 8);
-    ws = placeCharacter(addSavedCharacter(ws, id, await photoFile(character, size), character.notes), id, position);
+    ws = placeCharacter(addSavedCharacter(ws, id, await photoFile(character, size), character.notes, character.sex ?? null), id, position);
   }
   const note = input.note.trim();
   if (note) ws = {...ws, request: {...ws.request, details: [ws.request.details.trim(), note].filter(Boolean).join('\n')}};
@@ -111,7 +112,7 @@ async function buildEditScene(input: SceneInput,
     request: {...ws.request, participants: {...ws.request.participants, existing: input.existing ?? 1}}};
   for (const {character, position} of input.people) {
     const id = 'ref-' + uuid().slice(0, 8);
-    ws = placeCharacter(addSavedCharacter(ws, id, await photoFile(character, size), character.notes), id, position);
+    ws = placeCharacter(addSavedCharacter(ws, id, await photoFile(character, size), character.notes, character.sex ?? null), id, position);
   }
   const note = input.note.trim();
   if (note) ws = {...ws, request: {...ws.request, details: [ws.request.details.trim(), note].filter(Boolean).join('\n')}};
