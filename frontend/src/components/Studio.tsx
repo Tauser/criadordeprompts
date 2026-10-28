@@ -547,7 +547,7 @@ function SceneContext({request, patch, reveal, alert, people, detection, detecte
             + 'de uma não passa para a outra onde elas se tocam. As fichas com sexo preenchem isto sozinhas.'}>Quem é quem</span>
           {Array.from({length: Math.min(total ?? 0, 10)}, (_, i) => i + 1).map(n => (
             <div key={n} className="sex-row">
-              <span className="small">{personName(n)}</span>
+              <span className="small" title={personName(n)}>{personName(n)}</span>
               <Segmented<Sex | ''> small label={`Sexo da ${n}ª pessoa`} value={sexes[n - 1] ?? ''}
                 options={[{value: 'female', label: 'Mulher'}, {value: 'male', label: 'Homem'}]}
                 onChange={value => patch(r => {

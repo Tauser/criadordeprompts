@@ -435,8 +435,12 @@ code { font-size: 12.5px; padding: 1px 6px; border-radius: 6px; background: var(
 .segmented.choice button { height: 30px; }
 .segmented.choice button:disabled { opacity: .45; }
 .people-count .segmented.small button { padding: 0 8px; min-width: 26px; }
-.sex-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; min-width: 0; }
-.sex-row > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+/* "Quem é quem": a row of its own, names in one column and the choices lined up beside them */
+.people-sexes { grid-column: 1 / -1; }
+.people-sexes > .field-label { font-size: 13px; font-weight: 550; color: var(--ink-2); }
+.sex-row { display: grid; grid-template-columns: minmax(0, 220px) auto; justify-content: start; align-items: center;
+  gap: 10px; min-width: 0; }
+.sex-row > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
 .segmented button[aria-checked=true]:disabled { opacity: .7; }
 .control { display: grid; gap: 7px; align-content: start; min-width: 0; }
 .control.wide, .switches.wide { grid-column: 1 / -1; }
