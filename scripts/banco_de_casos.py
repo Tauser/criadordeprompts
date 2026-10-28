@@ -1,9 +1,14 @@
 """Banco de casos: roda as edições de `benchmark/casos.json` no Studio e monta uma folha de comparação.
 
-Uso (com o Studio e o ComfyUI ligados):
+Uso (com o ComfyUI ligado):
     .venv/Scripts/python.exe scripts/banco_de_casos.py              # todos os casos
     .venv/Scripts/python.exe scripts/banco_de_casos.py --casos 04 05  # só os que começam com esses números
-    .venv/Scripts/python.exe scripts/banco_de_casos.py --manter       # deixa as gerações no Histórico
+    .venv/Scripts/python.exe scripts/banco_de_casos.py --studio http://127.0.0.1:8780 --manter
+                                                                    # no seu Studio, deixando no Histórico
+
+Sem --studio, o script sobe um Studio só dele, com o código e o catálogo deste checkout e uma pasta de dados vazia,
+e o desliga no fim: a Biblioteca de quem usa o Studio (opções desativadas ou mudadas) não entra na medida, e antes e
+depois são o mesmo script rodado em cada checkout.
 
 A folha sai em `benchmark/resultados/<data>-<commit>/folha.png`, com uma linha por caso e uma coluna por seed;
 cada imagem traz o aviso de pessoa a mais quando a contagem de rostos acusar. Rodar antes e depois de uma mudança
@@ -14,8 +19,11 @@ from __future__ import annotations
 import argparse
 import io
 import json
+import os
+import socket
 import subprocess
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.request
@@ -144,14 +152,52 @@ def sheet(rows: list[tuple[str, list[tuple[bytes | None, str]]]], title: str) ->
     return out
 
 
+def isolated_studio(data_dir: str) -> tuple[subprocess.Popen, str]:
+    """A Studio of this checkout on a free port, with an empty data folder; returns it once it answers."""
+    with socket.socket() as probe:
+        probe.bind(('127.0.0.1', 0))
+        port = probe.getsockname()[1]
+    env = {**os.environ, 'PRISMA_DATA_DIR': data_dir, 'PYTHONPATH': str(ROOT / 'backend' / 'src')}
+    log = open(Path(data_dir) / 'studio.log', 'w', encoding='utf-8')
+    process = subprocess.Popen([sys.executable, '-m', 'prisma_studio', '--port', str(port)], cwd=ROOT, env=env,
+                               stdout=log, stderr=subprocess.STDOUT)
+    base = f'http://127.0.0.1:{port}'
+    for _ in range(180):                           # the first start loads the models' metadata: it can take a while
+        if process.poll() is not None:
+            raise SystemExit(f'O Studio do banco não subiu. Veja {Path(data_dir) / "studio.log"}')
+        try:
+            urllib.request.urlopen(base + '/api/health', timeout=2)
+            return process, base
+        except OSError:
+            time.sleep(1)
+    process.terminate()
+    raise SystemExit('O Studio do banco não respondeu em 3 minutos.')
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument('--studio', default='http://127.0.0.1:8780')
+    parser.add_argument('--studio', help='um Studio já ligado (ex.: http://127.0.0.1:8780); sem ele, sobe um só do banco')
     parser.add_argument('--casos', nargs='*', help='números dos casos a rodar (ex.: 04 05)')
-    parser.add_argument('--manter', action='store_true', help='não apagar as gerações do Histórico no fim')
+    parser.add_argument('--manter', action='store_true', help='com --studio: não apagar as gerações do Histórico no fim')
     parser.add_argument('--arquivo', type=Path, default=BENCH / 'casos.json',
                         help='outro arquivo de casos, por exemplo com itens da sua Biblioteca')
     args = parser.parse_args()
+    if args.studio:
+        return run(args)
+    with tempfile.TemporaryDirectory(prefix='banco-de-casos-', ignore_cleanup_errors=True) as data_dir:
+        process, args.studio = isolated_studio(data_dir)
+        print(f'Studio do banco em {args.studio} (código e catálogo deste checkout).', flush=True)
+        try:
+            return run(args)
+        finally:
+            process.terminate()
+            try:
+                process.wait(timeout=20)
+            except subprocess.TimeoutExpired:
+                process.kill()
+
+
+def run(args) -> None:
     spec = json.loads(args.arquivo.read_text(encoding='utf-8'))
     cases = [c for c in spec['casos'] if not args.casos or c['nome'].split()[0] in args.casos]
     if not cases:
@@ -211,7 +257,7 @@ def main() -> None:
     (folder / 'prompts.json').write_text(json.dumps(
         {results[r]['id']: {'caso': c['nome'], 'seed': s, 'prompt': results[r]['effective_prompt']} for c, s, r in jobs},
         ensure_ascii=False, indent=2), encoding='utf-8')
-    if not args.manter:
+    if not args.manter:                             # an isolated Studio goes away with its folder anyway
         call(args.studio, 'POST', '/api/runs/delete', {'ids': [r for _, _, r in jobs]})
     print(f'Folha: {folder / "folha.png"} ({time.time() - started:.0f} s)')
 
