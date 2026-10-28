@@ -112,6 +112,15 @@ cerca de metade a dois terços das seeds, por isso a tela sugere 2 variações. 
 
 0.3, 0.4 e 0.5 (rápidos) → 0.1 e 0.2 (medir) → 1.1 e 1.2 → 2.1 e 2.4 → 2.2 e 2.3 → 4.1 → o restante conforme o uso.
 
+## Plano B e textos de duas opções a dois (28/10)
+
+- Plano B: quando todas as imagens de um pedido saem com gente sobrando, ou faltando por rostos e por corpos, o Studio
+  gera uma imagem a mais com a seed seguinte, uma vez, e destaca a de contagem certa. Desligável em Saída.
+- "Puxar para perto" reescrito (the puller / the adult being pulled): o gesto ficou claro, mas o modelo põe o homem
+  puxando nas duas ordens (0 de 2 com a ruiva no papel, 2 de 2 invertido): viés do modelo, não do texto.
+- "Dançar em dupla" reescrito como dança de salão fechada não melhorou (e virou o casal para a câmera): voltou o texto
+  antigo.
+
 ## Papéis nas opções a dois e foto do personagem recortada (28/10)
 
 - Opções com 2 a 4 pessoas podem nomear os papéis (nome na tela e como o texto em inglês os chama). O prompt diz

@@ -36,9 +36,6 @@
     },
     "action.drink_mug": {
       "gaze": "any"
-    },
-    "action.dance_pair": {
-      "minimum_framing": "full"
     }
   },
   "supports": {
@@ -205,8 +202,8 @@
       "prompt_pt": "dois adultos de frente um para o outro, cada um estendendo o braço direito e apertando a mão direita do outro na altura da cintura, palmas encostadas"
     },
     "action.dance_pair": {
-      "prompt": "two adults in a closed ballroom dance hold, standing close and facing each other: the leader's right hand rests flat on the follower's upper back, the follower's left hand rests on the leader's right shoulder, and their free hands are clasped and raised to the side at shoulder height, both caught mid-step with the leader's left foot forward",
-      "prompt_pt": "dois adultos em posição fechada de dança de salão, de frente e próximos: a mão direita de quem conduz espalmada nas costas de quem acompanha, a mão esquerda de quem acompanha no ombro direito de quem conduz, as outras mãos unidas e erguidas para o lado na altura do ombro, os dois no meio de um passo, com um pé à frente"
+      "prompt": "two adults facing each other in a ballroom dance hold: one person's right hand on the partner's upper back, the partner's left hand on that person's shoulder, their other hands joined and raised to the side at shoulder height, both caught mid-step",
+      "prompt_pt": "dois adultos de frente um para o outro na posição de dança de salão: a mão direita de um nas costas do parceiro, a mão esquerda do parceiro no ombro dele, as outras mãos unidas e erguidas para o lado na altura do ombro, os dois no meio de um passo"
     },
     "action.conversation": {
       "prompt": "two adults standing face to face about an arm's length apart and looking at each other, one speaking with an open-palm hand gesture while the other listens",
@@ -338,11 +335,11 @@
     "action.dance_pair": [
       {
         "label": "quem conduz",
-        "name": "the leader"
+        "name": "one person"
       },
       {
         "label": "quem acompanha",
-        "name": "the follower"
+        "name": "the partner"
       }
     ],
     "action.conversation": [

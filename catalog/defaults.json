@@ -819,7 +819,7 @@
       "id": "action.dance_pair",
       "category": "action",
       "label": "Dançar em dupla (dois adultos)",
-      "prompt": "two adults in a closed ballroom dance hold, standing close and facing each other: the leader's right hand rests flat on the follower's upper back, the follower's left hand rests on the leader's right shoulder, and their free hands are clasped and raised to the side at shoulder height, both caught mid-step with the leader's left foot forward",
+      "prompt": "two adults facing each other in a ballroom dance hold: one person's right hand on the partner's upper back, the partner's left hand on that person's shoulder, their other hands joined and raised to the side at shoulder height, both caught mid-step",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -827,13 +827,13 @@
         "posture": "any",
         "gaze": "any",
         "support_any_of": [],
-        "minimum_framing": "full"
+        "minimum_framing": null
       },
       "provides": {
         "supports": null,
         "framing": null
       },
-      "roles": [{"label": "quem conduz", "name": "the leader"}, {"label": "quem acompanha", "name": "the follower"}]
+      "roles": [{"label": "quem conduz", "name": "one person"}, {"label": "quem acompanha", "name": "the partner"}]
     },
     {
       "id": "action.conversation",
