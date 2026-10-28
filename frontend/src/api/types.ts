@@ -29,6 +29,7 @@ export interface Output {
   width?: number | null;
   height?: number | null;
   seed?: number | null;
+  retry?: boolean;          // one more picture when every one has the wrong number of people (on when absent)
   variations: number;
   verify: boolean;
   refine: boolean;

@@ -106,6 +106,7 @@ class RunService:
             if request.swap else None,
             'face_detail': face_detail.enabled(output.face_detail, assessment.participants_total),
             'upscale': output.upscale,
+            'retry': output.retry,
         }
         return self._insert(request_id, request.mode, request.model_dump(mode='json'),
                             {'references': files, 'mask': mask}, settings, prompt=compiled.text,

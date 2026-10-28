@@ -189,7 +189,7 @@ def test_a_failing_detection_never_fails_the_run(env):  # noqa: F811
 
 def test_a_box_outside_the_picture_is_skipped_and_the_run_completes(env):  # noqa: F811
     env.comfy.faces = [FACE, {**OTHER, 'x': 70}, {**OTHER, 'x': -30, 'width': 10}]   # 64x48 picture
-    run = env.run_until(env.service.create(couple(), 'faces-10', {}, None)['id'])
+    run = env.run_until(env.service.create(couple(retry=False), 'faces-10', {}, None)['id'])
     assert run['status'] == 'completed'
     image = env.repo.tasks(run['id'], 'image')[0]
     assert image['status'] == 'completed' and image['result']['files']
@@ -242,3 +242,33 @@ def test_an_extra_body_is_flagged_even_without_an_extra_face(env):  # noqa: F811
     assert extra_people(image['result'])
     detect = env.repo.tasks(run['id'], 'face_detect')[0]
     assert any(n['class_type'] == 'RTDETR_detect' for n in detect['graph'].values())
+
+
+def test_plano_b_draws_one_more_picture_when_every_one_has_the_wrong_count(env):  # noqa: F811
+    env.comfy.faces = [FACE, OTHER, {**FACE, 'x': 2}]           # three faces for a couple, in every picture
+    run = env.run_until(env.service.create(couple(seed=5), 'retry-1', {}, None)['id'])
+    images = env.repo.tasks(run['id'], 'image')
+    assert run['status'] == 'completed' and [t['position'] for t in images] == [0, 1]
+    assert images[1]['seed'] == 6                                # the next seed, once: it is wrong too and stops
+    assert [e['type'] for e in env.repo.events(run['id'])].count('retry_wrong_count') == 1
+    statuses = [e['status'] for e in env.repo.events(run['id']) if e['type'] == 'status']
+    assert statuses == ['created', 'preparing', 'generating', 'detailing', 'generating', 'detailing', 'completed']
+
+
+def test_plano_b_stays_quiet_when_a_picture_is_right_or_it_is_switched_off(env):  # noqa: F811
+    env.comfy.faces = [FACE, OTHER]
+    run = env.run_until(env.service.create(couple(), 'retry-2', {}, None)['id'])
+    assert len(env.repo.tasks(run['id'], 'image')) == 1
+    env.comfy.faces = [FACE, OTHER, {**FACE, 'x': 2}]
+    run = env.run_until(env.service.create(couple(retry=False), 'retry-3', {}, None)['id'])
+    assert len(env.repo.tasks(run['id'], 'image')) == 1
+
+
+def test_fewer_faces_alone_proves_nobody_is_missing():
+    from prisma_studio.worker.executor import missing_people, right_count
+    turned = {'detail': {'found': 1, 'expected': 2, 'people': 2}}       # a face turned away, two bodies
+    assert not missing_people(turned) and right_count(turned)
+    unknown = {'detail': {'found': 1, 'expected': 2, 'people': None}}   # no body count: nothing concluded
+    assert not missing_people(unknown)
+    gone = {'detail': {'found': 1, 'expected': 2, 'people': 1}}
+    assert missing_people(gone) and not right_count(gone)

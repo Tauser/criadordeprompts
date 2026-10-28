@@ -12,7 +12,7 @@ RUN_TRANSITIONS = {
     'refining': {'review', 'generating'},
     'review': {'generating'},
     'generating': {'detailing', 'upscaling', 'verifying', 'completed', 'uncertain'},
-    'detailing': {'upscaling', 'verifying', 'completed'},
+    'detailing': {'generating', 'upscaling', 'verifying', 'completed'},   # generating: one more try, wrong count
     'upscaling': {'verifying', 'completed'},
     'verifying': {'completed'},
     'uncertain': {'generating', 'lost'},

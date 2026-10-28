@@ -506,6 +506,8 @@ export function OutputCard({request, patch}: {request: StudioRequest; patch: Pat
             <strong>Verificar o resultado</strong> <span className="muted">· o modelo local confere cada requisito</span></Switch>
           <Switch checked={output.refine} disabled={turbo} onChange={on => patch(r => {r.output.refine = on;})}>
             <strong>Aprimorar o prompt</strong> <span className="muted">· {turbo ? 'indisponível no Turbo' : 'você revisa o texto antes de gerar'}</span></Switch>
+          <Switch checked={output.retry ?? true} onChange={on => patch(r => {r.output.retry = on;})}>
+            <strong>Refazer quando faltar ou sobrar gente</strong> <span className="muted">· uma imagem a mais, com outra seed</span></Switch>
         </div>
       </div>}
     </section>

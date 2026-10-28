@@ -819,7 +819,7 @@
       "id": "action.dance_pair",
       "category": "action",
       "label": "Dançar em dupla (dois adultos)",
-      "prompt": "two adults facing each other in a ballroom dance hold: one person's right hand on the partner's upper back, the partner's left hand on that person's shoulder, their other hands joined and raised to the side at shoulder height, both caught mid-step",
+      "prompt": "two adults in a closed ballroom dance hold, standing close and facing each other: the leader's right hand rests flat on the follower's upper back, the follower's left hand rests on the leader's right shoulder, and their free hands are clasped and raised to the side at shoulder height, both caught mid-step with the leader's left foot forward",
       "adult": false,
       "enabled": true,
       "requirements": {
@@ -827,13 +827,13 @@
         "posture": "any",
         "gaze": "any",
         "support_any_of": [],
-        "minimum_framing": null
+        "minimum_framing": "full"
       },
       "provides": {
         "supports": null,
         "framing": null
       },
-      "roles": [{"label": "quem conduz", "name": "one person"}, {"label": "quem acompanha", "name": "the partner"}]
+      "roles": [{"label": "quem conduz", "name": "the leader"}, {"label": "quem acompanha", "name": "the follower"}]
     },
     {
       "id": "action.conversation",
@@ -4997,7 +4997,7 @@
       "id": "action.sexy_collar_pull",
       "category": "action",
       "label": "Sexy · Puxar para perto (dois adultos)",
-      "prompt": "two adults face to face, the adult on the left holding the right adult's shoulders with both hands and pulling the right adult closer, both holding an intense, playful gaze with faces a breath apart",
+      "prompt": "two adults face to face with faces a breath apart: the puller grips the shoulders of the adult being pulled with both hands and draws them in close, while the adult being pulled keeps both arms relaxed at their sides and leans in, both holding an intense, playful gaze",
       "edit_prompt": null,
       "adult": true,
       "enabled": true,
@@ -5016,7 +5016,7 @@
         "period": null,
         "place": null
       },
-      "roles": [{"label": "quem puxa", "name": "the adult on the left"}, {"label": "quem é puxado", "name": "the right adult"}]
+      "roles": [{"label": "quem puxa", "name": "the puller"}, {"label": "quem é puxado", "name": "the adult being pulled"}]
     },
     {
       "id": "action.sexy_mirror_hug",

@@ -810,8 +810,8 @@
    "id": "action.sexy_collar_pull",
    "category": "action",
    "label": "Sexy · Puxar para perto (dois adultos)",
-   "prompt": "two adults face to face, the adult on the left holding the right adult's shoulders with both hands and pulling the right adult closer, both holding an intense, playful gaze with faces a breath apart",
-   "prompt_pt": "dois adultos frente a frente, o da esquerda segurando os ombros do outro com as duas mãos e puxando-o para perto, os dois num olhar intenso e provocante, rostos a um suspiro de distância",
+   "prompt": "two adults face to face with faces a breath apart: the puller grips the shoulders of the adult being pulled with both hands and draws them in close, while the adult being pulled keeps both arms relaxed at their sides and leans in, both holding an intense, playful gaze",
+   "prompt_pt": "dois adultos de frente, com os rostos a um sopro de distância: quem puxa segura com as duas mãos os ombros de quem é puxado e o traz para perto, enquanto quem é puxado mantém os braços relaxados ao lado do corpo e se inclina, os dois com um olhar intenso e brincalhão",
    "adult": true,
    "enabled": true,
    "requirements": {
@@ -826,11 +826,11 @@
    "roles": [
     {
      "label": "quem puxa",
-     "name": "the adult on the left"
+     "name": "the puller"
     },
     {
      "label": "quem é puxado",
-     "name": "the right adult"
+     "name": "the adult being pulled"
     }
    ]
   },

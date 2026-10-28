@@ -64,6 +64,21 @@ def extra_people(result: dict | None) -> bool:
     return bool(expected) and max(detail.get('found', 0), detail.get('people') or 0) > expected
 
 
+def missing_people(result: dict | None) -> bool:
+    """Fewer people than asked for, by faces and by bodies alike: a face turned away is still a body, so only both
+    falling short means someone is really missing. Without a body count nothing is concluded."""
+    detail = (result or {}).get('detail') or {}
+    expected, people = detail.get('expected'), detail.get('people')
+    return bool(expected) and people is not None and people < expected and detail.get('found', 0) < expected
+
+
+def right_count(result: dict | None) -> bool:
+    return not extra_people(result) and not missing_people(result)
+
+
+RETRIES = 1        # extra pictures a run may make on its own when every picture has the wrong number of people
+
+
 class Executor:
     def __init__(self, repository, comfy, store, progress=None, poll_seconds: float = 1.5, validate: bool = True):
         self.repository, self.comfy, self.store, self.progress = repository, comfy, store, progress
@@ -266,7 +281,8 @@ class Executor:
         if settings['verify'] and settings['checks']:
             self.repository.transition(run['id'], 'verifying')
         else:
-            best = next((t for t in done if not extra_people(t['result'])), done[0])
+            best = next((t for t in done if right_count(t['result'])),
+                        next((t for t in done if not extra_people(t['result'])), done[0]))
             self.repository.transition(run['id'], 'completed', best_task_id=best['id'])
 
     def _detailing(self, run: dict) -> None:
@@ -319,7 +335,23 @@ class Executor:
             self._paste_faces(image, data, len(found), people, settings.get('participants'), pending)
         if not waiting:
             done = [t for t in self.repository.tasks(run['id'], 'image') if t['status'] == 'completed']
-            self._after_faces(run, done)
+            if not self._retry_wrong_count(run, done):
+                self._after_faces(run, done)
+
+    def _retry_wrong_count(self, run: dict, done: list[dict]) -> bool:
+        """Plano B: every picture came out with someone missing or someone extra, so one more is drawn with the next
+        seed. Measured: the same prompt kept the added person in some seeds and dropped it in others."""
+        settings = run['settings']
+        images = self.repository.tasks(run['id'], 'image')
+        if (not settings.get('participants') or not settings.get('retry', True) or not done
+                or len(images) - settings['variations'] >= RETRIES or any(right_count(t['result']) for t in done)):
+            return False
+        position = max(t['position'] for t in images) + 1
+        self.repository.add_tasks(run['id'], 'image', [(position, (settings['seed'] + position) % 2**53)])
+        self.repository.event(run['id'], 'retry_wrong_count', {
+            'position': position, 'counts': [t['result'].get('detail') for t in done]})
+        self.repository.transition(run['id'], 'generating')
+        return True
 
     def _upscaling(self, run: dict) -> None:
         """Ampliar no fim: each finished picture is redrawn larger by SeedVR2. Like the face pass it only improves a
@@ -433,7 +465,8 @@ class Executor:
             value = score(verdicts)
             self.repository.task_transition(images[position]['id'], 'completed', result_json={
                 **images[position]['result'], 'verdicts': verdicts, 'score': value})
-            rank = (not extra_people(images[position]['result']), value)   # a counted extra person loses first
+            result = images[position]['result']
+            rank = (right_count(result), not extra_people(result), value)   # a wrong count loses first
             if rank > best_rank:
                 best, best_rank = images[position]['id'], rank
         self.repository.transition(run['id'], 'completed', best_task_id=best)
