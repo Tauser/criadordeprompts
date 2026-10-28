@@ -13,8 +13,31 @@ from .vocabulary import CATEGORIES, FRAMING_ORDER, SUPPORT_PRIORITY, agreed
 COMPILER_VERSION = '1.23.0'
 CHARACTER_SOURCE = ('subject', 'face', 'body', 'skin', 'hair')   # what a person's identity reference lends
 # How a chosen text names each support surface; a surface it names needs no sentence of its own.
-SURFACE_WORDS = {'floor': '(?:floor|ground)', 'seat': '(?:seat|chair|sofa|couch|stool|bench)', 'bed': 'bed',
-                 'wall': 'wall', 'table': '(?:table|desk)'}
+SURFACE_WORDS = {'floor': r'\b(?:floor|ground)', 'seat': r'\b(?:seat|chair|sofa|couch|stool|bench)', 'bed': r'\bbed',
+                 'wall': r'\bwall', 'table': r'\b(?:table|desk)'}
+# The same for posture, orientation and gaze. Measured (case bank 14): an argument "face to face" whose text never said
+# standing, in profile or looking away drew a stranger behind the pair once those sentences were dropped; they are
+# only left out when the chosen text already says them.
+POSTURE_WORDS = {
+    'standing': r'\bstand', 'seated': r'\b(?:sit|sits|sitting|seated)\b', 'kneeling': r'\bkneel',
+    'all_fours': r'all fours|hands and knees', 'squatting': r'squat|crouch', 'lying': r'\b(?:lying|lies|reclin)',
+    'supine': r'on (?:the|their|his|her) back', 'prone': r'face down|on (?:the|their|his|her) (?:stomach|belly)',
+    'side_lying': r'on (?:the|their|his|her|one) side', 'walking': r'\bwalk', 'running': r'\brun',
+}
+ORIENTATION_WORDS = {
+    'front': r'(?:facing|faces|toward|towards) the (?:camera|viewer)', 'side': r'profile|side-on|side view',
+    'back': r'back (?:to|toward|towards) the (?:camera|viewer)|from behind|facing away',
+    'three_quarter': r'three[- ]quarter',
+}
+GAZE_WORDS = {
+    'camera': r'(?:at|into|toward|towards) the (?:camera|viewer|lens)', 'away': r'away from the camera|off[- ]camera',
+    'down': r'look\w* down|downward', 'up': r'look\w* up|upward', 'back': r'over (?:the|their|his|her) shoulder',
+    'closed': r'eyes (?:closed|shut)|closed eyes',
+}
+
+
+def _said(words: dict[str, str], value: str, text: str) -> bool:
+    return value in words and re.search(words[value], text) is not None
 
 # Operation order: scene first, then person changes; style leads in generation.
 EDIT_ORDER = ('environment', 'lighting', 'style', 'camera', 'framing', 'subject', 'face', 'body', 'skin', 'hair',
@@ -154,24 +177,27 @@ def build_ir(request: Request, assessment: Assessment) -> list:
     # the checks, unspoken, so what the person chose is not drowned by restatements. What the Studio decided or
     # corrected is still said: a surface no chosen text names, and a gaze turned to fit the body.
     body: list = []
-    chosen = ' '.join(b.text.lower() for b in blocks if isinstance(b, ir.Operation))
+    # Only what the body does counts: a bedroom setting names a bed without putting anyone on it.
+    chosen = ' '.join(b.text.lower() for b in blocks if isinstance(b, ir.Operation)
+                      and b.category in ('pose', 'action', 'expression'))
     posture = agreed({r.posture for r in assessment.requirements} - {None, 'any'})
     if posture:
-        body.append(ir.Guidance('posture', posture, spoken=False))
+        body.append(ir.Guidance('posture', posture, spoken=not _said(POSTURE_WORDS, posture, chosen)))
     needs = [r.support_any_of for r in assessment.requirements if r.support_any_of]
     for support, separate in _supports(needs, available_supports(request, assessment.resolved)):
-        named = re.search(rf'{SURFACE_WORDS[support]}', chosen) is not None
+        named = re.search(SURFACE_WORDS[support], chosen) is not None
         body.append(ir.Guidance(f'support:{support}' if separate else 'support', support, spoken=separate or not named))
     if edit and request.context.allow_new_supports and needs:
         body.append(ir.Guidance('new_supports', 'allowed'))
     orientation = effective_orientation(assessment.resolved)
     if orientation:
-        body.append(ir.Guidance('orientation', orientation, spoken=False))
+        body.append(ir.Guidance('orientation', orientation, spoken=not _said(ORIENTATION_WORDS, orientation, chosen)))
     gaze = body_gaze(orientation, agreed({r.gaze for r in assessment.requirements} - {None, 'any'}))
     if gaze:
-        # Said when the Studio turned the head to fit the body, and in an edit that keeps the photo's expression,
-        # where the gaze is the one part of the face that changes.
-        said = gaze in ('over_shoulder_camera', 'turn_to_camera') or (edit and request.attribute('expression').intent == 'keep')
+        # Also said when the Studio turned the head to fit the body, and in an edit that keeps the photo's
+        # expression, where the gaze is the one part of the face that changes.
+        said = (gaze in ('over_shoulder_camera', 'turn_to_camera') or not _said(GAZE_WORDS, gaze, chosen)
+                or (edit and request.attribute('expression').intent == 'keep'))
         body.append(ir.Guidance('gaze', gaze, spoken=said))
     if posture or orientation:
         body.append(ir.Guidance('head', 'natural', spoken=False))

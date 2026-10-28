@@ -23,11 +23,18 @@ def test_generic_lying_agrees_with_one_specific_lying_posture():
     assert agreed(set()) is None
 
 
-def test_specific_posture_and_orientation_become_checks_without_repeating_the_pose():
+def test_posture_and_orientation_are_said_only_when_the_pose_text_does_not_say_them():
     library = _library(fours={'posture': 'all_fours', 'orientation': 'back', 'gaze': 'any'})
     _, compiled = run(generate_request({'subject': cat('subject.woman'), 'pose': cat('pose.fours')}), library)
-    # The pose's own text already says it: restating posture and orientation only drowned the rest of the request.
-    assert 'The body is on all fours' not in compiled.text and 'seen from behind' not in compiled.text
+    # "fours" alone says neither: the metadata adds them.
+    assert 'The body is on all fours, with the knees on the surface and the hips above them.' in compiled.text
+    assert 'The body is seen from behind, with the back toward the camera.' in compiled.text
+    # A text that already says them is not repeated.
+    said = generate_request({'subject': cat('subject.woman'),
+                             'pose': {'intent': 'set', 'value': {'kind': 'text', 'text': 'on all fours, seen from behind'}}})
+    library = _library(fours={'posture': 'all_fours', 'orientation': 'back', 'gaze': 'any'})
+    _, text_pose = run(said, library)
+    assert 'The body is on all fours' not in text_pose.text and 'The body is seen from behind' not in text_pose.text
     ids = {check.id for check in checklist(compiled.blocks)}
     assert {'guide.posture', 'guide.orientation'} <= ids
 
@@ -77,8 +84,8 @@ def test_body_guidance_follows_the_pose_in_a_fixed_order():
     ids = [b.id for b in compiled.blocks]
     start = ids.index('op.expression') + 1
     assert ids[start:start + 4] == ['guide.posture', 'guide.support', 'guide.orientation', 'guide.gaze']
-    # Only the surface the Studio picked from the scene is said; the rest stays for the checks.
+    # "on all fours" already says the posture; the surface picked from the scene, the side seen and the gaze are said.
     spoken = {block_id for block_id, _ in compiled.segments}
-    assert 'guide.support' in spoken and not {'guide.posture', 'guide.orientation', 'guide.gaze'} & spoken
+    assert {'guide.support', 'guide.orientation', 'guide.gaze'} <= spoken and 'guide.posture' not in spoken
     assert ids.index('op.pose') < ids.index('op.expression') < ids.index('op.environment')
     assert 'guide.support' in {check.id for check in checklist(compiled.blocks)}
