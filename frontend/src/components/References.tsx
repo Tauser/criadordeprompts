@@ -5,8 +5,8 @@ import {imageSize} from '../lib/characters';
 import {CATEGORY_LABELS} from '../lib/labels';
 import {sortBy} from '../lib/sort';
 import {uuid} from '../lib/uuid';
-import {MAX_CHARACTERS, ROLES, addCharacter, addReference, addSavedCharacter, applyReference, characterNumber, clearSwap, describeCharacter,
-  placeCharacter, referenceRoles, removeCharacter, removeReference, setSwap, setTarget, type Workspace} from '../state/workspace';
+import {MAX_CHARACTERS, ROLES, addCharacter, addReference, addSavedCharacter, addSavedPrincipal, applyReference, characterNumber, clearSwap, describeCharacter,
+  isPrincipal, placeCharacter, referenceRoles, removeCharacter, removeReference, setSwap, setTarget, type Workspace} from '../state/workspace';
 import {Switch, Tip} from './Controls';
 import {Icon} from './Icon';
 import {MaskEditor} from './MaskEditor';
@@ -59,17 +59,18 @@ export function References({workspace, slots, disabled, update, notify, maskRequ
   const castFull = (request.characters ?? []).length >= MAX_CHARACTERS;
 
   // The ficha's main photo becomes a reference, and its character in the scene; its notes describe that person.
-  const useSaved = async (id: string) => {
+  const useSaved = async (id: string, principal = false) => {
     const character = saved?.find(c => c.id === id);
     if (!character || !character.photos[0]) return;
-    if (castFull) {notify(`Use até ${MAX_CHARACTERS} personagens extras.`, true); return;}
+    if (castFull && !principal) {notify(`Use até ${MAX_CHARACTERS} personagens extras.`, true); return;}
     if (request.references.length >= 10) {notify('Use até dez imagens.', true); return;}
     setBusy(true);
     try {
       const hash = character.photos[0];
       const size = await imageSize(fileUrl(hash));
       const file = {hash, width: size.width, height: size.height, name: character.name};
-      update(ws => addSavedCharacter(ws, 'ref-' + uuid().slice(0, 8), file, character.notes));
+      const refId = 'ref-' + uuid().slice(0, 8);
+      update(ws => principal ? addSavedPrincipal(ws, refId, file) : addSavedCharacter(ws, refId, file, character.notes));
     } catch (error) {
       notify((error as Error).message, true);
     } finally {
@@ -168,7 +169,11 @@ export function References({workspace, slots, disabled, update, notify, maskRequ
           const swap = request.swap?.reference_id === ref.id ? request.swap : null;
           const swapHeld = !!request.swap;
           const slot = isTarget ? 1 : slots[ref.id];
-          const role = isTarget ? 'Foto alvo' : swap ? 'Troca de pessoa' : person ? `Personagem ${person}` : roles.length ? 'Referência' : 'Não usada';
+          const principal = !isTarget && isPrincipal(workspace, ref.id);
+          const role = isTarget ? 'Foto alvo' : swap ? 'Troca de pessoa' : person ? `Personagem ${person}`
+            : principal ? 'Personagem principal' : roles.length ? 'Referência' : 'Não usada';
+          // The main person's own aspects go without saying; anything more it lends is still listed.
+          const lent = principal ? roles.filter(r => !ROLES.character.categories.includes(r)) : roles;
           const actions = [
             edit && !isTarget ? {label: 'Usar como foto alvo', run: () => {
               if (confirm('Usar esta imagem como foto alvo? Ela deixará de fornecer atributos.')) act(ws => setTarget(ws, ref.id)); else setMenu(null);}} : null,
@@ -198,6 +203,7 @@ export function References({workspace, slots, disabled, update, notify, maskRequ
                 {isTarget ? <span className="muted small">Será editada</span>
                   : swap ? <span className="badge">Entra no lugar</span>
                   : person ? <span className="muted small">Rosto, corpo, pele e cabelo</span>
+                  : principal ? <span className="muted small">Rosto, corpo, pele e cabelo{lent.length ? ' · também ' + lent.map(r => CATEGORY_LABELS[r].toLowerCase()).join(', ') : ''}</span>
                   : roles.length ? <span className="muted small">Fornece: {roles.map(r => CATEGORY_LABELS[r]).join(', ')}</span> : null}
                 {swap && (
                   <select aria-label={`Quanto trocar com ${ref.label}`} value={swap.mode} disabled={disabled}
@@ -237,8 +243,17 @@ export function References({workspace, slots, disabled, update, notify, maskRequ
         })}
       </ul>}
       <div className="character-pick">
-        <label>Usar personagem da ficha
-          <select aria-label="Usar personagem da ficha" value="" disabled={disabled || busy || castFull || !saved?.length} onChange={e => {
+        {!edit && <label>Personagem principal da ficha
+          <select aria-label="Personagem principal da ficha" value="" disabled={disabled || busy || !saved?.length} onChange={e => {
+            const id = e.target.value;
+            if (id) void useSaved(id, true);
+          }}>
+            <option value="">{saved === null ? (savedFailed ? 'Indisponível' : 'Carregando…') : saved.length ? 'Escolha uma ficha' : 'Nenhuma ficha salva'}</option>
+            {saved?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </label>}
+        <label>{edit ? 'Usar personagem da ficha' : 'Outro personagem da ficha'}
+          <select aria-label={edit ? 'Usar personagem da ficha' : 'Outro personagem da ficha'} value="" disabled={disabled || busy || castFull || !saved?.length} onChange={e => {
             const id = e.target.value;
             if (id) void useSaved(id);
           }}>

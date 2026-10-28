@@ -3,7 +3,7 @@ import {useState} from 'react';
 import {cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {api} from '../api/client';
-import {addReference, initialWorkspace, setSwap, type Workspace} from '../state/workspace';
+import {addReference, applyReference, initialWorkspace, setSwap, type Workspace} from '../state/workspace';
 import {References} from './References';
 
 vi.mock('../api/client', () => ({api: {upload: vi.fn(), characters: vi.fn(async () => ({characters: []}))},
@@ -118,4 +118,28 @@ it('shows the warnings about the cast under the character pick and under the pos
   fireEvent.change(screen.getByLabelText('Usar personagem da ficha'), {target: {value: 'c1'}});
   const position = await screen.findByLabelText('Posição do personagem 2');
   expect(position.parentElement?.textContent).toContain('Escolha a posição do personagem.');
+});
+
+it('in a new image, a ficha can be the main person, and its photo says so', async () => {
+  vi.mocked(api.characters).mockResolvedValue({characters: [{id: 'c1', name: 'Ana', notes: 'Roupa de sempre',
+    photos: ['b'.repeat(64)], created_at: 1, updated_at: 1}, {id: 'c2', name: 'Bia', notes: '',
+    photos: ['c'.repeat(64)], created_at: 1, updated_at: 1}]});
+  render(<Editor start={initialWorkspace('generate')} />);
+  await waitFor(() => expect(screen.getAllByRole('option', {name: 'Ana'})).toHaveLength(2));
+  fireEvent.change(screen.getByLabelText('Personagem principal da ficha'), {target: {value: 'c1'}});
+  expect(await screen.findByRole('img', {name: 'Ana'})).toBeTruthy();
+  expect(screen.getByText('Personagem principal')).toBeTruthy();
+  expect(screen.getByText('Rosto, corpo, pele e cabelo')).toBeTruthy();
+  expect(screen.queryByText('Personagem 2')).toBeNull();
+  fireEvent.change(screen.getByLabelText('Outro personagem da ficha'), {target: {value: 'c2'}});
+  expect(await screen.findByText('Personagem 2')).toBeTruthy();
+});
+
+it('a photo applied as the main person is labelled so, and editing keeps one ficha picker', () => {
+  render(<Editor start={applyReference(withPhotos('generate', 'ana'), 'ana', 'character')} />);
+  expect(screen.getByText('Personagem principal')).toBeTruthy();
+  cleanup();
+  render(<Editor start={withPhotos('edit', 'alvo')} />);
+  expect(screen.queryByLabelText('Personagem principal da ficha')).toBeNull();
+  expect(screen.getByLabelText('Usar personagem da ficha')).toBeTruthy();
 });

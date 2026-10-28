@@ -183,6 +183,21 @@ export function addSavedCharacter(ws: Workspace, id: string, file: FileInfo, not
   return describeCharacter(addCharacter(next, id), id, notes);
 }
 
+// A ficha as the main person of a new image: its photo lends face, body, skin and hair to the first person.
+export function addSavedPrincipal(ws: Workspace, id: string, file: FileInfo): Workspace {
+  if (ws.request.references.length >= 10) throw new Error('Use até dez imagens.');
+  const next = clone(ws);
+  next.request.references.push({id, label: file.name});
+  next.files[id] = file;
+  return applyReference(next, id, 'character');
+}
+
+/** Whether this photo is the main person: it lends all of face, body, skin and hair. */
+export function isPrincipal(ws: Workspace, id: string): boolean {
+  const roles = referenceRoles(ws, id);
+  return ROLES.character.categories.every(c => roles.includes(c));
+}
+
 export function describeCharacter(ws: Workspace, id: string, description: string): Workspace {
   const next = clone(ws);
   next.request.characters = (next.request.characters ?? []).map(c => c.reference_id === id ? {...c, description} : c);
