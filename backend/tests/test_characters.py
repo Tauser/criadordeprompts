@@ -46,7 +46,8 @@ def create(client, name='Ana', photos=None, notes=''):
 def test_create_returns_the_character_and_list_is_ordered_by_name(client):
     photo = upload(client)
     created = create(client, '  Bruno  ', [photo], notes='camiseta azul, fala baixo').json()
-    assert set(created) == {'id', 'name', 'notes', 'photos', 'created_at', 'updated_at'}
+    assert set(created) == {'id', 'name', 'notes', 'photos', 'sex', 'created_at', 'updated_at'}
+    assert created['sex'] is None
     assert created['name'] == 'Bruno' and created['notes'] == 'camiseta azul, fala baixo'
     assert created['photos'] == [photo]
     create(client, 'carla')
@@ -91,6 +92,16 @@ def test_update_changes_only_the_given_fields(client):
     assert renamed['name'] == 'Ana Clara' and renamed['photos'] == [other, photo]
     assert renamed['updated_at'] >= character['updated_at']
     assert client.get('/api/characters').json()['characters'] == [renamed]
+
+
+def test_sex_is_saved_changed_kept_and_cleared(client):
+    character = client.post('/api/characters', json={'name': 'Ana', 'photos': [upload(client)], 'sex': 'female'}).json()
+    assert character['sex'] == 'female'
+    url = f'/api/characters/{character["id"]}'
+    assert client.put(url, json={'notes': 'de vestido'}).json()['sex'] == 'female'     # left out: it stays
+    assert client.put(url, json={'sex': 'male'}).json()['sex'] == 'male'
+    assert client.put(url, json={'sex': None}).json()['sex'] is None                  # null clears it
+    assert client.put(url, json={'sex': 'other'}).status_code == 422
 
 
 def test_update_validates_like_create(client):

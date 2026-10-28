@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ApiError, api} from '../api/client';
-import type {Attribute, Category, Issue, LibrarySnapshot, Prepared, Run, StudioRequest} from '../api/types';
+import type {Attribute, Category, Issue, LibrarySnapshot, Prepared, Run, Sex, StudioRequest} from '../api/types';
 import {ADVANCED, BASIC, FRAMING_LABELS, RUN_STATUS, TERMINAL} from '../lib/labels';
 import {formatSeconds, runProgress} from '../lib/progress';
 import {useCollapsed} from '../lib/useCollapsed';
@@ -10,7 +10,7 @@ import {useFinishNotice} from '../lib/finishNotice';
 import {useRun} from '../lib/useRun';
 import {uuid} from '../lib/uuid';
 import {addReference, applyPreset, applySuggestion, enterManual, filesForSubmit, initialWorkspace, leaveManual, removeReference,
-  requestForSubmit, setAttribute, setTarget, switchMode, syncAuto, type Workspace} from '../state/workspace';
+  requestForSubmit, setAttribute, setTarget, sexesWith, switchMode, syncAuto, type Workspace} from '../state/workspace';
 import {AttributeField} from './AttributeField';
 import {CollapseButton} from './Collapse';
 import {CompareGrid, startComparison, type ComparePlan, type GridCell} from './CompareGrid';
@@ -513,6 +513,13 @@ function SceneContext({request, patch, reveal, alert, people, detection, detecte
   const fieldIssues = (key: string) => issues[key]?.length
     ? <ul className="field-issues">{issues[key].map(m => <li key={m}>{m}</li>)}</ul> : null;
   const found = detection?.status === 'done' ? detection.count ?? 0 : null;
+  const sexes = request.participants.sexes ?? [];
+  // The second person onwards may be a character: named by its photo, as in the Referências block.
+  const personName = (n: number) => {
+    const character = n > 1 ? (request.characters ?? [])[n - 2] : undefined;
+    const label = character && request.references.find(r => r.id === character.reference_id)?.label;
+    return `${n}ª pessoa` + (label ? ` · ${label}` : n === 1 && edit ? ' · da foto' : '');
+  };
   return (
     <Disclosure title="Cena" summary={summary} reveal={reveal} alert={alert}>
       <div className="fields three">
@@ -539,6 +546,21 @@ function SceneContext({request, patch, reveal, alert, people, detection, detecte
           {detection?.status === 'done' && found === 0 && existing == null && <span className="muted small">Nenhum rosto encontrado: escolha o número.</span>}
           {detection?.status === 'failed' && existing == null && <span className="muted small">{detection.error}</span>}
           {fieldIssues('participants.existing')}
+        </div>}
+        {(total ?? 0) > 1 && <div className="field people-sexes">
+          <span className="field-label" title={'Diga quem é mulher e quem é homem. O prompt prende cada corpo à sua pessoa, e o corpo '
+            + 'de uma não passa para a outra onde elas se tocam. As fichas com sexo preenchem isto sozinhas.'}>Quem é quem</span>
+          {Array.from({length: Math.min(total ?? 0, 10)}, (_, i) => i + 1).map(n => (
+            <div key={n} className="sex-row">
+              <span className="small" title={personName(n)}>{personName(n)}</span>
+              <Segmented<Sex | ''> small label={`Sexo da ${n}ª pessoa`} value={sexes[n - 1] ?? ''}
+                options={[{value: 'female', label: 'Mulher'}, {value: 'male', label: 'Homem'}]}
+                onChange={value => patch(r => {
+                  r.participants.sexes = sexesWith(r.participants.sexes, n, value === sexes[n - 1] ? null : value || null);
+                })} />
+            </div>
+          ))}
+          {fieldIssues('participants.sexes')}
         </div>}
         {edit && <label>Enquadramento da foto<select value={request.context.original_framing ?? ''}
           onChange={e => patch(r => {r.context.original_framing = (e.target.value || null) as StudioRequest['context']['original_framing'];})}>

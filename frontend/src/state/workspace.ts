@@ -1,5 +1,5 @@
 // Pure, serializable workspace logic. No DOM, no network: unit-tested in workspace.test.ts.
-import {CATEGORIES, type Attribute, type Category, type CharacterPosition, type StudioRequest, type Suggestion, type SwapMode} from '../api/types';
+import {CATEGORIES, type Attribute, type Category, type CharacterPosition, type Sex, type StudioRequest, type Suggestion, type SwapMode} from '../api/types';
 
 export interface FileInfo {hash: string; width: number; height: number; name: string}
 export interface Workspace {
@@ -113,7 +113,7 @@ export function addReference(ws: Workspace, id: string, file: FileInfo): Workspa
 export function applyReference(ws: Workspace, id: string, role: keyof typeof ROLES): Workspace {
   if (id === ws.request.target_id) throw new Error('A foto alvo já é a base da edição; use "Manter".');
   const next = clone(ws);
-  next.request.characters = (next.request.characters ?? []).filter(c => c.reference_id !== id);
+  dropCharacter(next, id);
   const restore = next.restore[id] ?? {};
   for (const category of ROLES[role].categories) {
     const current = next.request.attributes[category] ?? null;
@@ -154,6 +154,31 @@ function release(next: Workspace, id: string) {
 
 export const MAX_CHARACTERS = 3;
 
+// A character leaving the scene takes their sex along: the people after them move up one place, and so do their sexes.
+function dropCharacter(next: Workspace, id: string) {
+  const characters = next.request.characters ?? [];
+  const index = characters.findIndex(c => c.reference_id === id);
+  if (index < 0) return;
+  next.request.characters = characters.filter(c => c.reference_id !== id);
+  const sexes = next.request.participants.sexes;
+  if (sexes && sexes.length > index + 1) next.request.participants.sexes = sexes.filter((_, i) => i !== index + 1);
+}
+
+/** The sexes with this person's (1 = the first person) set to `sex`; null clears it. */
+export function sexesWith(current: (Sex | null)[] | undefined, person: number, sex: Sex | null): (Sex | null)[] {
+  const sexes = [...(current ?? [])];
+  while (sexes.length < person) sexes.push(null);
+  sexes[person - 1] = sex;
+  while (sexes.length && sexes[sexes.length - 1] == null) sexes.pop();
+  return sexes;
+}
+
+export function setSex(ws: Workspace, person: number, sex: Sex | null): Workspace {
+  const next = clone(ws);
+  next.request.participants.sexes = sexesWith(next.request.participants.sexes, person, sex);
+  return next;
+}
+
 // Another person in the scene, with the appearance of a reference photo. Order = second, third, fourth person.
 export function addCharacter(ws: Workspace, id: string): Workspace {
   if (id === ws.request.target_id) throw new Error('A foto editada não pode ser também a de outro personagem.');
@@ -169,27 +194,30 @@ export function addCharacter(ws: Workspace, id: string): Workspace {
 
 export function removeCharacter(ws: Workspace, id: string): Workspace {
   const next = clone(ws);
-  next.request.characters = (next.request.characters ?? []).filter(c => c.reference_id !== id);
+  dropCharacter(next, id);
   return next;
 }
 
 // A saved character ("ficha") used in this request: its main photo is a reference that is another person in the scene.
 // Unlike addReference, it never becomes the photo to edit, even when the request has none yet.
-export function addSavedCharacter(ws: Workspace, id: string, file: FileInfo, notes: string): Workspace {
+export function addSavedCharacter(ws: Workspace, id: string, file: FileInfo, notes: string, sex: Sex | null = null): Workspace {
   if (ws.request.references.length >= 10) throw new Error('Use até dez imagens.');
   const next = clone(ws);
   next.request.references.push({id, label: file.name});
   next.files[id] = file;
-  return describeCharacter(addCharacter(next, id), id, notes);
+  const added = describeCharacter(addCharacter(next, id), id, notes);
+  // The ficha knows whether the person is a woman or a man; without it, whatever was chosen for that place stays.
+  return sex ? setSex(added, characterNumber(added, id) ?? 2, sex) : added;
 }
 
 // A ficha as the main person of a new image: its photo lends face, body, skin and hair to the first person.
-export function addSavedPrincipal(ws: Workspace, id: string, file: FileInfo): Workspace {
+export function addSavedPrincipal(ws: Workspace, id: string, file: FileInfo, sex: Sex | null = null): Workspace {
   if (ws.request.references.length >= 10) throw new Error('Use até dez imagens.');
   const next = clone(ws);
   next.request.references.push({id, label: file.name});
   next.files[id] = file;
-  return applyReference(next, id, 'character');
+  const applied = applyReference(next, id, 'character');
+  return sex ? setSex(applied, 1, sex) : applied;
 }
 
 /** Whether this photo is the main person: it lends all of face, body, skin and hair. */
@@ -224,7 +252,7 @@ export function setSwap(ws: Workspace, id: string, mode: SwapMode): Workspace {
   const turningOn = ws.request.swap?.reference_id !== id;
   const next = clone(ws);
   release(next, id);
-  next.request.characters = (next.request.characters ?? []).filter(c => c.reference_id !== id);
+  dropCharacter(next, id);
   next.request.swap = {reference_id: id, mode};
   // Two variations are the usual way to get one good result, since some seeds fail; set once, when the swap turns on.
   if (turningOn && next.request.output.variations === 1) next.request.output.variations = 2;
@@ -241,7 +269,7 @@ export function clearSwap(ws: Workspace): Workspace {
 export function removeReference(ws: Workspace, id: string): Workspace {
   const next = clone(ws);
   release(next, id);
-  next.request.characters = (next.request.characters ?? []).filter(c => c.reference_id !== id);
+  dropCharacter(next, id);
   next.request.references = next.request.references.filter(ref => ref.id !== id);
   if (next.request.swap?.reference_id === id) next.request.swap = null;
   delete next.files[id];
@@ -257,7 +285,7 @@ export function removeReference(ws: Workspace, id: string): Workspace {
 export function setTarget(ws: Workspace, id: string): Workspace {
   const next = clone(ws);
   release(next, id);
-  next.request.characters = (next.request.characters ?? []).filter(c => c.reference_id !== id);
+  dropCharacter(next, id);
   if (next.request.swap?.reference_id === id) next.request.swap = null;   // the photo to edit cannot swap with itself
   if (next.request.target_id !== id) {     // another photo: its people are counted again
     next.request.participants.existing = null; next.existingFrom = null;

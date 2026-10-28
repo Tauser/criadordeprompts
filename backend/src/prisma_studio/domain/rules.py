@@ -135,6 +135,7 @@ def assess(request: Request, library: Library) -> Assessment:
     _check_edit_load(request, resolved, report)
     total, existing = _participants(request, resolved, report)
     _check_cast(request, resolved, report)
+    _check_sexes(request, resolved, total, report)
     if request.wardrobe_scope == 'all':
         if request.attribute('wardrobe').intent != 'set':
             report('wardrobe_scope_requires_set', 'attributes.wardrobe',
@@ -205,6 +206,22 @@ def _check_cast(request, resolved, report) -> None:
                 report('character_position_needed', f'characters.{index}.position', 'Esta pose diz quem faz o quê '
                        'pelo lugar de cada pessoa (esquerda, direita, frente ou atrás). Escolha a posição do personagem; '
                        'sem ela os papéis podem sair trocados.', 'warning')
+
+
+def people_sexes(request: Request, people: int) -> tuple:
+    """The sex of each of the people in the result, in order; None where it was not given."""
+    given = tuple(request.participants.sexes[:people])
+    return given + (None,) * (people - len(given))
+
+
+def _check_sexes(request, resolved, total, report) -> None:
+    # Bodies in contact share one region of the picture: a man's chest or hips drifted onto the woman beside him when
+    # nothing in the prompt said which body was whose.
+    people = max(total or 1, 1 + len(request.characters))
+    if people < 2 or not _group_moves(request, resolved) or None not in people_sexes(request, people):
+        return
+    report('sex_unknown', 'participants.sexes', 'Diga quem é mulher e quem é homem: sem isso, numa cena com contato, o '
+           'corpo de uma pessoa pode passar para a outra.', 'warning')
 
 
 def _slots(request: Request) -> dict[str, int]:

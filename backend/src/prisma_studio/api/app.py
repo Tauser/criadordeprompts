@@ -30,14 +30,14 @@ from ..config import Config
 from ..domain.catalog import Item
 from ..domain.request import Request
 from ..domain.text_audit import audit_item
-from ..domain.vocabulary import CATEGORIES, Confirmation
+from ..domain.vocabulary import CATEGORIES, Confirmation, Sex
 from ..infrastructure.comfy.client import ComfyClient, ComfyRejected, ComfyUnavailable
 from ..infrastructure.comfy.progress import ProgressTracker
 from ..infrastructure.comfy.workflows import PROFILES, TEXT_MASK_CHARS, generation_size
 from ..infrastructure.db.backup import BackupScheduler
 from ..infrastructure.db.database import Database
-from ..infrastructure.db.repository import (RUN_STATUSES, CharacterRepository, InvalidTransition, LibraryRepository,
-                                            MissingPhoto, PresetRepository, RunRepository)
+from ..infrastructure.db.repository import (KEEP, RUN_STATUSES, CharacterRepository, InvalidTransition,
+                                            LibraryRepository, MissingPhoto, PresetRepository, RunRepository)
 from ..infrastructure.discovery import LocalDiscovery
 from ..infrastructure.instance_lock import InstanceLock
 from ..infrastructure.storage.files import FileStore
@@ -119,6 +119,7 @@ class CharacterCreate(BaseModel):
     name: str = Field(min_length=1, max_length=60)
     notes: str = Field(default='', max_length=500)
     photos: list[str] = Field(min_length=1, max_length=6)
+    sex: Sex | None = None
 
     @field_validator('name', mode='before')
     @classmethod
@@ -136,6 +137,7 @@ class CharacterUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=60)
     notes: str | None = Field(default=None, max_length=500)
     photos: list[str] | None = Field(default=None, min_length=1, max_length=6)
+    sex: Sex | None = None                   # sent as null, it clears the ficha's sex; left out, it stays
 
     @field_validator('name', mode='before')
     @classmethod
@@ -412,14 +414,15 @@ def create_app(config: Config | None = None, container: Container | None = None)
     @app.post('/api/characters')
     def create_character(body: CharacterCreate):
         try:
-            return c.characters.create(body.name, body.notes, body.photos)
+            return c.characters.create(body.name, body.notes, body.photos, body.sex)
         except MissingPhoto as error:
             return JSONResponse({'error': str(error)}, status_code=422)
 
     @app.put('/api/characters/{character_id}')
     def update_character(character_id: str, body: CharacterUpdate):
         try:
-            character = c.characters.update(character_id, name=body.name, notes=body.notes, photos=body.photos)
+            character = c.characters.update(character_id, name=body.name, notes=body.notes, photos=body.photos,
+                                             sex=body.sex if 'sex' in body.model_fields_set else KEEP)
         except MissingPhoto as error:
             return JSONResponse({'error': str(error)}, status_code=422)
         if character is None:

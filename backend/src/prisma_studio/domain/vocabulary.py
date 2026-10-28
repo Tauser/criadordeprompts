@@ -16,6 +16,7 @@ Period = Literal['day', 'golden', 'blue', 'night', 'any']    # time of day a lig
 Place = Literal['indoor', 'outdoor', 'any']
 Support = Literal['floor', 'seat', 'bed', 'wall', 'table']
 Framing = Literal['portrait', 'half', 'full', 'wide']
+Sex = Literal['female', 'male']
 # The most specific surface wins when a pose accepts several; the floor is the generic fallback.
 SUPPORT_PRIORITY = ('bed', 'seat', 'table', 'wall', 'floor')
 FRAMING_ORDER = {'portrait': 0, 'half': 1, 'full': 2, 'wide': 3}

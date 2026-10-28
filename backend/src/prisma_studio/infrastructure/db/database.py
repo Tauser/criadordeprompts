@@ -98,6 +98,10 @@ MIGRATIONS = [
         updated_at REAL
     );
     """,
+    # 5: the ficha says whether the character is a woman or a man (NULL: not given), so bodies do not swap in a scene.
+    """
+    ALTER TABLE characters ADD COLUMN sex TEXT;
+    """,
 ]
 
 
