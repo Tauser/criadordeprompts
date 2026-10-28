@@ -4,6 +4,7 @@ import {cleanup, fireEvent, render, screen, waitFor} from '@testing-library/reac
 import {afterEach, expect, it, vi} from 'vitest';
 import {api} from '../api/client';
 import {addReference, applyReference, initialWorkspace, setSwap, type Workspace} from '../state/workspace';
+import {Cast} from './Cast';
 import {References} from './References';
 
 vi.mock('../api/client', () => ({api: {upload: vi.fn(), characters: vi.fn(async () => ({characters: []}))},
@@ -31,15 +32,21 @@ it.each(['generate', 'edit'] as const)('adds uploaded photos in %s mode without 
 vi.mock('../lib/characters', async importOriginal => ({...await importOriginal<typeof import('../lib/characters')>(),
   imageSize: vi.fn(async () => ({width: 800, height: 1200}))}));
 
+const namesOf = (ws: Workspace) => ['Pessoa 1', ...(ws.request.characters ?? []).map((_, i) => `Pessoa ${i + 2}`)];
+function Form({start, issues = {}, notify = vi.fn()}: {start: Workspace; issues?: Record<string, string[]>;
+  notify?: (m: string, e?: boolean) => void}) {
+  const [workspace, update] = useState(start);
+  return <>
+    <References workspace={workspace} update={update} disabled={false} slots={{}} notify={notify} />
+    <Cast workspace={workspace} names={namesOf(workspace)} automatic update={update} notify={notify} issues={issues} />
+  </>;
+}
+
 it('uses a saved character: its main photo is another person in the scene, described by the notes', async () => {
   vi.mocked(api.characters).mockResolvedValue({characters: [{id: 'c1', name: 'Ana', notes: 'Roupa de sempre',
     photos: ['b'.repeat(64)], created_at: 1, updated_at: 1}]});
   const notify = vi.fn();
-  function Editor() {
-    const [workspace, update] = useState(initialWorkspace('edit'));
-    return <References workspace={workspace} update={update} disabled={false} slots={{}} notify={notify} />;
-  }
-  render(<Editor />);
+  render(<Form start={initialWorkspace('edit')} notify={notify} />);
   await waitFor(() => expect(screen.getByRole('option', {name: 'Ana'})).toBeTruthy());
   fireEvent.change(screen.getByLabelText('Usar personagem da ficha'), {target: {value: 'c1'}});
   expect(await screen.findByRole('img', {name: 'Ana'})).toBeTruthy();
@@ -107,11 +114,7 @@ it('shows the warnings about the cast under the character pick and under the pos
   vi.mocked(api.characters).mockResolvedValue({characters: [{id: 'c1', name: 'Ana', notes: '',
     photos: ['b'.repeat(64)], created_at: 1, updated_at: 1}]});
   const issues = {'characters': ['Prefira Criar.'], 'characters.0.position': ['Escolha a posição do personagem.']};
-  function Editor() {
-    const [workspace, update] = useState(initialWorkspace('edit'));
-    return <References workspace={workspace} update={update} disabled={false} slots={{}} notify={vi.fn()} issues={issues} />;
-  }
-  render(<Editor />);
+  render(<Form start={initialWorkspace('edit')} issues={issues} />);
   expect(screen.getByText('Prefira Criar.')).toBeTruthy();
   expect(screen.queryByText('Escolha a posição do personagem.')).toBeNull();
   await waitFor(() => expect(screen.getByRole('option', {name: 'Ana'})).toBeTruthy());
@@ -124,7 +127,7 @@ it('in a new image, a ficha can be the main person, and its photo says so', asyn
   vi.mocked(api.characters).mockResolvedValue({characters: [{id: 'c1', name: 'Ana', notes: 'Roupa de sempre',
     photos: ['b'.repeat(64)], created_at: 1, updated_at: 1}, {id: 'c2', name: 'Bia', notes: '',
     photos: ['c'.repeat(64)], created_at: 1, updated_at: 1}]});
-  render(<Editor start={initialWorkspace('generate')} />);
+  render(<Form start={initialWorkspace('generate')} />);
   await waitFor(() => expect(screen.getAllByRole('option', {name: 'Ana'})).toHaveLength(2));
   fireEvent.change(screen.getByLabelText('Personagem principal da ficha'), {target: {value: 'c1'}});
   expect(await screen.findByRole('img', {name: 'Ana'})).toBeTruthy();
@@ -139,7 +142,7 @@ it('a photo applied as the main person is labelled so, and editing keeps one fic
   render(<Editor start={applyReference(withPhotos('generate', 'ana'), 'ana', 'character')} />);
   expect(screen.getByText('Personagem principal')).toBeTruthy();
   cleanup();
-  render(<Editor start={withPhotos('edit', 'alvo')} />);
+  render(<Form start={withPhotos('edit', 'alvo')} />);
   expect(screen.queryByLabelText('Personagem principal da ficha')).toBeNull();
   expect(screen.getByLabelText('Usar personagem da ficha')).toBeTruthy();
 });

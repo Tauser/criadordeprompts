@@ -10,7 +10,7 @@ import {useFinishNotice} from '../lib/finishNotice';
 import {useRun} from '../lib/useRun';
 import {uuid} from '../lib/uuid';
 import {addReference, applyPreset, applySuggestion, enterManual, filesForSubmit, initialWorkspace, leaveManual, removeReference,
-  isPrincipal, requestForSubmit, setAttribute, setTarget, sexesWith, switchMode, syncAuto, type Workspace} from '../state/workspace';
+  isPrincipal, requestForSubmit, setAttribute, setTarget, switchMode, syncAuto, type Workspace} from '../state/workspace';
 import {AttributeField} from './AttributeField';
 import {CollapseButton} from './Collapse';
 import {CompareGrid, startComparison, type ComparePlan, type GridCell} from './CompareGrid';
@@ -182,7 +182,7 @@ export function Studio({library, comfyOnline, notify}: Props) {
     ...(request.characters ?? []).map((c, i) => `Pessoa ${i + 2} (${label(c.reference_id) ?? 'personagem'})`)];
   // Everyone in the result: the rules' count, named by photo or ficha where there is one.
   const castTotal = prepared?.participants?.total ?? request.participants.requested ?? 0;
-  const castNames = Array.from({length: Math.min(castTotal, 10)}, (_, i) => personNames[i]
+  const castNames = Array.from({length: Math.min(Math.max(castTotal, personNames.length), 10)}, (_, i) => personNames[i]
     ?? (request.mode === 'edit' && i < (request.participants.existing ?? 0) ? `Pessoa ${i + 1} (da foto)` : `Pessoa ${i + 1}`));
   // The options for a pose or action that fit how many people the photos and fichas bring come first.
   const chars = (request.characters ?? []).length;
@@ -365,11 +365,9 @@ export function Studio({library, comfyOnline, notify}: Props) {
               <Icon name="refresh" size={14} />Limpar</button>
           </div>
           <FinishNotice finish={finish} />
-          <References workspace={workspace} slots={prepared?.slots ?? {}} disabled={false} update={update} notify={notify} maskRequest={maskRequest}
-                      issues={issuesByField} />
-          <Cast names={castNames} sexes={request.participants.sexes ?? []} automatic={request.participants.requested == null}
-                disabled={request.prompt_mode === 'manual'} issues={issuesByField['participants.sexes']}
-                onSex={(n, sex) => patch(r => {r.participants.sexes = sexesWith(r.participants.sexes, n, sex);})} />
+          <References workspace={workspace} slots={prepared?.slots ?? {}} disabled={false} update={update} notify={notify} maskRequest={maskRequest} />
+          <Cast workspace={workspace} names={castNames} automatic={request.participants.requested == null}
+                disabled={request.prompt_mode === 'manual'} issues={issuesByField} update={update} notify={notify} />
           <section className="card" aria-labelledby="ask-title">
             <div className="section-title">
               <h2 id="ask-title">{request.mode === 'edit' ? 'O que mudar' : 'O que pedir'}</h2>

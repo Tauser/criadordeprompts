@@ -1,16 +1,14 @@
 import {useEffect, useRef, useState} from 'react';
 import {api, fileUrl} from '../api/client';
-import type {CharacterPosition, SavedCharacter, SwapMode} from '../api/types';
-import {imageSize} from '../lib/characters';
+import type {SwapMode} from '../api/types';
 import {CATEGORY_LABELS} from '../lib/labels';
 import {sortBy} from '../lib/sort';
 import {uuid} from '../lib/uuid';
-import {MAX_CHARACTERS, ROLES, addCharacter, addReference, addSavedCharacter, addSavedPrincipal, applyReference, characterNumber, clearSwap, describeCharacter,
-  isPrincipal, placeCharacter, referenceRoles, removeCharacter, removeReference, setSwap, setTarget, type Workspace} from '../state/workspace';
+import {MAX_CHARACTERS, ROLES, addCharacter, addReference, applyReference, characterNumber, clearSwap, isPrincipal,
+  referenceRoles, removeCharacter, removeReference, setSwap, setTarget, type Workspace} from '../state/workspace';
 import {Switch, Tip} from './Controls';
 import {Icon} from './Icon';
 import {MaskEditor} from './MaskEditor';
-import {TranslateButton} from './Translate';
 
 interface Props {
   workspace: Workspace;
@@ -19,18 +17,14 @@ interface Props {
   update: (next: Workspace | ((ws: Workspace) => Workspace)) => void;
   notify: (message: string, error?: boolean) => void;
   maskRequest?: number;   // each change opens the mask editor on the photo (from "Corrigir área")
-  issues?: Record<string, string[]>;   // the request's messages by field, shown under the character they are about
 }
-
-const issueList = (messages?: string[]) =>
-  messages?.length ? <ul className="field-issues">{messages.map(m => <li key={m}>{m}</li>)}</ul> : null;
 
 const SWAP_MODES: Record<SwapMode, {label: string; help: string}> = {
   body: {label: 'Corpo inteiro', help: 'A pessoa inteira, com a roupa dela, na pose e no lugar da foto.'},
   head: {label: 'Só o rosto', help: 'Só a cabeça e o cabelo, no corpo da pessoa da foto.'},
 };
 
-export function References({workspace, slots, disabled, update, notify, maskRequest = 0, issues = {}}: Props) {
+export function References({workspace, slots, disabled, update, notify, maskRequest = 0}: Props) {
   const [busy, setBusy] = useState(false);
   const [masking, setMasking] = useState(false);
   const maskRow = useRef<HTMLDivElement>(null);
@@ -46,38 +40,7 @@ export function References({workspace, slots, disabled, update, notify, maskRequ
   const [menu, setMenu] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const addRef = useRef<(files: File[]) => void>(() => undefined);
-  // Fichas de personagem saved on the "Personagens" screen; this form only reads them.
-  const [saved, setSaved] = useState<SavedCharacter[] | null>(null);
-  const [savedFailed, setSavedFailed] = useState(false);
-  useEffect(() => {
-    let stopped = false;
-    api.characters()
-      .then(result => {if (!stopped) setSaved(result.characters);})
-      .catch(() => {if (!stopped) setSavedFailed(true);});
-    return () => {stopped = true;};
-  }, []);
   const castFull = (request.characters ?? []).length >= MAX_CHARACTERS;
-
-  // The ficha's main photo becomes a reference, and its character in the scene; its notes describe that person.
-  const useSaved = async (id: string, principal = false) => {
-    const character = saved?.find(c => c.id === id);
-    if (!character || !character.photos[0]) return;
-    if (castFull && !principal) {notify(`Use até ${MAX_CHARACTERS} personagens extras.`, true); return;}
-    if (request.references.length >= 10) {notify('Use até dez imagens.', true); return;}
-    setBusy(true);
-    try {
-      const hash = character.photos[0];
-      const size = await imageSize(fileUrl(hash));
-      const file = {hash, width: size.width, height: size.height, name: character.name};
-      const refId = 'ref-' + uuid().slice(0, 8);
-      update(ws => principal ? addSavedPrincipal(ws, refId, file, character.sex ?? null)
-        : addSavedCharacter(ws, refId, file, character.notes, character.sex ?? null));
-    } catch (error) {
-      notify((error as Error).message, true);
-    } finally {
-      setBusy(false);
-    }
-  };
 
   const add = async (list: FileList | File[] | null) => {
     const all = Array.from(list ?? []);
@@ -131,11 +94,6 @@ export function References({workspace, slots, disabled, update, notify, maskRequ
   };
 
   const empty = request.references.length === 0;
-  const characters = request.references.flatMap(ref => {
-    const person = characterNumber(workspace, ref.id);
-    const character = (request.characters ?? []).find(c => c.reference_id === ref.id);
-    return person && character ? [{ref, person, character}] : [];
-  });
   const upload = (
     <input type="file" accept="image/png,image/jpeg,image/webp" multiple disabled={disabled || busy} aria-label="Adicionar imagens"
            onChange={e => {add(e.target.files); e.target.value = '';}} />
@@ -243,48 +201,6 @@ export function References({workspace, slots, disabled, update, notify, maskRequ
           );
         })}
       </ul>}
-      <div className="character-pick">
-        {!edit && <label>Personagem principal da ficha
-          <select aria-label="Personagem principal da ficha" value="" disabled={disabled || busy || !saved?.length} onChange={e => {
-            const id = e.target.value;
-            if (id) void useSaved(id, true);
-          }}>
-            <option value="">{saved === null ? (savedFailed ? 'Indisponível' : 'Carregando…') : saved.length ? 'Escolha uma ficha' : 'Nenhuma ficha salva'}</option>
-            {saved?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        </label>}
-        <label>{edit ? 'Usar personagem da ficha' : 'Outro personagem da ficha'}
-          <select aria-label={edit ? 'Usar personagem da ficha' : 'Outro personagem da ficha'} value="" disabled={disabled || busy || castFull || !saved?.length} onChange={e => {
-            const id = e.target.value;
-            if (id) void useSaved(id);
-          }}>
-            <option value="">{saved === null ? (savedFailed ? 'Indisponível' : 'Carregando…') : saved.length ? 'Escolha uma ficha' : 'Nenhuma ficha salva'}</option>
-            {saved?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        </label>
-        {castFull && <ul className="field-issues"><li>Já há {MAX_CHARACTERS} personagens extras na cena. Tire um para usar outra ficha.</li></ul>}
-        {issueList(issues['characters'])}
-      </div>
-      {characters.map(({ref, person, character}) => (
-        <div key={ref.id} className="character-note">
-          <label htmlFor={`character-${ref.id}`}>Personagem {person} · onde está e o que faz <span className="muted">(opcional, em inglês)</span></label>
-          <input id={`character-${ref.id}`} value={character.description} maxLength={500} disabled={disabled}
-                 placeholder="Ex.: standing to her left, holding her hand"
-                 onChange={e => update(ws => describeCharacter(ws, ref.id, e.target.value))} />
-          <TranslateButton label={`a descrição do personagem ${person}`} text={character.description} disabled={disabled}
-                           onTranslated={text => update(ws => describeCharacter(ws, ref.id, text))} />
-          <select aria-label={`Posição do personagem ${person}`} value={character.position ?? ''} disabled={disabled}
-                  title="Onde a pessoa fica na imagem, olhando a foto de frente."
-                  onChange={e => update(ws => placeCharacter(ws, ref.id, (e.target.value || null) as CharacterPosition | null))}>
-            <option value="">Ao lado</option>
-            <option value="left">À esquerda</option>
-            <option value="right">À direita</option>
-            <option value="behind">Atrás</option>
-            <option value="front">Na frente</option>
-          </select>
-          {issueList(issues[`characters.${(request.characters ?? []).indexOf(character)}.position`])}
-        </div>
-      ))}
       {edit && target && (
         <div className="mask-row" ref={maskRow}>
           <Switch checked={request.mask} disabled={disabled}
