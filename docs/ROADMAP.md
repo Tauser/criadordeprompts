@@ -112,6 +112,17 @@ cerca de metade a dois terços das seeds, por isso a tela sugere 2 variações. 
 
 0.3, 0.4 e 0.5 (rápidos) → 0.1 e 0.2 (medir) → 1.1 e 1.2 → 2.1 e 2.4 → 2.2 e 2.3 → 4.1 → o restante conforme o uso.
 
+## Prompt limpo (28/10)
+
+O prompt leva o que a pessoa escolheu e poucas proteções; o Studio não repete o que o texto da opção já diz.
+- Saíram: "Reposition... unmistakable" depois de cada pose (medido: tirava a pessoa acrescentada), o pescoço e a
+  frase final de coerência. Postura, apoio, orientação e olhar só são escritos quando o texto da pose ou da ação não
+  os diz: tirados sempre, uma discussão na rua (banco 14) ganhou um estranho ao fundo nas duas seeds; com a regra,
+  voltou à cena de antes. Continuam valendo nas regras e na verificação.
+- Proteções desmarcáveis na prévia (✕ e "Tiradas do prompt"): anatomia, rostos, roupa vestida, mãos e objetos.
+- Banco de casos, 18 casos x 2 seeds contra a main 1.22.0: iguais ou melhores (15, 16 e 17 mais certos); no 14,
+  seed 8, passantes pequenos ao fundo contaram como um terceiro corpo, como já havia, menores, antes.
+
 ## Acrescentar pessoa numa edição com pose de uma pessoa (28/10)
 
 Edição que acrescenta um personagem e troca a pose por uma de uma pessoa (ex.: "em pé, de frente"): o modelo seguia a
