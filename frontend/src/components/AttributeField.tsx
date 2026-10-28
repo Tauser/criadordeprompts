@@ -19,6 +19,7 @@ interface Props {
   suggestions?: Suggestion[];                 // values that fit the pose, action or scene, one click away
   onSuggest?: (suggestion: Suggestion) => void;
   hiddenAdult?: number;                       // +18 options this field does not list in the standard mode
+  fit?: number | null;                        // how many people the photos and fichas bring: their options come first
   children?: ReactNode;
 }
 
@@ -28,11 +29,15 @@ const keyOf = (a: Attribute) => a.intent === 'set' ? (a.value?.kind === 'catalog
   : a.intent === 'transfer' ? `ref:${a.reference_id}` : a.intent;
 
 export function AttributeField({category, attribute, items, references, targetId, mode, disabled, issues, onChange, auto,
-  suggestions = [], onSuggest, hiddenAdult = 0, children}: Props) {
+  suggestions = [], onSuggest, hiddenAdult = 0, fit = null, children}: Props) {
   const key = keyOf(attribute);
   const id = `field-${category}`;
   const sources = sortBy(references.filter(r => r.id !== targetId), r => r.label);
-  const groups = groupByPrefix(items, i => i.label);
+  const fits = (i: Item) => (i.requirements.participants ?? 1) === fit;
+  const groups = fit && items.some(fits) && items.some(i => !fits(i))
+    ? [{name: `Para ${fit} ${fit === 1 ? 'pessoa' : 'pessoas'}`, items: sortBy(items.filter(fits), i => i.label)},
+       {name: 'Outras quantidades de pessoas', items: sortBy(items.filter(i => !fits(i)), i => i.label)}]
+    : groupByPrefix(items, i => i.label);
   const known = new Set(['keep', 'free', 'text', ...items.map(i => `catalog:${i.id}`), ...sources.map(r => `ref:${r.id}`)]);
   const select = (value: string) => {
     if (value === 'keep' || value === 'free') onChange({intent: value});

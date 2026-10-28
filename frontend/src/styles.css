@@ -733,3 +733,7 @@ details.tech h3 { margin: 6px 0; }
 .roles { display: grid; gap: 6px; grid-column: 1 / -1; }
 .role-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 @media (max-width: 680px) { .role-row { grid-template-columns: 1fr; } }
+
+.cast-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.cast-person { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; }
+.cast-name { font-size: 13.5px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
