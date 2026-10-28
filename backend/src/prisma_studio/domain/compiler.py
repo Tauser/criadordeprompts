@@ -36,6 +36,15 @@ GAZE_WORDS = {
 }
 
 
+def cast_roles(item, order: tuple[int, ...]) -> tuple[str, ...]:
+    """Each person's role in the option, the first person's first. A different order is used only when it covers
+    exactly the option's roles; otherwise the people take them as the option lists them."""
+    if not item.roles:
+        return ()
+    order = order if sorted(order) == list(range(len(item.roles))) else range(len(item.roles))
+    return tuple(item.roles[k].name.strip() for k in order)
+
+
 def _said(words: dict[str, str], value: str, text: str) -> bool:
     return value in words and re.search(words[value], text) is not None
 
@@ -91,14 +100,16 @@ def build_ir(request: Request, assessment: Assessment) -> list:
             continue
         participants = None
         is_instruction = False
+        roles: tuple[str, ...] = ()
         if isinstance(attribute.value, CatalogValue):
             item = assessment.resolved[category]
             text, participants = item.prompt, item.requirements.participants
             if edit and item.edit_prompt is not None:
                 text, is_instruction = item.edit_prompt, True
+            roles = cast_roles(item, request.role_order)
         else:
             text = attribute.value.text
-        blocks.append(ir.Operation(category, text.strip(), participants, is_instruction=is_instruction))
+        blocks.append(ir.Operation(category, text.strip(), participants, is_instruction=is_instruction, roles=roles))
         if category == 'wardrobe' and (assessment.participants_total or 0) > 1:
             blocks.append(ir.WardrobeScope(request.wardrobe_scope, assessment.participants_total))
 

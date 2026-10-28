@@ -62,6 +62,7 @@ export interface StudioRequest {
   context: {supports?: Support[] | null; allow_new_supports: boolean; allow_reframing: boolean; original_framing?: Framing | null};
   details: string;
   protections_off?: Protection[];   // safeguards the Studio writes on its own, switched off in the prompt preview
+  role_order?: number[];            // role_order[k]: the role of person k + 1 in a pose or action that names its roles
   confirmations: ('adults_only' | 'consent_or_fictional')[];
   output: Output;
   engine: Engine;
@@ -71,9 +72,10 @@ export interface Requirements {
   participants?: number | null; posture?: Posture | null; gaze?: Gaze | null; orientation?: Orientation | null;
   support_any_of?: Support[] | null; minimum_framing?: Framing | null; children?: boolean | null;
 }
+export interface Role {label: string; name: string}   // shown in Portuguese; how the English text names it
 export interface Item {
   id: string; category: Category; label: string; prompt: string; edit_prompt?: string | null;
-  adult: boolean; enabled: boolean; requirements: Requirements;
+  adult: boolean; enabled: boolean; requirements: Requirements; roles?: Role[];
   provides: {supports?: Support[] | null; framing?: Framing | null; view?: Orientation | null; period?: Period | null;
     place?: Place | null};
 }

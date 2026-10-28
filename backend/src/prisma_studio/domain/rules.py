@@ -198,7 +198,9 @@ def _check_cast(request, resolved, report) -> None:
         report('edit_cast_and_group_move', 'characters', 'Acrescentar personagem e mudar para uma pose ou ação a dois '
                'na mesma edição costuma perder, duplicar ou trocar uma pessoa. Para essa cena, prefira Criar, com a '
                'pessoa principal e o personagem vindos das fichas.', 'warning')
-    if any(PLACED_ROLES.search(text) for _, text in moves):
+    # An option that names its roles says who is who on its own; text written by hand never does.
+    named = all(isinstance(request.attribute(c).value, CatalogValue) and resolved[c].roles for c, _ in moves)
+    if any(PLACED_ROLES.search(text) for _, text in moves) and not named:
         # The roles then follow the order the pose describes them; measured, that gave the first person the other's
         # role and anatomy, while a chosen position put each person in the right role.
         for index, character in enumerate(request.characters):

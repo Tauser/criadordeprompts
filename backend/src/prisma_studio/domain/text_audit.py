@@ -122,6 +122,10 @@ def audit_item(item: Item) -> list[Finding]:
     if item.category == 'wardrobe' and re.search(SINGLE_PERSON, wording):
         add('single_person', 'ambiguity', 'A roupa fala de uma pessoa só ("the character", "the person"): com "Todas as '
             'pessoas", o modelo tende a vestir só uma. Use um texto neutro, sem sujeito, ou no plural.')
+    for role in item.roles:
+        if role.name.strip().lower() not in low:
+            add('role_not_in_text', 'conflict', f'O papel "{role.label}" é chamado de "{role.name}", mas o texto não usa '
+                'esse nome: o modelo não saberá quem faz esse papel.')
     if re.search(CHILD_WORDS, low) and item.adult:
         add('adult_with_children', 'conflict', 'O texto fala de crianças numa opção adulta.')
     elif body and re.search(CHILD_WORDS, low) and not req.children:

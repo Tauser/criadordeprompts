@@ -99,6 +99,8 @@ def build(spec: dict, case: dict, seed: int) -> tuple[dict, dict[str, str]]:
     }
     if 'roupa_para' in case:
         request['wardrobe_scope'] = case['roupa_para']
+    if 'papeis' in case:                             # who takes which role, e.g. [1, 0] swaps the two
+        request['role_order'] = case['papeis']
     if case.get('conteudo') == 'adulto':             # the confirmations the Studio asks for in adult mode
         request |= {'content_mode': 'adult', 'confirmations': ['adults_only', 'consent_or_fictional']}
     return request, refs

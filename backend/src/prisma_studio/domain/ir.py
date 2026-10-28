@@ -26,6 +26,7 @@ class Operation:
     text: str
     participants: int | None = None      # declared by the catalog item; None when unknown
     is_instruction: bool = False         # a full edit instruction supplied explicitly by catalog metadata
+    roles: tuple[str, ...] = ()          # the role of the first, second... person, as the English text names it
 
     @property
     def id(self) -> str:

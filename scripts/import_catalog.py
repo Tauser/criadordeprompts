@@ -46,7 +46,8 @@ def convert(legacy: dict, review: dict) -> Library:
         seen.add(item_id)
         items.append(Item(id=item_id, category=category, label=old['label'], prompt=prompt,
                           adult=bool(old.get('adult_only')),
-                          enabled=bool(old.get('enabled', True)), requirements=requirements, provides=provides))
+                          enabled=bool(old.get('enabled', True)), requirements=requirements, provides=provides,
+                          roles=review.get('roles', {}).get(item_id, ())))
     additions = [data for path in sorted((ROOT / 'catalog').glob('additions-v*.json'))
                  for data in json.loads(path.read_text(encoding='utf-8'))['items']]
     for data in additions:

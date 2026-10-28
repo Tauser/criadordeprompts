@@ -154,6 +154,8 @@ class Request(_Strict):
     participants: Participants = Participants()
     context: SceneContext = SceneContext()
     details: str = Field(default='', max_length=4000)
+    # Who takes which role of a pose or action that names them: role_order[k] is the role of person k + 1.
+    role_order: tuple[int, ...] = Field(default=(), max_length=4)
     # Safeguards the Studio writes on its own that the person switched off in the prompt preview.
     protections_off: frozenset[Protection] = frozenset()
     confirmations: frozenset[Confirmation] = frozenset()
@@ -168,6 +170,8 @@ class Request(_Strict):
             raise ValueError('O prompt manual só existe no modo manual.')
         if self.mode == 'generate' and (self.target_id is not None or self.mask):
             raise ValueError('A geração não usa foto alvo nem máscara.')
+        if self.role_order and sorted(self.role_order) != list(range(len(self.role_order))):
+            raise ValueError('A ordem dos papéis deve citar cada papel uma vez.')
         return self
 
     def attribute(self, category: str) -> Attribute:

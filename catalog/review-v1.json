@@ -330,5 +330,27 @@
       "prompt_pt": "câmera um pouco acima da altura da cabeça, inclinada cerca de quinze graus para baixo"
     }
   },
-  "drop_adult": true
+  "drop_adult": true,
+  "roles": {
+    "action.dance_pair": [
+      {
+        "label": "quem conduz",
+        "name": "one person"
+      },
+      {
+        "label": "quem acompanha",
+        "name": "the partner"
+      }
+    ],
+    "action.conversation": [
+      {
+        "label": "quem fala",
+        "name": "one speaking"
+      },
+      {
+        "label": "quem escuta",
+        "name": "the other"
+      }
+    ]
+  }
 }

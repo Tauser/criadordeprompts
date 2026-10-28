@@ -30,6 +30,13 @@ class Provides(BaseModel):
     place: Place | None = None                # lighting and settings
 
 
+class Role(BaseModel):
+    """One part in an option for two or more people: shown in Portuguese, and named in its English text."""
+    model_config = ConfigDict(extra='forbid', frozen=True)
+    label: str = Field(min_length=1, max_length=40, description='Nome na tela, ex.: quem monta')
+    name: str = Field(min_length=1, max_length=60, description='How the English text names it, e.g. the rider')
+
+
 class Item(BaseModel):
     model_config = ConfigDict(extra='forbid', frozen=True)
     id: str = Field(pattern=ITEM_ID)
@@ -42,6 +49,7 @@ class Item(BaseModel):
     enabled: bool = True
     requirements: Requirements = Requirements()
     provides: Provides = Provides()
+    roles: tuple[Role, ...] = ()              # one per person, in the order the people are listed
 
     @model_validator(mode='before')
     @classmethod
@@ -57,6 +65,15 @@ class Item(BaseModel):
         if value is not None and not value.strip():
             raise ValueError('A instrução de edição não pode ficar vazia.')
         return value.strip() if value is not None else None
+
+    @model_validator(mode='after')
+    def _roles_fit(self):
+        if self.roles:
+            if self.category not in ('pose', 'action'):
+                raise ValueError('Só poses e ações têm papéis.')
+            if len(self.roles) != (self.requirements.participants or 1) or len(self.roles) < 2:
+                raise ValueError('Informe um papel para cada pessoa da opção.')
+        return self
 
     @model_validator(mode='after')
     def _adult_without_children(self):

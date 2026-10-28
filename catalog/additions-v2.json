@@ -686,7 +686,17 @@
     ],
     "minimum_framing": "half"
    },
-   "provides": {}
+   "provides": {},
+   "roles": [
+    {
+     "label": "quem segura a cintura",
+     "name": "the adult on the left"
+    },
+    {
+     "label": "quem abraça o pescoço",
+     "name": "the right adult"
+    }
+   ]
   },
   {
    "id": "action.sexy_neck_kiss",
@@ -706,7 +716,17 @@
     ],
     "minimum_framing": "half"
    },
-   "provides": {}
+   "provides": {},
+   "roles": [
+    {
+     "label": "quem beija",
+     "name": "the adult behind"
+    },
+    {
+     "label": "quem recebe o beijo",
+     "name": "the adult in front"
+    }
+   ]
   },
   {
    "id": "action.sexy_almost_kiss",
@@ -724,7 +744,17 @@
     "support_any_of": [],
     "minimum_framing": "half"
    },
-   "provides": {}
+   "provides": {},
+   "roles": [
+    {
+     "label": "quem segura o rosto",
+     "name": "the left adult"
+    },
+    {
+     "label": "quem apoia as mãos no peito",
+     "name": "the right adult"
+    }
+   ]
   },
   {
    "id": "action.sexy_bed_gaze",
@@ -764,7 +794,17 @@
     ],
     "minimum_framing": "half"
    },
-   "provides": {}
+   "provides": {},
+   "roles": [
+    {
+     "label": "quem sussurra",
+     "name": "the adult on the left"
+    },
+    {
+     "label": "quem escuta",
+     "name": "the adult on the right"
+    }
+   ]
   },
   {
    "id": "action.sexy_collar_pull",
@@ -782,7 +822,17 @@
     "support_any_of": [],
     "minimum_framing": "half"
    },
-   "provides": {}
+   "provides": {},
+   "roles": [
+    {
+     "label": "quem puxa",
+     "name": "the adult on the left"
+    },
+    {
+     "label": "quem é puxado",
+     "name": "the right adult"
+    }
+   ]
   },
   {
    "id": "action.sexy_mirror_hug",
@@ -802,7 +852,17 @@
     ],
     "minimum_framing": "half"
    },
-   "provides": {}
+   "provides": {},
+   "roles": [
+    {
+     "label": "quem abraça por trás",
+     "name": "the adult behind"
+    },
+    {
+     "label": "quem é abraçado",
+     "name": "the adult in front"
+    }
+   ]
   },
   {
    "id": "pose.duo_back_to_back",
@@ -863,7 +923,17 @@
     ],
     "minimum_framing": "half"
    },
-   "provides": {}
+   "provides": {},
+   "roles": [
+    {
+     "label": "quem abraça",
+     "name": "the left adult"
+    },
+    {
+     "label": "quem encosta a cabeça",
+     "name": "the adult on the right"
+    }
+   ]
   },
   {
    "id": "pose.trio_arms_shoulders",

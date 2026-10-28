@@ -303,7 +303,7 @@ def _operation(block: ir.Operation, edit: bool, blocks) -> str:
         # An item's own edit instruction still needs to say who is who when it moves a group.
         if (block.participants or 1) > 1 and _people_count(blocks) > 1 and block.category in ('pose', 'action'):
             doing = 'performing this action' if block.category == 'action' else 'in this pose'
-            return _sentence(text) + f' The people {doing} are {_people(block.participants, _header_sexes(blocks))}{_roles(blocks)}.'
+            return _sentence(text) + f' The people {doing} are {_cast(block, blocks)}.'
         return _sentence(text)
     has_pose = any(isinstance(b, ir.Operation) and b.category == 'pose' for b in blocks)
     if block.category == 'action':
@@ -317,7 +317,7 @@ def _operation(block: ir.Operation, edit: bool, blocks) -> str:
             sentence += '; keep the requested pose for the torso and legs, and let the arms and hands follow this action'
         sentence += '.'
         if group and _people_count(blocks) > 1:
-            sentence += f' The people performing this action are {_people(block.participants, _header_sexes(blocks))}{_roles(blocks)}.'
+            sentence += f' The people performing this action are {_cast(block, blocks)}.'
         elif written_for_cast:
             sentence += f' The people performing this action are {_people(_people_count(blocks), _header_sexes(blocks))}.'
         return sentence
@@ -342,7 +342,7 @@ def _operation(block: ir.Operation, edit: bool, blocks) -> str:
     else:
         sentence = f'{GENERATE_LABELS[block.category]}: {text}.'
     if block.category == 'pose' and (block.participants or 1) > 1 and _people_count(blocks) > 1:
-        sentence += f' The people in this pose are {_people(block.participants, _header_sexes(blocks))}{_roles(blocks)}.'
+        sentence += f' The people in this pose are {_cast(block, blocks)}.'
     return sentence
 
 
@@ -368,6 +368,18 @@ def _header(block: ir.Header, photo: str, blocks) -> str:
     return (f'Edit {photo} into a photo of {NUMBERS.get(block.people, block.people)} people'
             f'{" side by side" if beside and block.people == 2 else ""}: {kept} from {photo}, and {new} added '
             f'{"next to them" if beside else "to the scene"}.')
+
+
+def _cast(block: ir.Operation, blocks) -> str:
+    """Who takes part, and which role each one takes when the option names them: "the first person, as the rider,
+    and the second person, as the carrier". Without named roles, the order the text describes them decides."""
+    sexes = _header_sexes(blocks)
+    if block.roles:
+        # Always with the serial comma: "as the carrier and the second person" would read as one role.
+        parts = [f'the {ORDINALS.get(n, f"person number {n}")} person{_as(sexes, n)}, as {role}'
+                 for n, role in enumerate(block.roles, 1)]
+        return ', '.join(parts[:-1]) + ', and ' + parts[-1]
+    return _people(block.participants, sexes) + _roles(blocks)
 
 
 def _roles(blocks) -> str:

@@ -112,6 +112,19 @@ cerca de metade a dois terços das seeds, por isso a tela sugere 2 variações. 
 
 0.3, 0.4 e 0.5 (rápidos) → 0.1 e 0.2 (medir) → 1.1 e 1.2 → 2.1 e 2.4 → 2.2 e 2.3 → 4.1 → o restante conforme o uso.
 
+## Papéis nas opções a dois e foto do personagem recortada (28/10)
+
+- Opções com 2 a 4 pessoas podem nomear os papéis (nome na tela e como o texto em inglês os chama). O prompt diz
+  "the first person, as the carrier, and the second person, as the rider", e o formulário mostra quem faz cada papel,
+  com Inverter. Medido (ruiva como principal, homem de barba como personagem, seeds 3 e 8): cabeça no ombro 4 de 4
+  nas duas ordens; sussurro 3 de 4; puxar para perto ambíguo e dança em dupla sem a dança: o texto dessas opções é
+  que precisa melhorar. Antes, inverter não existia: quem fazia o quê dependia da ordem do texto.
+- Papéis em 9 opções do Studio e nas 4 opções a dois do usuário; as simétricas (abraço, brinde...) ficam sem.
+- Fotos que só emprestam a pessoa (personagem, ficha do principal) vão recortadas sobre cinza (BiRefNet), como na
+  Troca de pessoa. No banco (05, 06, 09, 10, 17) e no par que tinha vazado o restaurante, sem diferença: o vazamento já
+  não aparecia depois da abertura "foto de duas pessoas". Fica como proteção.
+- O banco de casos sobe um Studio só dele, com o catálogo do checkout: a Biblioteca de quem usa não entra na medida.
+
 ## Prompt limpo (28/10)
 
 O prompt leva o que a pessoa escolheu e poucas proteções; o Studio não repete o que o texto da opção já diz.

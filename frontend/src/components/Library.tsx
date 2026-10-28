@@ -144,7 +144,13 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
     if (!draft) return;
     if (!draft.label.trim() || !draft.prompt.trim()) {notify('Preencha o nome e a descrição em inglês.', true); return;}
     const others = userItems().filter(i => i.id !== draft.id);
-    const cleaned = {...draft, edit_prompt: draft.edit_prompt?.trim() || null};
+    // Roles count only when every person has both names; all empty means the option names none.
+    const roles = (draft.roles ?? []).slice(0, people).map(r => ({label: r.label.trim(), name: r.name.trim()}));
+    const filled = roles.length === people && people > 1 && roles.every(r => r.label && r.name);
+    if (!filled && roles.some(r => r.label || r.name)) {
+      notify('Preencha os dois nomes de cada papel, ou deixe todos os papéis vazios.', true); return;
+    }
+    const cleaned = {...draft, edit_prompt: draft.edit_prompt?.trim() || null, roles: filled ? roles : []};
     if (await persist([...others, cleaned])) {
       if (openId.current === draft.id) setOriginal(JSON.stringify(draft));
       notify(cleaned.adult ? 'Opção salva. Ela é +18: na tela Criar, só aparece com "Mostrar opções adultas (+18)" ligado em Conteúdo.'
@@ -204,6 +210,14 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
 
   const prov = (key: string, value: string) => setDraft(d => d && {...d, provides: {...d.provides, [key]: value || null}});
   const req = (key: string, value: unknown) => setDraft(d => d && {...d, requirements: {...d.requirements, [key]: value === '' ? null : value}});
+  const people = draft ? Number(draft.requirements.participants ?? 1) : 1;
+  const roleAt = (index: number) => draft?.roles?.[index] ?? {label: '', name: ''};
+  const setRole = (index: number, key: 'label' | 'name', value: string) => setDraft(d => {
+    if (!d) return d;
+    const roles = Array.from({length: people}, (_, i) => ({...(d.roles?.[i] ?? {label: '', name: ''})}));
+    roles[index][key] = value;
+    return {...d, roles};
+  });
 
   return (
     <div className="library-page">
@@ -351,6 +365,19 @@ export function Library({snapshot, onSaved, notify, setDirty}: Props) {
                       if (e.target.checked) now.add(s); else now.delete(s);
                       req('support_any_of', now.size ? [...now] : '');
                     }} /> {SUPPORT_LABEL[s]}</label>))}</div>
+                {people > 1 && people <= 4 && (
+                  <div className="roles" role="group" aria-label="Papéis">
+                    <span className="control-label" title="Dê um nome a cada papel e escreva como o texto em inglês o chama. Na tela Criar, cada pessoa recebe um papel, com um botão para inverter.">Papéis</span>
+                    {Array.from({length: people}, (_, i) => (
+                      <div key={i} className="role-row">
+                        <input aria-label={`Papel ${i + 1}: nome na tela`} placeholder={i === 0 ? 'quem carrega' : 'quem monta'}
+                               maxLength={40} value={roleAt(i).label} onChange={e => setRole(i, 'label', e.target.value)} />
+                        <input aria-label={`Papel ${i + 1}: como o texto chama`} placeholder={i === 0 ? 'the carrier' : 'the rider'}
+                               maxLength={60} value={roleAt(i).name} onChange={e => setRole(i, 'name', e.target.value)} />
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <label className="check" title="Com crianças na cena, o prompt pede proporções de acordo com a idade de cada pessoa. Opções adultas não podem incluir crianças.">
                   <input type="checkbox" checked={!!draft.requirements.children} disabled={draft.adult && !draft.requirements.children}
                     onChange={e => req('children', e.target.checked ? true : '')} /> A cena inclui crianças</label>

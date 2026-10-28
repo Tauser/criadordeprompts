@@ -10,7 +10,7 @@ import {useFinishNotice} from '../lib/finishNotice';
 import {useRun} from '../lib/useRun';
 import {uuid} from '../lib/uuid';
 import {addReference, applyPreset, applySuggestion, enterManual, filesForSubmit, initialWorkspace, leaveManual, removeReference,
-  requestForSubmit, setAttribute, setTarget, sexesWith, switchMode, syncAuto, type Workspace} from '../state/workspace';
+  isPrincipal, requestForSubmit, setAttribute, setTarget, sexesWith, switchMode, syncAuto, type Workspace} from '../state/workspace';
 import {AttributeField} from './AttributeField';
 import {CollapseButton} from './Collapse';
 import {CompareGrid, startComparison, type ComparePlan, type GridCell} from './CompareGrid';
@@ -20,6 +20,7 @@ import {Icon} from './Icon';
 import {History} from './History';
 import {PromptPreview, SETUP_STEPS, setupIssues} from './PromptPreview';
 import {References} from './References';
+import {RoleCast} from './RoleCast';
 import {RunPanel, useNow} from './RunPanel';
 import {SavedRequests} from './SavedRequests';
 import {TranslateButton} from './Translate';
@@ -165,6 +166,19 @@ export function Studio({library, comfyOnline, notify}: Props) {
   // Offered next to the field: what the pose, action or scene needs, unless the Studio already filled it with that value.
   const suggestionsFor = (category: Category) => (prepared?.suggestions ?? [])
     .filter(s => s.field === category && !(s.auto && workspace.auto?.[category]));
+  // The option chosen for a pose or action, when it names its roles; one line says who takes which.
+  const roled = (category: Category) => {
+    const attribute = request.attributes[category];
+    if (attribute?.intent !== 'set' || attribute.value?.kind !== 'catalog') return null;
+    const value = attribute.value;
+    const chosen = library.items.find(i => i.id === value.item_id);
+    return chosen?.roles?.length ? chosen.roles : null;
+  };
+  const label = (id?: string | null) => request.references.find(r => r.id === id)?.label;
+  const principal = request.mode === 'edit' ? label(request.target_id)
+    : label(request.references.find(r => isPrincipal(workspace, r.id))?.id);
+  const personNames = [principal ? `Pessoa 1 (${principal})` : 'Pessoa 1',
+    ...(request.characters ?? []).map((c, i) => `Pessoa ${i + 2} (${label(c.reference_id) ?? 'personagem'})`)];
   const field = (category: Category) => (
     <AttributeField key={category} category={category} mode={request.mode} targetId={request.target_id}
       attribute={request.attributes[category] ?? {intent: 'free'}} items={itemsFor(category)} references={request.references}
@@ -182,6 +196,10 @@ export function Studio({library, comfyOnline, notify}: Props) {
             options={[{value: 'primary', label: 'Pessoa principal'}, {value: 'all', label: 'Todas as pessoas'}]}
             onChange={value => patch(r => {r.wardrobe_scope = value;})} />
         </div>
+      )}
+      {(category === 'pose' || category === 'action') && roled(category) && (
+        <RoleCast roles={roled(category)!} order={request.role_order ?? []} names={personNames}
+                  disabled={request.prompt_mode === 'manual'} onChange={order => patch(r => {r.role_order = order;})} />
       )}
     </AttributeField>
   );
