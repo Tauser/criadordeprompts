@@ -121,7 +121,7 @@ def render(blocks) -> list[tuple[str, str]]:
         if isinstance(block, ir.Manual):
             out.append((block.id, block.text))
         elif isinstance(block, ir.Header):
-            out.append((block.id, f'Edit {image(1)}.' if edit else 'Create an image.'))
+            out.append((block.id, _header(block, image(1), blocks)))
         elif isinstance(block, ir.Operation):
             out.append((block.id, _operation(block, edit, blocks)))
         elif isinstance(block, ir.WardrobeScope):
@@ -331,6 +331,26 @@ def _operation(block: ir.Operation, edit: bool, blocks) -> str:
 
 def _people_count(blocks) -> int:
     return next((b.people for b in blocks if isinstance(b, ir.Header)), 1)
+
+
+def _header(block: ir.Header, photo: str, blocks) -> str:
+    if block.mode != 'edit':
+        return 'Create an image.'
+    # With the first person's identity taken from a ficha, "the first person from <image1>" kept the photo's own person
+    # as well, in the new person's place (case bank 17: 0 of 2 against 1 of 2 without it).
+    reidentified = any(isinstance(b, ir.Transfer) and not set(b.aspects).isdisjoint(FIRST_PERSON_ONLY) for b in blocks)
+    if not 0 < block.present < block.people or reidentified:
+        return f'Edit {photo}.'
+    # Measured: with a one-person pose also requested, "Add a second person..." alone was dropped in 4 of 4 pictures;
+    # opening with the picture it must become kept the new person in 4 of 4.
+    kept = ('the first person' if block.present == 1
+            else 'the ' + _join(ORDINALS.get(n, f'number {n}') for n in range(1, block.present + 1)) + ' people')
+    new = _join(f'a {ORDINALS.get(n, f"number {n}")} person' for n in range(block.present + 1, block.people + 1))
+    # "Side by side" and "next to them" only where nobody was placed behind or in front.
+    beside = not any(isinstance(b, ir.Character) and b.position in ('behind', 'front') for b in blocks)
+    return (f'Edit {photo} into a photo of {NUMBERS.get(block.people, block.people)} people'
+            f'{" side by side" if beside and block.people == 2 else ""}: {kept} from {photo}, and {new} added '
+            f'{"next to them" if beside else "to the scene"}.')
 
 
 def _roles(blocks) -> str:

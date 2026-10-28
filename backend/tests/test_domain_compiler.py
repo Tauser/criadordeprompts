@@ -299,6 +299,38 @@ def test_second_character_in_an_edit_counts_as_a_change(library):
     assert 'framing and crop' in run(locked, library)[1].text
 
 
+def test_an_edit_that_adds_people_opens_with_the_picture_it_becomes(library):
+    # Measured: with a one-person pose also asked for, the person added only by "Add a second person..." was left out
+    # of 4 pictures in 4; opening with the picture to make kept them in 4 of 4.
+    request = edit_request({**DEFAULT_KEEP, 'pose': text('standing upright facing the camera')}, references=(('t', 'alvo'), ('b', 'Bia')),
+                           characters=[{'reference_id': 'b'}], participants={'existing': 1},
+                           context={'allow_reframing': True})
+    lines = run(request, library)[1].text.splitlines()
+    assert lines[0] == ('Edit <image1> into a photo of two people side by side: the first person from <image1>, '
+                        'and a second person added next to them.')
+    assert lines[1].startswith('Add a second person to the scene')
+    behind = request.model_copy(update={'characters': [request.characters[0].model_copy(update={'position': 'behind'})]})
+    assert run(behind, library)[1].text.splitlines()[0] == (
+        'Edit <image1> into a photo of two people: the first person from <image1>, and a second person added to the scene.')
+    group = edit_request({**DEFAULT_KEEP, 'pose': text('standing upright facing the camera')},
+                         references=(('t', 'alvo'), ('b', 'Bia'), ('c', 'Caio')),
+                         characters=[{'reference_id': 'b'}, {'reference_id': 'c'}], participants={'existing': 2},
+                         context={'allow_reframing': True})
+    assert run(group, library)[1].text.splitlines()[0] == (
+        'Edit <image1> into a photo of three people: the first and second people from <image1>, and a third person '
+        'added next to them.')
+    # Nobody new: the opening stays as it was.
+    both = request.model_copy(update={'participants': request.participants.model_copy(update={'existing': 2})})
+    assert run(both, library)[1].text.splitlines()[0] == 'Edit <image1>.'
+    # The first person from a ficha: "the first person from <image1>" kept the photo's own person too.
+    ficha = edit_request({**DEFAULT_KEEP, 'face': {'intent': 'transfer', 'reference_id': 'f'},
+                          'pose': text('standing upright facing the camera')},
+                         references=(('t', 'alvo'), ('f', 'Ficha'), ('b', 'Bia')),
+                         characters=[{'reference_id': 'b'}], participants={'existing': 1},
+                         context={'allow_reframing': True})
+    assert run(ficha, library)[1].text.splitlines()[0] == 'Edit <image1>.'
+
+
 def test_character_reference_rules(library):
     target = edit_request(dict(DEFAULT_KEEP), characters=[{'reference_id': 't'}])
     assert 'character_is_target' in codes(assess(target, library), 'error')

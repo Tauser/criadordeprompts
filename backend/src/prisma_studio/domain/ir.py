@@ -9,6 +9,7 @@ class Header:
     mode: str
     image_count: int
     people: int = 1                       # everyone in the result: with two or more, roles must be named
+    present: int = 0                      # in an edit, the people already in the photo
     id: str = 'header'
 
 

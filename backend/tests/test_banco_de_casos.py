@@ -47,7 +47,9 @@ def test_every_case_names_its_people_and_asks_for_no_one_more(case):
     assert 'and no one else' in text or added + (case.get('pessoas') or 0) == total
     if 'principal' in case:
         lead = first_line(lines, 'of the first person', 'apply them to the first person')
-        assert lead is not None and lead < second
+        # The opening line of an edit that adds people only counts them; the second person is described later.
+        described = first_line(lines[1:], 'second person') + 1
+        assert lead is not None and lead < described
         assert 'keeps their own face' not in text           # the first person's face comes from their ficha
 
 

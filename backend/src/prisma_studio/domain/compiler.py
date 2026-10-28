@@ -8,7 +8,7 @@ from .request import CatalogValue, Request
 from .rules import Assessment, available_supports, body_gaze, effective_orientation, framing_already_there
 from .vocabulary import CATEGORIES, FRAMING_ORDER, SUPPORT_PRIORITY, agreed
 
-COMPILER_VERSION = '1.20.0'
+COMPILER_VERSION = '1.21.0'
 CHARACTER_SOURCE = ('subject', 'face', 'body', 'skin', 'hair')   # what a person's identity reference lends
 
 # Operation order: scene first, then person changes; style leads in generation.
@@ -42,7 +42,13 @@ def build_ir(request: Request, assessment: Assessment) -> list:
             text += '\nAdditional details: ' + request.details.strip()
         return [ir.Manual(text)]
     edit = request.mode == 'edit'
-    blocks: list = [ir.Header(request.mode, len(assessment.slots), assessment.participants_total or 1)]
+    # In an edit, a character beyond the people already in the photo is a new person: it must be added, not swapped
+    # onto the first person's face (unknown count: the photo is assumed to hold only the first person).
+    present = (request.participants.existing or 1) if edit else 0
+    people = assessment.participants_total or 1
+    if edit:
+        people = max(people, present + sum(1 for i, _ in enumerate(request.characters) if i + 2 > present))
+    blocks: list = [ir.Header(request.mode, len(assessment.slots), people, present)]
     order = EDIT_ORDER if edit else GENERATE_ORDER
     same_framing = framing_already_there(request, assessment.resolved)
     for category in order:
@@ -71,9 +77,6 @@ def build_ir(request: Request, assessment: Assessment) -> list:
         blocks.append(ir.Transfer(slot, tuple(by_slot[slot])))
     # The cast is introduced before clothing and action, so "both people" and group actions have someone to point
     # at: right after the header in an edit, right after the subject when generating.
-    # In an edit, a character beyond the people already in the photo is a new person: it must be added, not swapped
-    # onto the first person's face (unknown count: the photo is assumed to hold only the first person).
-    present = (request.participants.existing or 1) if edit else 0
     cast = [ir.Character(assessment.slots[c.reference_id], i + 2, c.description.strip(), added=edit and i + 2 > present,
                          position=c.position)
             for i, c in enumerate(request.characters)]

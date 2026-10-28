@@ -112,6 +112,18 @@ cerca de metade a dois terços das seeds, por isso a tela sugere 2 variações. 
 
 0.3, 0.4 e 0.5 (rápidos) → 0.1 e 0.2 (medir) → 1.1 e 1.2 → 2.1 e 2.4 → 2.2 e 2.3 → 4.1 → o restante conforme o uso.
 
+## Acrescentar pessoa numa edição com pose de uma pessoa (28/10)
+
+Edição que acrescenta um personagem e troca a pose por uma de uma pessoa (ex.: "em pé, de frente"): o modelo seguia a
+pose e largava a pessoa nova. Turbo, seeds 3, 8, 11 e 21:
+- Só "Add a second person...": 0 de 12 em três pares de fotos (sem trocar a pose: 4 de 4). Tela em paisagem: 1 de 4;
+  pose escrita como "da primeira pessoa" ou em outra ordem: 0 de 4; contagem exata no fim: 1 de 4; perfil completo: 3 de 4.
+- Compilador 1.21.0: a edição que acrescenta pessoas abre com a foto que deve sair ("Edit <image1> into a photo of two
+  people side by side: the first person from <image1>, and a second person added next to them"): 12 de 12.
+- Poses e ações a dois do banco de casos (05, 06, 09, 10) ficaram iguais. Com o principal vindo de uma ficha (caso 17)
+  a abertura manteve a pessoa original da foto no lugar da nova (0 de 2, antes 1 de 2): nesse caso ela não entra.
+- Pendente: com a pose mantida, o fundo da foto do personagem vazou em 2 de 4.
+
 ## Duas pessoas na cena (27/10)
 
 Medido no banco de casos (casos 14 a 18 novos) e nas 5 poses a dois da Biblioteca do usuário, Turbo, seeds 3 e 8:
