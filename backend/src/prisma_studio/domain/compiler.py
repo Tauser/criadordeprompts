@@ -1,6 +1,7 @@
 """Request -> IR -> text. Deterministic; every block must be rendered exactly once."""
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 from . import ir
@@ -8,8 +9,11 @@ from .request import CatalogValue, Request
 from .rules import Assessment, available_supports, body_gaze, effective_orientation, framing_already_there
 from .vocabulary import CATEGORIES, FRAMING_ORDER, SUPPORT_PRIORITY, agreed
 
-COMPILER_VERSION = '1.21.0'
+COMPILER_VERSION = '1.22.0'
 CHARACTER_SOURCE = ('subject', 'face', 'body', 'skin', 'hair')   # what a person's identity reference lends
+# How a chosen text names each support surface; a surface it names needs no sentence of its own.
+SURFACE_WORDS = {'floor': '(?:floor|ground)', 'seat': '(?:seat|chair|sofa|couch|stool|bench)', 'bed': 'bed',
+                 'wall': 'wall', 'table': '(?:table|desk)'}
 
 # Operation order: scene first, then person changes; style leads in generation.
 EDIT_ORDER = ('environment', 'lighting', 'style', 'camera', 'framing', 'subject', 'face', 'body', 'skin', 'hair',
@@ -126,7 +130,8 @@ def build_ir(request: Request, assessment: Assessment) -> list:
         blocks.append(ir.Participants(total, edit))
 
     # Measured: with the clothing left free, bedroom scenes came out nude in standard mode, so the mode says it.
-    if request.content_mode == 'standard' and request.attribute('wardrobe').intent == 'free':
+    off = request.protections_off
+    if request.content_mode == 'standard' and request.attribute('wardrobe').intent == 'free' and 'clothing' not in off:
         blocks.append(ir.Guidance('clothing', 'dressed'))
     # Adult content always shows grown people: "two adults" alone once gave a youthful face and build.
     if request.content_mode == 'adult' and not any(r.children for r in assessment.requirements):
@@ -138,28 +143,38 @@ def build_ir(request: Request, assessment: Assessment) -> list:
         blocks.append(ir.MinimumFraming(max(minimums, key=FRAMING_ORDER.__getitem__)))
 
     # The body guidance follows the pose, action and expression it belongs to, always in the same order.
+    # Posture, support, orientation and gaze only repeat what the option's own text says: they stay for the rules and
+    # the checks, unspoken, so what the person chose is not drowned by restatements. What the Studio decided or
+    # corrected is still said: a surface no chosen text names, and a gaze turned to fit the body.
     body: list = []
+    chosen = ' '.join(b.text.lower() for b in blocks if isinstance(b, ir.Operation))
     posture = agreed({r.posture for r in assessment.requirements} - {None, 'any'})
     if posture:
-        body.append(ir.Guidance('posture', posture))
+        body.append(ir.Guidance('posture', posture, spoken=False))
     needs = [r.support_any_of for r in assessment.requirements if r.support_any_of]
     for support, separate in _supports(needs, available_supports(request, assessment.resolved)):
-        body.append(ir.Guidance(f'support:{support}' if separate else 'support', support))
+        named = re.search(rf'{SURFACE_WORDS[support]}', chosen) is not None
+        body.append(ir.Guidance(f'support:{support}' if separate else 'support', support, spoken=separate or not named))
     if edit and request.context.allow_new_supports and needs:
         body.append(ir.Guidance('new_supports', 'allowed'))
     orientation = effective_orientation(assessment.resolved)
     if orientation:
-        body.append(ir.Guidance('orientation', orientation))
+        body.append(ir.Guidance('orientation', orientation, spoken=False))
     gaze = body_gaze(orientation, agreed({r.gaze for r in assessment.requirements} - {None, 'any'}))
     if gaze:
-        body.append(ir.Guidance('gaze', gaze))
+        # Said when the Studio turned the head to fit the body, and in an edit that keeps the photo's expression,
+        # where the gaze is the one part of the face that changes.
+        said = gaze in ('over_shoulder_camera', 'turn_to_camera') or (edit and request.attribute('expression').intent == 'keep')
+        body.append(ir.Guidance('gaze', gaze, spoken=said))
     if posture or orientation:
-        body.append(ir.Guidance('head', 'natural'))
-    if any(request.attribute(c).intent in ('set', 'transfer') for c in ('pose', 'action')):
+        body.append(ir.Guidance('head', 'natural', spoken=False))
+    if request.attribute('action').intent == 'set' and 'action_detail' not in off:
+        body.append(ir.Guidance('action_detail', 'visible'))
+    if any(request.attribute(c).intent in ('set', 'transfer') for c in ('pose', 'action')) and 'anatomy' not in off:
         # Complex poses are where extra legs and arms appear; with children in the scene, proportions follow each age.
         ages = 'mixed_ages' if any(r.children for r in assessment.requirements) else 'limbs'
         body.append(ir.Guidance('anatomy', ages))
-    if (assessment.participants_total or 0) > 1:
+    if (assessment.participants_total or 0) > 1 and 'faces' not in off:
         body.append(ir.Guidance('faces', 'eyes'))         # small faces in a group are where the eyes drift apart
     anchor = max((i for i, b in enumerate(blocks) if isinstance(b, ir.Operation)
                   and b.category in ('pose', 'action', 'expression')), default=len(blocks) - 1)
@@ -202,7 +217,7 @@ def compile_request(request: Request, assessment: Assessment, renderer=None) -> 
     blocks = build_ir(request, assessment)
     segments = tuple((renderer or render)(blocks))
     rendered = {block_id for block_id, _ in segments}
-    missing = [b.id for b in blocks if b.id not in rendered]
+    missing = [b.id for b in blocks if b.id not in rendered and getattr(b, 'spoken', True)]
     if missing:
         raise CompileError('Blocos sem texto no prompt: ' + ', '.join(missing))
     if len(rendered) != len(segments):

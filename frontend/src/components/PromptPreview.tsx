@@ -1,4 +1,4 @@
-import type {Issue, Prepared, StudioRequest} from '../api/types';
+import type {Issue, Prepared, Protection, StudioRequest} from '../api/types';
 import {CATEGORY_LABELS} from '../lib/labels';
 import {useCollapsed} from '../lib/useCollapsed';
 import {CoherenceReview} from './CoherenceReview';
@@ -14,7 +14,18 @@ interface Props {
   onManual: (enabled: boolean) => void;
   onManualText: (text: string) => void;
   onFocusField: (field: string) => void;
+  onProtection: (key: Protection, on: boolean) => void;
 }
+
+// Safeguards the Studio writes on its own that the person may take out of the prompt.
+const PROTECTIONS: Record<Protection, {label: string; help: string}> = {
+  anatomy: {label: 'Anatomia', help: 'Pede dois braços, duas mãos, duas pernas e dois pés por pessoa, em proporção natural.'},
+  faces: {label: 'Rostos', help: 'Pede rostos nítidos e olhos iguais, alinhados e olhando para o mesmo lado.'},
+  clothing: {label: 'Roupa vestida', help: 'Com a roupa livre no modo padrão, pede que todos estejam vestidos.'},
+  action_detail: {label: 'Mãos e objetos', help: 'Pede mãos, objetos e pontos de contato da ação bem visíveis.'},
+};
+const protectionOf = (block: string) => block.startsWith('guide.') && block.slice(6) in PROTECTIONS
+  ? block.slice(6) as Protection : null;
 
 const BLOCK_LABEL = (block: string) => {
   if (block.startsWith('op.')) return CATEGORY_LABELS[block.slice(3) as keyof typeof CATEGORY_LABELS] ?? block;
@@ -23,10 +34,11 @@ const BLOCK_LABEL = (block: string) => {
   if (block.startsWith('guide.')) {
     const key = block.slice(6).split(':')[0];
     return ({posture: 'Postura', support: 'Apoio', new_supports: 'Apoio', orientation: 'Orientação', gaze: 'Olhar',
-             head: 'Pescoço', anatomy: 'Anatomia', faces: 'Rostos'} as Record<string, string>)[key] ?? 'Orientação';
+             head: 'Pescoço', anatomy: 'Anatomia', faces: 'Rostos', clothing: 'Roupa vestida', age: 'Idade',
+             action_detail: 'Mãos e objetos'} as Record<string, string>)[key] ?? 'Orientação';
   }
-  return ({header: 'Início', keep: 'Manter', participants: 'Pessoas', framing: 'Enquadramento', details: 'Detalhes',
-           closing: 'Coerência', manual: 'Manual'} as Record<string, string>)[block] ?? block;
+  return ({header: 'Início', keep: 'Manter', participants: 'Pessoas', others: 'Pessoas diferentes',
+           framing: 'Enquadramento', details: 'Detalhes', manual: 'Manual'} as Record<string, string>)[block] ?? block;
 };
 
 // Issues that only mean "not filled in yet": shown as steps to take, not as errors.
@@ -60,7 +72,8 @@ function Verdict({prepared, pending}: {prepared: Prepared | null; pending: boole
     {notes.length ? `Pronto · ${notes.join(' · ')}` : 'Pronto para gerar'}</span>;
 }
 
-export function PromptPreview({request, prepared, pending, error, onManual, onManualText, onFocusField}: Props) {
+export function PromptPreview({request, prepared, pending, error, onManual, onManualText, onFocusField, onProtection}: Props) {
+  const off = request.protections_off ?? [];
   const [collapsed, toggle] = useCollapsed('prompt');
   const manual = request.prompt_mode === 'manual';
   const issues = distinct(prepared?.issues ?? []).filter(i => !(i.level === 'error' && i.code in SETUP_STEPS));
@@ -93,9 +106,20 @@ export function PromptPreview({request, prepared, pending, error, onManual, onMa
         <TranslateButton label="o prompt manual" text={request.manual_prompt ?? ''} onTranslated={onManualText} />
       </>) : !steps.length && (
         <div className="segments" aria-live="polite">
-          {prepared?.segments.map(segment => (
-            <p key={segment.block} className="segment"><span className="tag">{BLOCK_LABEL(segment.block)}</span>{segment.text}</p>
-          ))}
+          {prepared?.segments.map(segment => {
+            const protection = protectionOf(segment.block);
+            return (
+              <p key={segment.block} className={'segment' + (protection ? ' automatic' : '')}>
+                <span className="tag">{BLOCK_LABEL(segment.block)}{protection && <span className="muted"> · automático</span>}</span>
+                {protection && <button type="button" className="segment-remove" aria-label={`Tirar do prompt: ${PROTECTIONS[protection].label}`}
+                  title={`Tirar do prompt. ${PROTECTIONS[protection].help}`} onClick={() => onProtection(protection, false)}>
+                  <Icon name="close" size={13} /></button>}
+                {segment.text}
+              </p>);
+          })}
+          {off.length > 0 && <p className="segment-off muted small">Tiradas do prompt:{' '}
+            {off.map(key => <button key={key} type="button" className="link" title={`Voltar ao prompt. ${PROTECTIONS[key].help}`}
+              onClick={() => onProtection(key, true)}>{PROTECTIONS[key].label}</button>)}</p>}
           {!prepared?.segments.length && <p className="muted">{error || 'O prompt aparece aqui conforme você preenche.'}</p>}
         </div>
       )}

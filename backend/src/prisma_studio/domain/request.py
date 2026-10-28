@@ -124,6 +124,9 @@ class Output(_Strict):
         return self
 
 
+Protection = Literal['anatomy', 'faces', 'clothing', 'action_detail']
+
+
 class Request(_Strict):
     @model_validator(mode='before')
     @classmethod
@@ -149,6 +152,8 @@ class Request(_Strict):
     participants: Participants = Participants()
     context: SceneContext = SceneContext()
     details: str = Field(default='', max_length=4000)
+    # Safeguards the Studio writes on its own that the person switched off in the prompt preview.
+    protections_off: frozenset[Protection] = frozenset()
     confirmations: frozenset[Confirmation] = frozenset()
     output: Output = Output()
     engine: EngineSettings = EngineSettings()

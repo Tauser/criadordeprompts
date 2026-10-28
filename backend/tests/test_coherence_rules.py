@@ -1,5 +1,6 @@
 import pytest
 
+from prisma_studio.domain import ir
 from conftest import item
 from helpers import cat, codes, edit_request, generate_request, run
 from prisma_studio.domain.catalog import Library
@@ -39,7 +40,6 @@ def test_back_view_with_camera_gaze_is_rewritten_as_a_look_over_the_shoulder(sce
     assert 'gaze_over_shoulder' in codes(assessment, 'adjusted') and assessment.valid
     assert 'over the shoulder toward the camera, no further than the neck allows' in compiled.text
     assert 'The eyes look at the camera.' not in compiled.text
-    assert 'The neck stays natural: the head turns no further than over the shoulder.' in compiled.text
 
 
 def test_profile_with_camera_gaze_turns_the_head(scene):
@@ -65,13 +65,14 @@ def test_camera_view_must_match_the_pose(scene):
     assert 'conflicting_orientation' in codes(opposite, 'error')
     near, compiled = run(generate_request({'pose': cat('pose.front'), 'camera': cat('cam.three')}), scene)
     assert 'near_orientation' in codes(near, 'warning') and near.valid
-    assert 'The front of the body faces the camera.' in compiled.text
+    assert any(isinstance(b, ir.Guidance) and b.key == 'orientation' and b.value == 'front' for b in compiled.blocks)
 
 
 def test_camera_view_gives_the_orientation_when_the_pose_has_none(scene):
     _, compiled = run(generate_request({'pose': cat('pose.full'), 'camera': cat('cam.front'),
                                         'expression': cat('expr.camera')}), scene)
-    assert 'The front of the body faces the camera.' in compiled.text and 'The eyes look at the camera.' in compiled.text
+    guides = {(b.key, b.value) for b in compiled.blocks if isinstance(b, ir.Guidance)}
+    assert {('orientation', 'front'), ('gaze', 'camera')} <= guides
 
 
 def test_light_and_setting_must_agree(scene):

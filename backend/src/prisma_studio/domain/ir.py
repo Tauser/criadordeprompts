@@ -90,6 +90,7 @@ class MinimumFraming:
 class Guidance:
     key: str
     value: str
+    spoken: bool = True                   # False: kept for the rules and the checks, never written in the prompt
 
     @property
     def id(self) -> str:

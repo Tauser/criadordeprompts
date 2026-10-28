@@ -394,7 +394,12 @@ export function Studio({library, comfyOnline, notify}: Props) {
               keepFiles={[...new Set([...filesOf(workspace), ...filesOf(drafts[request.mode === 'edit' ? 'generate' : 'edit'])])]} />
           </div>
           <PromptPreview request={request} prepared={prepared} pending={pending} error={prepareError}
-            onManual={toggleManual} onManualText={text => patch(r => {r.manual_prompt = text;})} onFocusField={focusField} />
+            onManual={toggleManual} onManualText={text => patch(r => {r.manual_prompt = text;})} onFocusField={focusField}
+            onProtection={(key, on) => patch(r => {
+              const now = new Set(r.protections_off ?? []);
+              if (on) now.delete(key); else now.add(key);
+              r.protections_off = [...now];
+            })} />
         </div>
       </div>
       <footer className="execution-bar" aria-label="Execução">

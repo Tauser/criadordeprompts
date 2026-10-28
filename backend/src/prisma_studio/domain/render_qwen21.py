@@ -236,13 +236,12 @@ def render(blocks) -> list[tuple[str, str]]:
         elif isinstance(block, ir.MinimumFraming):
             out.append((block.id, FRAMINGS[block.framing]))
         elif isinstance(block, ir.Guidance):
-            out.append((block.id, _guidance(block)))
+            if block.spoken:
+                out.append((block.id, _guidance(block)))
         elif isinstance(block, ir.Details):
             out.append((block.id, 'Additional details: ' + _sentence(block.text)))
         else:  # pragma: no cover - guarded by the compiler's coverage check
             raise TypeError(f'Bloco sem renderização: {block!r}')
-    if header is not None and not edit:
-        out.append(('closing', 'Keep anatomy, perspective and lighting coherent.'))
     return out
 
 
@@ -271,11 +270,9 @@ def is_skeleton(block: ir.Transfer) -> bool:
 
 FIRST_PERSON_ONLY = ('subject', 'face', 'body', 'skin', 'hair')
 
-BODY_EMPHASIS = {
-    'pose': 'Reposition the head, torso, arms, hands, legs and feet exactly as described, so the new pose is '
-            'unmistakable.',
-    'action': 'Make the hands, any held object and every point of contact clearly visible and readable.',
-}
+# Measured: "Reposition the head, torso... so the new pose is unmistakable" after every pose drowned the rest of an
+# edit (the person being added was dropped in 4 of 4); a pose is said once, by its own text.
+ACTION_DETAIL = 'Make the hands, any held object and every point of contact clearly visible and readable.'
 
 
 def _operation(block: ir.Operation, edit: bool, blocks) -> str:
@@ -301,7 +298,7 @@ def _operation(block: ir.Operation, edit: bool, blocks) -> str:
             sentence += f' The people performing this action are {_people(block.participants)}{_roles(blocks)}.'
         elif written_for_cast:
             sentence += f' The people performing this action are {_people(_people_count(blocks))}.'
-        return f'{sentence} {BODY_EMPHASIS["action"]}'
+        return sentence
     # With a cast, the appearance written here is the first person's: a scene-wide "Hair: ..." gave both people the
     # same look, and "Subject: one woman" read as one more person beside the cast.
     # The same holds for a group made from the options alone; a subject that already names everyone stays as it is.
@@ -324,8 +321,6 @@ def _operation(block: ir.Operation, edit: bool, blocks) -> str:
         sentence = f'{GENERATE_LABELS[block.category]}: {text}.'
     if block.category == 'pose' and (block.participants or 1) > 1 and _people_count(blocks) > 1:
         sentence += f' The people in this pose are {_people(block.participants)}{_roles(blocks)}.'
-    if block.category == 'pose':
-        sentence += ' ' + BODY_EMPHASIS['pose']
     return sentence
 
 
@@ -415,6 +410,8 @@ def _guidance(block: ir.Guidance) -> str:
         return CLOTHED
     if block.key == 'age':
         return GROWN
+    if block.key == 'action_detail':
+        return ACTION_DETAIL
     if block.key == 'new_supports':
         return 'Add only the support surfaces the pose or action needs.'
     surface = SUPPORTS[block.value]

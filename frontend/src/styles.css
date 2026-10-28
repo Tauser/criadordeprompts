@@ -297,6 +297,9 @@ select { height: 38px; }
 .segments { display: grid; gap: 8px; }
 .segment { padding: 10px 12px; border-radius: 12px; background: var(--surface-2); font-size: 13.5px; line-height: 1.55; }
 .segment .tag { all: unset; display: block; font-size: 11.5px; font-weight: 600; color: var(--focus); margin-bottom: 3px; }
+.segment.automatic { position: relative; padding-right: 36px; }
+.segment-remove { position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; padding: 0; display: grid; place-items: center; }
+.segment-off { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 2px 0 0; }
 .prompt-text { font-size: 13px; line-height: 1.6; }
 .issues { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
 .issue { border-radius: 10px; background: var(--surface-2); font-size: 13px; }

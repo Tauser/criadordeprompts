@@ -42,6 +42,7 @@ export interface Engine {
   loras?: LoraChoice[];
 }
 
+export type Protection = 'anatomy' | 'faces' | 'clothing' | 'action_detail';
 export interface StudioRequest {
   schema_version: 1;
   mode: 'generate' | 'edit';
@@ -58,6 +59,7 @@ export interface StudioRequest {
   participants: {requested?: number | null; existing?: number | null};
   context: {supports?: Support[] | null; allow_new_supports: boolean; allow_reframing: boolean; original_framing?: Framing | null};
   details: string;
+  protections_off?: Protection[];   // safeguards the Studio writes on its own, switched off in the prompt preview
   confirmations: ('adults_only' | 'consent_or_fictional')[];
   output: Output;
   engine: Engine;

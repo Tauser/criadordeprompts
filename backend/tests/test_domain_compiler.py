@@ -136,7 +136,7 @@ def test_every_block_is_rendered_and_missing_renderings_fail(library):
     request = generate_request({'subject': cat('subject.woman'), 'pose': cat('pose.seated'), 'action': cat('action.read')})
     assessment = assess(request, library)
     compiled = compile_request(request, assessment)
-    assert {b.id for b in compiled.blocks} <= {s for s, _ in compiled.segments}
+    assert {b.id for b in compiled.blocks if getattr(b, 'spoken', True)} <= {s for s, _ in compiled.segments}
     with pytest.raises(CompileError):
         compile_request(request, assessment, renderer=lambda blocks: [('header', 'Create an image.')])
 
@@ -149,9 +149,9 @@ def test_generation_text_is_deterministic_and_style_leads(library):
     assert first == run(request, library)[1].text
     lines = first.splitlines()
     assert lines[:2] == ['Create an image.', 'Visual style: black ink illustration.']
-    for expected in ('The posture is clearly seated, with the hips supported.', 'The eyes look downwards.',
-                     'Show the entire body, including hands and feet.', 'Additional details: a red scarf.'):
+    for expected in ('Show the entire body, including hands and feet.', 'Additional details: a red scarf.'):
         assert expected in lines
+    assert 'The posture is clearly seated, with the hips supported.' not in lines
 
 
 def test_manual_prompt_is_literal(library):
@@ -229,11 +229,13 @@ def test_supports(library):
 def test_pose_and_action_are_rendered_as_explicit_body_instructions(library):
     _, compiled = run(edit_request({**DEFAULT_KEEP, 'pose': cat('pose.seated'), 'action': cat('action.read')},
                                    context={'allow_new_supports': True}), library)
-    assert 'Change the body pose to sitting upright. Reposition the head, torso, arms, hands, legs and feet' in compiled.text
-    assert 'Show the person reading a book; keep the requested pose for the torso and legs, and let the arms and hands follow this action. Make the hands' in compiled.text
+    assert 'Change the body pose to sitting upright.' in compiled.text and 'unmistakable' not in compiled.text
+    assert ('Show the person reading a book; keep the requested pose for the torso and legs, and let the arms and '
+            'hands follow this action.') in compiled.text
+    assert 'Make the hands, any held object and every point of contact clearly visible' in compiled.text
     _, group = run(generate_request({'action': cat('action.hug')}), library)
     assert ('Action: hugging each other. The people performing this action are the first person and the second '
-            'person, taking its roles in the order it describes them. Make the hands') in group.text
+            'person, taking its roles in the order it describes them.') in group.text
     _, edit_group = run(edit_request({**DEFAULT_KEEP, 'action': cat('action.hug')}, participants={'existing': 1}), library)
     assert 'Show hugging each other.' in edit_group.text and 'the person hugging' not in edit_group.text
 
@@ -552,3 +554,19 @@ def test_a_pose_that_places_its_roles_asks_where_the_character_stands(library):
     unplaced_pose = generate_request({'action': cat('action.hug')}, references=[{'id': 'b', 'label': 'Bia'}],
                                      characters=[{'reference_id': 'b'}])
     assert 'character_position_needed' not in codes(assess(unplaced_pose, library))
+
+
+def test_safeguards_the_person_switched_off_are_not_written(library):
+    request = generate_request({'action': cat('action.hug')})
+    text = run(request, library)[1].text
+    for line in ('Each person has exactly two arms', 'Every face is sharp and natural', 'Every person is fully dressed',
+                 'Make the hands, any held object'):
+        assert line in text
+    off = request.model_copy(update={'protections_off': frozenset({'anatomy', 'faces', 'clothing', 'action_detail'})})
+    text = run(off, library)[1].text
+    for line in ('Each person has exactly two arms', 'Every face is sharp and natural', 'Every person is fully dressed',
+                 'Make the hands, any held object'):
+        assert line not in text
+    # The exact count and the closing coherence line are not switches: one is measured, the other is gone.
+    assert 'exactly 2' in text or 'two people' in text
+    assert 'Keep anatomy, perspective and lighting coherent.' not in text

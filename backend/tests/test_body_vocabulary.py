@@ -1,3 +1,4 @@
+from prisma_studio.domain import ir
 from conftest import item
 from helpers import cat, codes, generate_request, run
 from prisma_studio.domain.catalog import Library
@@ -22,11 +23,11 @@ def test_generic_lying_agrees_with_one_specific_lying_posture():
     assert agreed(set()) is None
 
 
-def test_specific_posture_and_orientation_become_instructions_and_checks():
+def test_specific_posture_and_orientation_become_checks_without_repeating_the_pose():
     library = _library(fours={'posture': 'all_fours', 'orientation': 'back', 'gaze': 'any'})
     _, compiled = run(generate_request({'subject': cat('subject.woman'), 'pose': cat('pose.fours')}), library)
-    assert 'The body is on all fours, with the knees on the surface and the hips above them.' in compiled.text
-    assert 'The body is seen from behind, with the back toward the camera.' in compiled.text
+    # The pose's own text already says it: restating posture and orientation only drowned the rest of the request.
+    assert 'The body is on all fours' not in compiled.text and 'seen from behind' not in compiled.text
     ids = {check.id for check in checklist(compiled.blocks)}
     assert {'guide.posture', 'guide.orientation'} <= ids
 
@@ -35,7 +36,7 @@ def test_generic_lying_action_does_not_conflict_with_a_specific_pose():
     library = _library(back={'posture': 'supine', 'gaze': 'any'}, act_rest={'posture': 'lying', 'gaze': 'any'})
     assessment, compiled = run(generate_request({'pose': cat('pose.back'), 'action': cat('action.act_rest')}), library)
     assert 'conflicting_posture' not in codes(assessment)
-    assert 'The body is lying on its back, with the back resting on the surface.' in compiled.text
+    assert any(isinstance(b, ir.Guidance) and b.key == 'posture' and b.value == 'supine' for b in compiled.blocks)
 
 
 def test_different_lying_sides_and_orientations_conflict():
@@ -73,8 +74,11 @@ def test_body_guidance_follows_the_pose_in_a_fixed_order():
     request = generate_request({'subject': cat('subject.woman'), 'pose': cat('pose.fours'),
                                 'expression': cat('expr.calm'), 'environment': cat('env.bedroom')})
     compiled = run(request, _scene_library())[1]
-    ids = [block_id for block_id, _ in compiled.segments]
+    ids = [b.id for b in compiled.blocks]
     start = ids.index('op.expression') + 1
     assert ids[start:start + 4] == ['guide.posture', 'guide.support', 'guide.orientation', 'guide.gaze']
+    # Only the surface the Studio picked from the scene is said; the rest stays for the checks.
+    spoken = {block_id for block_id, _ in compiled.segments}
+    assert 'guide.support' in spoken and not {'guide.posture', 'guide.orientation', 'guide.gaze'} & spoken
     assert ids.index('op.pose') < ids.index('op.expression') < ids.index('op.environment')
     assert 'guide.support' in {check.id for check in checklist(compiled.blocks)}

@@ -33,7 +33,7 @@ export function initialRequest(mode: 'generate' | 'edit'): StudioRequest {
     references: [], target_id: null, mask: false, characters: [], wardrobe_scope: 'primary',
     participants: {requested: null, existing: null},
     context: {supports: null, allow_new_supports: false, allow_reframing: true, original_framing: null},
-    details: '', confirmations: [],
+    details: '', protections_off: [], confirmations: [],
     output: {profile: 'qwen21', resolution: mode === 'edit' ? 0 : 1024, aspect: '3:4', width: null, height: null,
       seed: null, variations: 1, verify: false, refine: false, face_detail: null},
     engine: {negative_prompt: ''},
